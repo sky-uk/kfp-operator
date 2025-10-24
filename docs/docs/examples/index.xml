@@ -1,64 +1,64 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Examples on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/</link><description>Recent content in Examples on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/examples/index.xml" rel="self" type="application/rss+xml"/><item><title>Pipeline Training</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_training/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_training/</guid><description>&lt;p>This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.&lt;/p>
-&lt;p>The examples for this tutorial can be found on &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/master/quickstart">GitHub&lt;/a>.&lt;/p>
-&lt;h2 id="1-build-the-pipeline">1. Build the Pipeline&lt;/h2>
-&lt;p>We use the same pipeline as the &lt;a href="https://www.tensorflow.org/tfx/tutorials/tfx/penguin_simple">TFX example&lt;/a> with a few modifications.&lt;/p>
-&lt;p>Create &lt;code>pipeline.py&lt;/code>.&lt;/p>
- &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> os
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> typing &lt;span style="color:#f92672">import&lt;/span> List, Text
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.components &lt;span style="color:#f92672">import&lt;/span> CsvExampleGen, Pusher, Trainer
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.dsl.components.base.base_node &lt;span style="color:#f92672">import&lt;/span> BaseNode
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.proto &lt;span style="color:#f92672">import&lt;/span> pusher_pb2, trainer_pb2
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.orchestration.data_types &lt;span style="color:#f92672">import&lt;/span> RuntimeParameter
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">### Environmental parameters can be left out when using the operator.&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">### Also, the return type is now a list of components instead of a pipeline.&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#def create_pipeline(pipeline_name: str, pipeline_root: str, data_root: str,&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># module_file: str, serving_model_dir: str,&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># metadata_path: str) -&amp;gt; tfx.dsl.Pipeline:&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">def&lt;/span> &lt;span style="color:#a6e22e">create_components&lt;/span>() &lt;span style="color:#f92672">-&amp;gt;&lt;/span> List[BaseNode]:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&amp;#34;Creates a penguin pipeline with TFX.&amp;#34;&amp;#34;&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Brings data into the pipeline.&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> example_gen &lt;span style="color:#f92672">=&lt;/span> CsvExampleGen(input_base&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;/data&amp;#39;&lt;/span>)
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Uses user-provided Python function that trains a model.&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> trainer &lt;span style="color:#f92672">=&lt;/span> Trainer(
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> run_fn&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;penguin_pipeline.trainer.run_fn&amp;#39;&lt;/span>,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> examples&lt;span style="color:#f92672">=&lt;/span>example_gen&lt;span style="color:#f92672">.&lt;/span>outputs[&lt;span style="color:#e6db74">&amp;#39;examples&amp;#39;&lt;/span>],
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> train_args&lt;span style="color:#f92672">=&lt;/span>trainer_pb2&lt;span style="color:#f92672">.&lt;/span>TrainArgs(num_steps&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">100&lt;/span>),
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> eval_args&lt;span style="color:#f92672">=&lt;/span>trainer_pb2&lt;span style="color:#f92672">.&lt;/span>EvalArgs(num_steps&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">5&lt;/span>))
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">## Pushes the model to a filesystem destination.&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pusher &lt;span style="color:#f92672">=&lt;/span> Pusher(
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> model&lt;span style="color:#f92672">=&lt;/span>trainer&lt;span style="color:#f92672">.&lt;/span>outputs[&lt;span style="color:#e6db74">&amp;#39;model&amp;#39;&lt;/span>],
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> push_destination&lt;span style="color:#f92672">=&lt;/span>RuntimeParameter(name&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;push_destination&amp;#34;&lt;/span>, ptype&lt;span style="color:#f92672">=&lt;/span>Text))
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Following three components will be included in the pipeline.&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> components &lt;span style="color:#f92672">=&lt;/span> [
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> example_gen,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> trainer,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pusher
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">### When using the operator, it creates the pipeline for us, &lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">### so we return the components directly instead.&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">#&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">#return tfx.dsl.Pipeline(&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># pipeline_name=pipeline_name,&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># pipeline_root=pipeline_root,&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># metadata_connection_config=tfx.orchestration.metadata&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># .sqlite_metadata_connection_config(metadata_path),&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># components=components)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> components
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
-&lt;p>Create &lt;code>trainer.py&lt;/code>.
-The training code remains unchanged:&lt;/p></description></item><item><title>Pipeline Dependencies</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</guid><description>&lt;p>Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p>
-&lt;ul>
-&lt;li>The data of an earlier step changes at a lower frequency than the data for subsequent steps&lt;/li>
-&lt;li>Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data&lt;/li>
-&lt;li>Serving a combined model of two or more pipelines&lt;/li>
-&lt;/ul>
-&lt;p>In this example, we break up the penguin example pipeline into two pipelines:&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Examples on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/</link><description>Recent content in Examples on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/examples/index.xml" rel="self" type="application/rss+xml"/><item><title>Pipeline Training</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_training/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_training/</guid><description>&lt;p&gt;This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.&lt;/p&gt;
+&lt;p&gt;The examples for this tutorial can be found on &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/master/quickstart"&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id="1-build-the-pipeline"&gt;1. Build the Pipeline&lt;/h2&gt;
+&lt;p&gt;We use the same pipeline as the &lt;a href="https://www.tensorflow.org/tfx/tutorials/tfx/penguin_simple"&gt;TFX example&lt;/a&gt; with a few modifications.&lt;/p&gt;
+&lt;p&gt;Create &lt;code&gt;pipeline.py&lt;/code&gt;.&lt;/p&gt;
+ &lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-python" data-lang="python"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;import&lt;/span&gt; os
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;from&lt;/span&gt; typing &lt;span style="color:#f92672"&gt;import&lt;/span&gt; List, Text
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;from&lt;/span&gt; tfx.components &lt;span style="color:#f92672"&gt;import&lt;/span&gt; CsvExampleGen, Pusher, Trainer
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;from&lt;/span&gt; tfx.dsl.components.base.base_node &lt;span style="color:#f92672"&gt;import&lt;/span&gt; BaseNode
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;from&lt;/span&gt; tfx.proto &lt;span style="color:#f92672"&gt;import&lt;/span&gt; pusher_pb2, trainer_pb2
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#f92672"&gt;from&lt;/span&gt; tfx.orchestration.data_types &lt;span style="color:#f92672"&gt;import&lt;/span&gt; RuntimeParameter
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;### Environmental parameters can be left out when using the operator.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;### Also, the return type is now a list of components instead of a pipeline.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;#&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;#def create_pipeline(pipeline_name: str, pipeline_root: str, data_root: str,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# module_file: str, serving_model_dir: str,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#75715e"&gt;# metadata_path: str) -&amp;gt; tfx.dsl.Pipeline:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#66d9ef"&gt;def&lt;/span&gt; &lt;span style="color:#a6e22e"&gt;create_components&lt;/span&gt;() &lt;span style="color:#f92672"&gt;-&amp;gt;&lt;/span&gt; List[BaseNode]:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#e6db74"&gt;&amp;#34;&amp;#34;&amp;#34;Creates a penguin pipeline with TFX.&amp;#34;&amp;#34;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# Brings data into the pipeline.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; example_gen &lt;span style="color:#f92672"&gt;=&lt;/span&gt; CsvExampleGen(input_base&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#39;/data&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# Uses user-provided Python function that trains a model.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; trainer &lt;span style="color:#f92672"&gt;=&lt;/span&gt; Trainer(
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; run_fn&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#39;penguin_pipeline.trainer.run_fn&amp;#39;&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; examples&lt;span style="color:#f92672"&gt;=&lt;/span&gt;example_gen&lt;span style="color:#f92672"&gt;.&lt;/span&gt;outputs[&lt;span style="color:#e6db74"&gt;&amp;#39;examples&amp;#39;&lt;/span&gt;],
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; train_args&lt;span style="color:#f92672"&gt;=&lt;/span&gt;trainer_pb2&lt;span style="color:#f92672"&gt;.&lt;/span&gt;TrainArgs(num_steps&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;100&lt;/span&gt;),
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; eval_args&lt;span style="color:#f92672"&gt;=&lt;/span&gt;trainer_pb2&lt;span style="color:#f92672"&gt;.&lt;/span&gt;EvalArgs(num_steps&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#ae81ff"&gt;5&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;## Pushes the model to a filesystem destination.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; pusher &lt;span style="color:#f92672"&gt;=&lt;/span&gt; Pusher(
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; model&lt;span style="color:#f92672"&gt;=&lt;/span&gt;trainer&lt;span style="color:#f92672"&gt;.&lt;/span&gt;outputs[&lt;span style="color:#e6db74"&gt;&amp;#39;model&amp;#39;&lt;/span&gt;],
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; push_destination&lt;span style="color:#f92672"&gt;=&lt;/span&gt;RuntimeParameter(name&lt;span style="color:#f92672"&gt;=&lt;/span&gt;&lt;span style="color:#e6db74"&gt;&amp;#34;push_destination&amp;#34;&lt;/span&gt;, ptype&lt;span style="color:#f92672"&gt;=&lt;/span&gt;Text))
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# Following three components will be included in the pipeline.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; components &lt;span style="color:#f92672"&gt;=&lt;/span&gt; [
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; example_gen,
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; trainer,
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; pusher
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ]
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;### When using the operator, it creates the pipeline for us, &lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;### so we return the components directly instead.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;#&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;#return tfx.dsl.Pipeline(&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# pipeline_name=pipeline_name,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# pipeline_root=pipeline_root,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# metadata_connection_config=tfx.orchestration.metadata&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# .sqlite_metadata_connection_config(metadata_path),&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#75715e"&gt;# components=components)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#66d9ef"&gt;return&lt;/span&gt; components
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Create &lt;code&gt;trainer.py&lt;/code&gt;.
+The training code remains unchanged:&lt;/p&gt;</description></item><item><title>Pipeline Dependencies</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</guid><description>&lt;p&gt;Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The data of an earlier step changes at a lower frequency than the data for subsequent steps&lt;/li&gt;
+&lt;li&gt;Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data&lt;/li&gt;
+&lt;li&gt;Serving a combined model of two or more pipelines&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In this example, we break up the penguin example pipeline into two pipelines:&lt;/p&gt;</description></item></channel></rss>

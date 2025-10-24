@@ -1,150 +1,150 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Reference on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/</link><description>Recent content in Reference on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>Configuration</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/configuration/</guid><description>&lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
-&lt;table>
- &lt;thead>
- &lt;tr>
- &lt;th>Parameter name&lt;/th>
- &lt;th>Description&lt;/th>
- &lt;th>Example&lt;/th>
- &lt;/tr>
- &lt;/thead>
- &lt;tbody>
- &lt;tr>
- &lt;td>&lt;code>defaultExperiment&lt;/code>&lt;/td>
- &lt;td>Default Experiment name to be used for creating pipeline runs&lt;/td>
- &lt;td>&lt;code>Default&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>defaultProvider&lt;/code>&lt;/td>
- &lt;td>Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
- &lt;td>&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>defaultTfxImage&lt;/code>&lt;/td>
- &lt;td>Default TFX image to be used when converting provider resource from v1alpha5 or v1alpha6 to v1beta1&lt;/td>
- &lt;td>&lt;code>gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
- &lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
- &lt;td>&lt;code>true&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>workflowNamespace&lt;/code>&lt;/td>
- &lt;td>Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
- &lt;td>&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>runCompletionTTL&lt;/code>&lt;/td>
- &lt;td>Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
- &lt;td>&lt;code>10m&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>runCompletionFeed&lt;/code>&lt;/td>
- &lt;td>&lt;a href="#run-completion-feed-configuration">Configuration of the service&lt;/a> for the run completion feed back to KFP Operator&lt;/td>
- &lt;td>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>defaultProviderValues&lt;/code>&lt;/td>
- &lt;td>&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../reference/providers/overview">providers&lt;/a>&lt;/td>
- &lt;td>&lt;/td>
- &lt;/tr>
- &lt;/tbody>
-&lt;/table>
-&lt;h2 id="run-completion-feed-configuration">Run Completion Feed Configuration&lt;/h2>
-&lt;table>
- &lt;thead>
- &lt;tr>
- &lt;th>Parameter name&lt;/th>
- &lt;th>Description&lt;/th>
- &lt;th>Example&lt;/th>
- &lt;/tr>
- &lt;/thead>
- &lt;tbody>
- &lt;tr>
- &lt;td>&lt;code>port&lt;/code>&lt;/td>
- &lt;td>The port that the feed endpoint will listen on&lt;/td>
- &lt;td>&lt;code>8082&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>endpoints&lt;/code>&lt;/td>
- &lt;td>Array of run completion event handler endpoints that should be called per feed message&lt;/td>
- &lt;td>&lt;code>- host: run-completion-event-handler&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;/tbody>
-&lt;/table>
-&lt;h2 id="provider-values-configuration">Provider Values Configuration&lt;/h2>
-&lt;table>
- &lt;thead>
- &lt;tr>
- &lt;th>Parameter name&lt;/th>
- &lt;th>Description&lt;/th>
- &lt;th>Example&lt;/th>
- &lt;/tr>
- &lt;/thead>
- &lt;tbody>
- &lt;tr>
- &lt;td>&lt;code>replicas&lt;/code>&lt;/td>
- &lt;td>Number of replicas used within the deployment&lt;/td>
- &lt;td>&lt;code>2&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>serviceContainerName&lt;/code>&lt;/td>
- &lt;td>Name of the container that will execute the provider image. &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec name&lt;/td>
- &lt;td>&lt;code>provider-service&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>servicePort&lt;/code>&lt;/td>
- &lt;td>The port that should expose the service &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec ports&lt;/td>
- &lt;td>&lt;code>8080&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>metricsPort&lt;/code>&lt;/td>
- &lt;td>The port that should expose the metrics service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>metrics&lt;/code> port defined in the podTemplateSpec&lt;/td>
- &lt;td>&lt;code>8081&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>labels&lt;/code>&lt;/td>
- &lt;td>A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>. To attach labels to a provider service pod, use &lt;code>podTemplateSpec&lt;/code>.&lt;/td>
- &lt;td>&lt;code>a: label&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td>&lt;code>podTemplateSpec&lt;/code>&lt;/td>
- &lt;td>&lt;a href="https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates">k8s pod template spec for the provider service deployment&lt;/a>&lt;/td>
- &lt;td>&lt;/td>
- &lt;/tr>
- &lt;/tbody>
-&lt;/table>
-&lt;p>An example configuration:&lt;/p></description></item><item><title>Pipeline Frameworks</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/frameworks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/frameworks/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
-&lt;p>The KFP Operator supports multiple pipeline frameworks, including:&lt;/p>
-&lt;ul>
-&lt;li>&lt;a href="https://www.tensorflow.org/tfx">TFX&lt;/a>&lt;/li>
-&lt;li>&lt;a href="https://kubeflow-pipelines.readthedocs.io/">KFP SDK&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;h2 id="compiler-workflow">Compiler Workflow&lt;/h2>
-&lt;p>The &lt;code>kfp-operator-create-compiled&lt;/code> workflow &lt;code>compile&lt;/code> step accepts the following parameters:&lt;/p>
-&lt;ul>
-&lt;li>&lt;strong>resource-image&lt;/strong>: the image containing the model code (looked up from the pipeline resource in preview workflow step)&lt;/li>
-&lt;li>&lt;strong>provider-config&lt;/strong>: the provider configuration (&lt;a href="../providers/overview">see provider overview&lt;/a>)&lt;/li>
-&lt;li>&lt;strong>pipeline-framework-image&lt;/strong>: the image for the pipeline framework compiler&lt;/li>
-&lt;/ul>
-&lt;p>The image specified in &lt;code>pipeline-framework-image&lt;/code> is executed as a initContainer and runs the entrypoint script. The entrypoint
-script should copy the required compiler code into the shared directory &lt;code>/shared&lt;/code> (which is mirrored into the main container) and then exit. This &lt;code>/shared&lt;/code> location is passed as
-the first and only parameter to the entrypoint script.&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
-Within the operator this can be updating the status fields of resources such as their &lt;code>synchronizationState&lt;/code> or &lt;code>providerId&lt;/code>. Within the ML Ops ecosystem,
-this can also be used to reload a serving instance of a model with the newly trained version.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/images/run-completion.svg" alt="Model Serving">&lt;/p>
-&lt;h2 id="event-specification">Event Specification&lt;/h2>
-&lt;p>The specification of the events follows &lt;a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md">CloudEvents&lt;/a>:&lt;/p></description></item><item><title>Debugging</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/debugging/</guid><description>&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
-&lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
-&lt;p>Example:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>$ kubectl describe pipeline pipeline-sample
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>...
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Events:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Type Reason Age From Message
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ---- ------ ---- ---- -------
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 5m54s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Warning SyncFailed 101s kfp-operator Failed &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>: pipeline update failed
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 9m47s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="compiling-locally">Compiling locally&lt;/h2>
-&lt;p>The KFP-Operator&amp;rsquo;s compiler can be used locally for debugging purposes. This can be especially useful for troubleshooting environment variable and beam argument resolution.&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Reference on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/</link><description>Recent content in Reference on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>Configuration</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/configuration/</guid><description>&lt;p&gt;The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;Parameter name&lt;/th&gt;
+ &lt;th&gt;Description&lt;/th&gt;
+ &lt;th&gt;Example&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;defaultExperiment&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Default Experiment name to be used for creating pipeline runs&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;Default&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;defaultProvider&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Default provider name to be used (see &lt;a href="../providers"&gt;Using Multiple Providers&lt;/a&gt;). &lt;strong&gt;Note:&lt;/strong&gt; This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;vertex-ai-europe&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;defaultTfxImage&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Default TFX image to be used when converting provider resource from v1alpha5 or v1alpha6 to v1beta1&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;multiversion&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;true&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;workflowNamespace&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;kfp-operator-workflows&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;runCompletionTTL&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;10m&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;runCompletionFeed&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;a href="#run-completion-feed-configuration"&gt;Configuration of the service&lt;/a&gt; for the run completion feed back to KFP Operator&lt;/td&gt;
+ &lt;td&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;defaultProviderValues&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;a href="#provider-values-configuration"&gt;Configuration of the deployment and service&lt;/a&gt; created for &lt;a href="../reference/providers/overview"&gt;providers&lt;/a&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="run-completion-feed-configuration"&gt;Run Completion Feed Configuration&lt;/h2&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;Parameter name&lt;/th&gt;
+ &lt;th&gt;Description&lt;/th&gt;
+ &lt;th&gt;Example&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;port&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;The port that the feed endpoint will listen on&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;8082&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;endpoints&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Array of run completion event handler endpoints that should be called per feed message&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;- host: run-completion-event-handler&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id="provider-values-configuration"&gt;Provider Values Configuration&lt;/h2&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;Parameter name&lt;/th&gt;
+ &lt;th&gt;Description&lt;/th&gt;
+ &lt;th&gt;Example&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;replicas&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Number of replicas used within the deployment&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;2&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;serviceContainerName&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Name of the container that will execute the provider image. &lt;strong&gt;Note:&lt;/strong&gt; this must match the podTemplateSpec name&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;provider-service&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;servicePort&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;The port that should expose the service &lt;strong&gt;Note:&lt;/strong&gt; this must match the podTemplateSpec ports&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;8080&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;metricsPort&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;The port that should expose the metrics service. &lt;strong&gt;Note:&lt;/strong&gt; this must match the &lt;code&gt;metrics&lt;/code&gt; port defined in the podTemplateSpec&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;8081&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;labels&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;A map of additional labels to add to the provider service Deployment &lt;strong&gt;and&lt;/strong&gt; Service. The Deployment and Service will also have a label of &lt;code&gt;app: provider-&amp;lt;provider_name&amp;gt;&lt;/code&gt;. To attach labels to a provider service pod, use &lt;code&gt;podTemplateSpec&lt;/code&gt;.&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;a: label&lt;/code&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;&lt;code&gt;podTemplateSpec&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;a href="https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates"&gt;k8s pod template spec for the provider service deployment&lt;/a&gt;&lt;/td&gt;
+ &lt;td&gt;&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;An example configuration:&lt;/p&gt;</description></item><item><title>Pipeline Frameworks</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/frameworks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/frameworks/</guid><description>&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
+&lt;p&gt;The KFP Operator supports multiple pipeline frameworks, including:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://www.tensorflow.org/tfx"&gt;TFX&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://kubeflow-pipelines.readthedocs.io/"&gt;KFP SDK&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="compiler-workflow"&gt;Compiler Workflow&lt;/h2&gt;
+&lt;p&gt;The &lt;code&gt;kfp-operator-create-compiled&lt;/code&gt; workflow &lt;code&gt;compile&lt;/code&gt; step accepts the following parameters:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;resource-image&lt;/strong&gt;: the image containing the model code (looked up from the pipeline resource in preview workflow step)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;provider-config&lt;/strong&gt;: the provider configuration (&lt;a href="../providers/overview"&gt;see provider overview&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;pipeline-framework-image&lt;/strong&gt;: the image for the pipeline framework compiler&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The image specified in &lt;code&gt;pipeline-framework-image&lt;/code&gt; is executed as a initContainer and runs the entrypoint script. The entrypoint
+script should copy the required compiler code into the shared directory &lt;code&gt;/shared&lt;/code&gt; (which is mirrored into the main container) and then exit. This &lt;code&gt;/shared&lt;/code&gt; location is passed as
+the first and only parameter to the entrypoint script.&lt;/p&gt;</description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/run-completion/</guid><description>&lt;p&gt;Run completion events are created by a &lt;a href="../../reference/providers/overview"&gt;&lt;code&gt;Provider&lt;/code&gt;&lt;/a&gt; to signal the completion of a pipeline run, and is used to trigger downstream processes.
+Within the operator this can be updating the status fields of resources such as their &lt;code&gt;synchronizationState&lt;/code&gt; or &lt;code&gt;providerId&lt;/code&gt;. Within the ML Ops ecosystem,
+this can also be used to reload a serving instance of a model with the newly trained version.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/images/run-completion.svg" alt="Model Serving"&gt;&lt;/p&gt;
+&lt;h2 id="event-specification"&gt;Event Specification&lt;/h2&gt;
+&lt;p&gt;The specification of the events follows &lt;a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md"&gt;CloudEvents&lt;/a&gt;:&lt;/p&gt;</description></item><item><title>Debugging</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/debugging/</guid><description>&lt;h2 id="kubernetes-events"&gt;Kubernetes Events&lt;/h2&gt;
+&lt;p&gt;The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code&gt;kubectl describe&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Example:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;$ kubectl describe pipeline pipeline-sample
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;...
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;Events:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; Type Reason Age From Message
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; ---- ------ ---- ---- -------
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; Normal Syncing 5m54s kfp-operator Updating &lt;span style="color:#f92672"&gt;[&lt;/span&gt;version: &lt;span style="color:#e6db74"&gt;&amp;#34;v5-841641&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; Warning SyncFailed 101s kfp-operator Failed &lt;span style="color:#f92672"&gt;[&lt;/span&gt;version: &lt;span style="color:#e6db74"&gt;&amp;#34;v5-841641&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;]&lt;/span&gt;: pipeline update failed
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; Normal Syncing 9m47s kfp-operator Updating &lt;span style="color:#f92672"&gt;[&lt;/span&gt;version: &lt;span style="color:#e6db74"&gt;&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672"&gt;[&lt;/span&gt;version: &lt;span style="color:#e6db74"&gt;&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span&gt;&lt;span style="color:#f92672"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="compiling-locally"&gt;Compiling locally&lt;/h2&gt;
+&lt;p&gt;The KFP-Operator&amp;rsquo;s compiler can be used locally for debugging purposes. This can be especially useful for troubleshooting environment variable and beam argument resolution.&lt;/p&gt;</description></item></channel></rss>
