@@ -180,18 +180,12 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 ) (*argo.Workflow, error) {
 	baseParams := workflows.workflowBuilder.BuildDeletionParams(resource.GetStatus().Provider.Id)
 
-	// Deletion workflows typically don't need additional params, but call it for consistency
-	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
-	if err != nil {
-		return nil, err
-	}
-
 	return workflows.workflowBuilder.BuildWorkflow(
 		resource,
 		provider,
 		providerSvc,
 		workflows.TemplateNameGenerator.DeleteTemplate(),
 		baseParams,
-		additionalParams,
+		[]argo.Parameter{},
 	)
 }
