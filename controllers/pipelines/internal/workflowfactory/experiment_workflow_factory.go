@@ -33,7 +33,7 @@ func ExperimentWorkflowFactory(
 			Config: config,
 		}.experimentDefinition,
 		Config:                config,
-		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
+		TemplateSuffix:        SimpleSuffix,
 		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.Experiment],
 	}
 }

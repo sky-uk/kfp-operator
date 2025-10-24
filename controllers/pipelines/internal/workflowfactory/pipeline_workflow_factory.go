@@ -74,6 +74,6 @@ func PipelineWorkflowFactory(
 		DefinitionCreator:     creator.pipelineDefinition,
 		WorkflowParamsCreator: creator.additionalParams,
 		Config:                config,
-		TemplateNameGenerator: CompiledTemplateNameGenerator(config),
+		TemplateSuffix:        CompiledSuffix,
 	}
 }
