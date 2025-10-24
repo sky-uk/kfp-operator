@@ -16,11 +16,16 @@ var _ = Describe("CommonWorkflowMeta", func() {
 	It("creates metadata", func() {
 		owner := pipelineshub.RandomResource()
 		namespace := RandomString()
-		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
-			Config: config.KfpControllerConfigSpec{
+		w := NewResourceWorkflowFactory(
+			config.KfpControllerConfigSpec{
 				WorkflowNamespace: namespace,
 			},
-		}
+			SimpleTemplateNameGenerator(config.KfpControllerConfigSpec{}),
+			func(pipelineshub.Provider, *pipelineshub.TestResource) ([]pipelineshub.Patch, any, error) {
+				return nil, nil, nil
+			},
+			WorkflowParamsCreatorNoop[*pipelineshub.TestResource],
+		)
 		meta := w.CommonWorkflowMeta(owner)
 
 		Expect(meta.Namespace).To(Equal(namespace))
@@ -34,26 +39,42 @@ var _ = Describe("CommonWorkflowMeta", func() {
 	It("uses config.WorkflowNamespace if set", func() {
 		owner := pipelineshub.RandomResource()
 		configuredNamespace := "configuredNamespace"
-		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
-			Config: config.KfpControllerConfigSpec{
+		w := NewResourceWorkflowFactory(
+			config.KfpControllerConfigSpec{
 				WorkflowNamespace: configuredNamespace,
 			},
-		}
+			SimpleTemplateNameGenerator(config.KfpControllerConfigSpec{}),
+			func(pipelineshub.Provider, *pipelineshub.TestResource) ([]pipelineshub.Patch, any, error) {
+				return nil, nil, nil
+			},
+			WorkflowParamsCreatorNoop[*pipelineshub.TestResource],
+		)
 		meta := w.CommonWorkflowMeta(owner)
 
 		Expect(meta.Namespace).To(Equal(configuredNamespace))
 	})
 })
 
-var _ = Describe("checkResourceNamespaceAllowed", func() {
+var _ = Describe("WorkflowBuilder.checkResourceNamespaceAllowed", func() {
+	var wb *BaseWorkflowBuilder
+
+	BeforeEach(func() {
+		wb = NewBaseWorkflowBuilder(config.KfpControllerConfigSpec{})
+	})
+
 	It("fails when the resource namespace is not in the provider allowed namespaces", func() {
 		provider := pipelineshub.RandomProvider()
 		provider.Spec.AllowedNamespaces = []string{"bar"}
 		provider.Name = "test"
-		err := checkResourceNamespaceAllowed(types.NamespacedName{
-			Namespace: "foo",
-			Name:      "test-resource",
-		}, *provider)
+
+		resource := &pipelineshub.TestResource{
+			NamespacedName: types.NamespacedName{
+				Namespace: "foo",
+				Name:      "test-resource",
+			},
+		}
+
+		err := wb.checkResourceNamespaceAllowed(resource, *provider)
 		Expect(err).To(HaveOccurred())
 		Expect(err.Error()).To(Equal("resource test-resource in namespace foo is not allowed by provider test"))
 	})
@@ -61,20 +82,30 @@ var _ = Describe("checkResourceNamespaceAllowed", func() {
 	It("succeeds when the provider allowed namespaces is empty", func() {
 		provider := pipelineshub.RandomProvider()
 		provider.Spec.AllowedNamespaces = []string{}
-		err := checkResourceNamespaceAllowed(types.NamespacedName{
-			Namespace: "foo",
-			Name:      "test-resource",
-		}, *provider)
+
+		resource := &pipelineshub.TestResource{
+			NamespacedName: types.NamespacedName{
+				Namespace: "foo",
+				Name:      "test-resource",
+			},
+		}
+
+		err := wb.checkResourceNamespaceAllowed(resource, *provider)
 		Expect(err).To(Not(HaveOccurred()))
 	})
 
 	It("succeeds when the resource namespace is in the provider allowed namespaces", func() {
 		provider := pipelineshub.RandomProvider()
 		provider.Spec.AllowedNamespaces = []string{"foo"}
-		err := checkResourceNamespaceAllowed(types.NamespacedName{
-			Namespace: "foo",
-			Name:      "test-resource",
-		}, *provider)
+
+		resource := &pipelineshub.TestResource{
+			NamespacedName: types.NamespacedName{
+				Namespace: "foo",
+				Name:      "test-resource",
+			},
+		}
+
+		err := wb.checkResourceNamespaceAllowed(resource, *provider)
 		Expect(err).To(Not(HaveOccurred()))
 	})
 })

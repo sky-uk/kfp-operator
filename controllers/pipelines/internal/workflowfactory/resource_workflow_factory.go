@@ -3,18 +3,13 @@ package workflowfactory
 import (
 	"encoding/json"
 	"fmt"
-	"net"
-	"slices"
-	"strconv"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/jsonutil"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 type WorkflowFactory[R pipelineshub.Resource] interface {
@@ -37,15 +32,12 @@ type WorkflowFactory[R pipelineshub.Resource] interface {
 	) (*argo.Workflow, error)
 }
 
-func createProviderServiceUrl(svc corev1.Service, port int) string {
-	return net.JoinHostPort(fmt.Sprintf("%s.%s", svc.Name, svc.Namespace), strconv.Itoa(port))
-}
-
 type ResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any] struct {
 	Config                config.KfpControllerConfigSpec
 	TemplateSuffix        string
 	DefinitionCreator     func(pipelineshub.Provider, R) ([]pipelineshub.Patch, ResourceDefinition, error)
 	WorkflowParamsCreator func(pipelineshub.Provider, R) ([]argo.Parameter, error)
+	workflowBuilder       *BaseWorkflowBuilder
 }
 
 const (
@@ -72,14 +64,26 @@ func WorkflowParamsCreatorNoop[R any](provider pipelineshub.Provider, _ R) ([]ar
 	return []argo.Parameter{}, nil
 }
 
+func NewResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any](
+	config config.KfpControllerConfigSpec,
+	templateSuffix string,
+	definitionCreator func(pipelineshub.Provider, R) ([]pipelineshub.Patch, ResourceDefinition, error),
+	workflowParamsCreator func(pipelineshub.Provider, R) ([]argo.Parameter, error),
+) *ResourceWorkflowFactory[R, ResourceDefinition] {
+	return &ResourceWorkflowFactory[R, ResourceDefinition]{
+		Config:                config,
+		TemplateSuffix:        templateSuffix,
+		DefinitionCreator:     definitionCreator,
+		WorkflowParamsCreator: workflowParamsCreator,
+		workflowBuilder:       NewBaseWorkflowBuilder(config),
+	}
+}
+
+// CommonWorkflowMeta is deprecated, use workflowBuilder.commonWorkflowMeta instead
 func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
 	owner pipelineshub.Resource,
 ) *metav1.ObjectMeta {
-	return &metav1.ObjectMeta{
-		GenerateName: fmt.Sprintf("%s-%s-", owner.GetKind(), owner.GetName()),
-		Namespace:    workflows.Config.WorkflowNamespace,
-		Labels:       workflowconstants.CommonWorkflowLabels(owner),
-	}
+	return workflows.workflowBuilder.commonWorkflowMeta(owner)
 }
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionJson(provider pipelineshub.Provider, resource R) (string, error) {
@@ -101,16 +105,6 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 	return patchedJsonString, nil
 }
 
-func checkResourceNamespaceAllowed(
-	resourceNamespacedName types.NamespacedName,
-	provider pipelineshub.Provider,
-) error {
-	if len(provider.Spec.AllowedNamespaces) > 0 && !slices.Contains(provider.Spec.AllowedNamespaces, resourceNamespacedName.Namespace) {
-		return fmt.Errorf("resource %s in namespace %s is not allowed by provider %s", resourceNamespacedName.Name, resourceNamespacedName.Namespace, provider.Name)
-	}
-	return nil
-}
-
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
@@ -121,56 +115,21 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		return nil, err
 	}
 
-	namespacedProvider, err := provider.GetCommonNamespacedName().String()
-	if err != nil {
-		return nil, err
-	}
-
-	if err = checkResourceNamespaceAllowed(resource.GetNamespacedName(), provider); err != nil {
-		return nil, err
-	}
-
-	params := []argo.Parameter{
-		{
-			Name:  workflowconstants.ResourceKindParameterName,
-			Value: argo.AnyStringPtr(resource.GetKind()),
-		},
-		{
-			Name:  workflowconstants.ResourceDefinitionParameterName,
-			Value: argo.AnyStringPtr(resourceDefinition),
-		},
-		{
-			Name:  workflowconstants.ProviderNameParameterName,
-			Value: argo.AnyStringPtr(namespacedProvider),
-		},
-		{
-			Name: workflowconstants.ProviderServiceUrl,
-			Value: argo.AnyStringPtr(
-				createProviderServiceUrl(
-					providerSvc,
-					workflows.Config.DefaultProviderValues.ServicePort,
-				),
-			),
-		},
-	}
+	baseParams := workflows.workflowBuilder.BuildCreationParams(resourceDefinition)
 
 	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
 	if err != nil {
 		return nil, err
 	}
-	params = append(params, additionalParams...)
 
-	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
-		Spec: argo.WorkflowSpec{
-			Arguments: argo.Arguments{
-				Parameters: params,
-			},
-			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name: workflows.createTemplateName(),
-			},
-		},
-	}, nil
+	return workflows.workflowBuilder.BuildWorkflow(
+		resource,
+		provider,
+		providerSvc,
+		workflows.TemplateSuffix,
+		baseParams,
+		additionalParams,
+	)
 }
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(
@@ -183,60 +142,24 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 		return nil, err
 	}
 
-	namespacedProvider, err := provider.GetCommonNamespacedName().String()
-	if err != nil {
-		return nil, err
-	}
-
-	if err = checkResourceNamespaceAllowed(resource.GetNamespacedName(), provider); err != nil {
-		return nil, err
-	}
-
-	params := []argo.Parameter{
-		{
-			Name:  workflowconstants.ResourceKindParameterName,
-			Value: argo.AnyStringPtr(resource.GetKind()),
-		},
-		{
-			Name:  workflowconstants.ResourceDefinitionParameterName,
-			Value: argo.AnyStringPtr(resourceDefinition),
-		},
-		{
-			Name:  workflowconstants.ResourceIdParameterName,
-			Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
-		},
-		{
-			Name:  workflowconstants.ProviderNameParameterName,
-			Value: argo.AnyStringPtr(namespacedProvider),
-		},
-		{
-			Name: workflowconstants.ProviderServiceUrl,
-			Value: argo.AnyStringPtr(
-				createProviderServiceUrl(
-					providerSvc,
-					workflows.Config.DefaultProviderValues.ServicePort,
-				),
-			),
-		},
-	}
+	baseParams := workflows.workflowBuilder.BuildUpdateParams(
+		resourceDefinition,
+		resource.GetStatus().Provider.Id,
+	)
 
 	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
 	if err != nil {
 		return nil, err
 	}
-	params = append(params, additionalParams...)
 
-	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
-		Spec: argo.WorkflowSpec{
-			Arguments: argo.Arguments{
-				Parameters: params,
-			},
-			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name: workflows.updateTemplateName(),
-			},
-		},
-	}, nil
+	return workflows.workflowBuilder.BuildWorkflow(
+		resource,
+		provider,
+		providerSvc,
+		workflows.TemplateSuffix,
+		baseParams,
+		additionalParams,
+	)
 }
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(
@@ -244,47 +167,20 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	baseParams := workflows.workflowBuilder.BuildDeletionParams(resource.GetStatus().Provider.Id)
+
+	// Deletion workflows typically don't need additional params, but call it for consistency
+	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
 	if err != nil {
-		fmt.Println("ResourceWorkflowFactory: err: ", err)
 		return nil, err
 	}
 
-	if err = checkResourceNamespaceAllowed(resource.GetNamespacedName(), provider); err != nil {
-		return nil, err
-	}
-
-	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
-		Spec: argo.WorkflowSpec{
-			Arguments: argo.Arguments{
-				Parameters: []argo.Parameter{
-					{
-						Name:  workflowconstants.ResourceKindParameterName,
-						Value: argo.AnyStringPtr(resource.GetKind()),
-					},
-					{
-						Name:  workflowconstants.ResourceIdParameterName,
-						Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
-					},
-					{
-						Name:  workflowconstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(namespacedProvider),
-					},
-					{
-						Name: workflowconstants.ProviderServiceUrl,
-						Value: argo.AnyStringPtr(
-							createProviderServiceUrl(
-								providerSvc,
-								workflows.Config.DefaultProviderValues.ServicePort,
-							),
-						),
-					},
-				},
-			},
-			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name: workflows.deleteTemplateName(),
-			},
-		},
-	}, nil
+	return workflows.workflowBuilder.BuildWorkflow(
+		resource,
+		provider,
+		providerSvc,
+		workflows.TemplateSuffix,
+		baseParams,
+		additionalParams,
+	)
 }

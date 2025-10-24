@@ -83,12 +83,10 @@ func runConfigurationNameForRunSchedule(
 func RunScheduleWorkflowFactory(
 	config config.KfpControllerConfigSpec,
 ) *ResourceWorkflowFactory[*pipelineshub.RunSchedule, providers.RunScheduleDefinition] {
-	return &ResourceWorkflowFactory[*pipelineshub.RunSchedule, providers.RunScheduleDefinition]{
-		DefinitionCreator: RunScheduleDefinitionCreator{
-			Config: config,
-		}.runScheduleDefinition,
-		Config:                config,
-		TemplateSuffix:        SimpleSuffix,
-		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.RunSchedule],
-	}
+	return NewResourceWorkflowFactory(
+		config,
+		SimpleSuffix,
+		RunScheduleDefinitionCreator{Config: config}.runScheduleDefinition,
+		WorkflowParamsCreatorNoop[*pipelineshub.RunSchedule],
+	)
 }

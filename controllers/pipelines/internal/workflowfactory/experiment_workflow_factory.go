@@ -28,12 +28,10 @@ func (edc ExperimentDefinitionCreator) experimentDefinition(
 func ExperimentWorkflowFactory(
 	config config.KfpControllerConfigSpec,
 ) *ResourceWorkflowFactory[*pipelineshub.Experiment, providers.ExperimentDefinition] {
-	return &ResourceWorkflowFactory[*pipelineshub.Experiment, providers.ExperimentDefinition]{
-		DefinitionCreator: ExperimentDefinitionCreator{
-			Config: config,
-		}.experimentDefinition,
-		Config:                config,
-		TemplateSuffix:        SimpleSuffix,
-		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.Experiment],
-	}
+	return NewResourceWorkflowFactory(
+		config,
+		SimpleSuffix,
+		ExperimentDefinitionCreator{Config: config}.experimentDefinition,
+		WorkflowParamsCreatorNoop[*pipelineshub.Experiment],
+	)
 }
