@@ -75,12 +75,10 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 func RunWorkflowFactory(
 	config config.KfpControllerConfigSpec,
 ) *ResourceWorkflowFactory[*pipelineshub.Run, providers.RunDefinition] {
-	return &ResourceWorkflowFactory[*pipelineshub.Run, providers.RunDefinition]{
-		DefinitionCreator: RunDefinitionCreator{
-			Config: config,
-		}.runDefinition,
-		Config:                config,
-		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
-		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.Run],
-	}
+	return NewResourceWorkflowFactory(
+		config,
+		SimpleTemplateNameGenerator(config),
+		RunDefinitionCreator{Config: config}.runDefinition,
+		WorkflowParamsCreatorNoop[*pipelineshub.Run],
+	)
 }

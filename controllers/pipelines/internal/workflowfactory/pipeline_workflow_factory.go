@@ -70,10 +70,10 @@ func PipelineWorkflowFactory(
 	config config.KfpControllerConfigSpec,
 ) *ResourceWorkflowFactory[*pipelineshub.Pipeline, providers.PipelineDefinition] {
 	creator := PipelineParamsCreator{}
-	return &ResourceWorkflowFactory[*pipelineshub.Pipeline, providers.PipelineDefinition]{
-		DefinitionCreator:     creator.pipelineDefinition,
-		WorkflowParamsCreator: creator.additionalParams,
-		Config:                config,
-		TemplateNameGenerator: CompiledTemplateNameGenerator(config),
-	}
+	return NewResourceWorkflowFactory(
+		config,
+		CompiledTemplateNameGenerator(config),
+		creator.pipelineDefinition,
+		creator.additionalParams,
+	)
 }
