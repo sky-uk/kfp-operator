@@ -80,14 +80,14 @@ func NewResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any]
 }
 
 // CommonWorkflowMeta is deprecated, use workflowBuilder.commonWorkflowMeta instead
-func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
+func (rwf ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
 	owner pipelineshub.Resource,
 ) *metav1.ObjectMeta {
-	return workflows.workflowBuilder.commonWorkflowMeta(owner)
+	return rwf.workflowBuilder.commonWorkflowMeta(owner)
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionJson(provider pipelineshub.Provider, resource R) (string, error) {
-	patches, resourceDefinition, err := workflows.DefinitionCreator(provider, resource)
+func (rwf *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionJson(provider pipelineshub.Provider, resource R) (string, error) {
+	patches, resourceDefinition, err := rwf.DefinitionCreator(provider, resource)
 	if err != nil {
 		return "", err
 	}
@@ -105,82 +105,76 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 	return patchedJsonString, nil
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(
+func (rwf *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionJson(provider, resource)
+	resourceDefinition, err := rwf.resourceDefinitionJson(provider, resource)
 	if err != nil {
 		return nil, err
 	}
 
-	baseParams := workflows.workflowBuilder.BuildCreationParams(resourceDefinition)
+	baseParams := rwf.workflowBuilder.BuildCreationParams(resourceDefinition)
 
-	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
+	additionalParams, err := rwf.WorkflowParamsCreator(provider, resource)
 	if err != nil {
 		return nil, err
 	}
 
-	return workflows.workflowBuilder.BuildWorkflow(
+	return rwf.workflowBuilder.BuildWorkflow(
 		resource,
 		provider,
 		providerSvc,
-		workflows.TemplateSuffix,
+		rwf.createTemplateName(),
 		baseParams,
 		additionalParams,
 	)
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(
+func (rwf *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionJson(provider, resource)
+	resourceDefinition, err := rwf.resourceDefinitionJson(provider, resource)
 	if err != nil {
 		return nil, err
 	}
 
-	baseParams := workflows.workflowBuilder.BuildUpdateParams(
+	baseParams := rwf.workflowBuilder.BuildUpdateParams(
 		resourceDefinition,
 		resource.GetStatus().Provider.Id,
 	)
 
-	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
+	additionalParams, err := rwf.WorkflowParamsCreator(provider, resource)
 	if err != nil {
 		return nil, err
 	}
 
-	return workflows.workflowBuilder.BuildWorkflow(
+	return rwf.workflowBuilder.BuildWorkflow(
 		resource,
 		provider,
 		providerSvc,
-		workflows.TemplateSuffix,
+		rwf.updateTemplateName(),
 		baseParams,
 		additionalParams,
 	)
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(
+func (rwf *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	baseParams := workflows.workflowBuilder.BuildDeletionParams(resource.GetStatus().Provider.Id)
+	baseParams := rwf.workflowBuilder.BuildDeletionParams(resource.GetStatus().Provider.Id)
 
-	// Deletion workflows typically don't need additional params, but call it for consistency
-	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
-	if err != nil {
-		return nil, err
-	}
-
-	return workflows.workflowBuilder.BuildWorkflow(
+	return rwf.workflowBuilder.BuildWorkflow(
 		resource,
 		provider,
 		providerSvc,
-		workflows.TemplateSuffix,
+		rwf.deleteTemplateName(),
 		baseParams,
-		additionalParams,
+		[]argo.Parameter{},
 	)
 }

@@ -20,7 +20,7 @@ var _ = Describe("CommonWorkflowMeta", func() {
 			config.KfpControllerConfigSpec{
 				WorkflowNamespace: namespace,
 			},
-			SimpleTemplateNameGenerator(config.KfpControllerConfigSpec{}),
+			SimpleSuffix,
 			func(pipelineshub.Provider, *pipelineshub.TestResource) ([]pipelineshub.Patch, any, error) {
 				return nil, nil, nil
 			},
@@ -43,7 +43,7 @@ var _ = Describe("CommonWorkflowMeta", func() {
 			config.KfpControllerConfigSpec{
 				WorkflowNamespace: configuredNamespace,
 			},
-			SimpleTemplateNameGenerator(config.KfpControllerConfigSpec{}),
+			SimpleSuffix,
 			func(pipelineshub.Provider, *pipelineshub.TestResource) ([]pipelineshub.Patch, any, error) {
 				return nil, nil, nil
 			},
