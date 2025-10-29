@@ -1,28 +1,32 @@
-[tool.poetry]
+[project]
 name = "compiler"
-version = "0.0.0" # set by poetry-dynamic-versioning
+version = "0.0.0" # set by setuptools-scm
 description = ""
 authors = []
+requires-python = ">=3.9"
+dependencies = [
+    "click>=8,<9",
+    "PyYAML>=6",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9"
-click = ">=8,<9"
-PyYAML = ">=6"
+[project.optional-dependencies]
+dev = [
+    "kfp>=2,<3",
+    "pytest>=8",
+    "black>=25",
+    "flake8>=7",
+]
 
-[tool.poetry.group.dev.dependencies]
-kfp = ">=2,<3"
-pytest = ">=8"
-black = ">=25"
-flake8 = ">=7"
+[project.scripts]
+compiler = 'compiler.__main__:main'
 
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-format-jinja = "{{base}}+{{distance}}.{{commit}}{% if dirty %}.dirty{% endif %}"
+[tool.setuptools]
+packages = ["compiler"]
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "dirty-tag"
 
 [build-system]
-requires = ["poetry-core>=1.1.9", "poetry-dynamic-versioning"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-compiler = 'compiler.__main__:main'
+requires = ["setuptools>=61", "setuptools-scm"]
+build-backend = "setuptools.build_meta"

@@ -5,3 +5,4 @@ hugo extended_0.146.0
 golang 1.25.3
 nodejs 22.9.0
 minikube 1.31.2
+uv 0.9.5
