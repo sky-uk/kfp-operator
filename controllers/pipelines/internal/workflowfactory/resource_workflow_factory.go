@@ -3,7 +3,9 @@ package workflowfactory
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"slices"
+	"strconv"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -36,7 +38,7 @@ type WorkflowFactory[R pipelineshub.Resource] interface {
 }
 
 func createProviderServiceUrl(svc corev1.Service, port int) string {
-	return fmt.Sprintf("%s.%s:%d", svc.Name, svc.Namespace, port)
+	return net.JoinHostPort(fmt.Sprintf("%s.%s", svc.Name, svc.Namespace), strconv.Itoa(port))
 }
 
 type ResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any] struct {
