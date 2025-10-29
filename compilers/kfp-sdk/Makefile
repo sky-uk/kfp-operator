@@ -3,23 +3,22 @@ include ../../help.mk
 ##@ Build
 
 build: ## Build
-	pip install poetry-dynamic-versioning --quiet
-	poetry install
-	poetry run black .
-	poetry run flake8
-	poetry build
+	uv sync --all-extras
+	uv run black .
+	uv run flake8
+	uv build
 
 ##@ Containers
 
 include ../../docker-targets.mk
 IMG := kfp-operator-kfpsdk-compiler
-WHEEL_VERSION=$(shell poetry version | cut -d ' ' -f 2)
+WHEEL_VERSION=$(shell uv run python -c "import compiler; print(compiler.__version__)" 2>/dev/null || echo "0.0.0")
 DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-context base-common=".."
 
 ##@ Development
 
 test: build ## Run unit tests
-	poetry run pytest
+	uv run pytest
 
 integration-test: docker-build ## Build and run integration tests
 	$(MAKE) -C ../../docs-gen/includes/master/kfpsdk-quickstart docker-build
