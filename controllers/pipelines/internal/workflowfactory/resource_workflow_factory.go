@@ -3,7 +3,9 @@ package workflowfactory
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"slices"
+	"strconv"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -35,46 +37,35 @@ type WorkflowFactory[R pipelineshub.Resource] interface {
 	) (*argo.Workflow, error)
 }
 
-type TemplateNameGenerator interface {
-	CreateTemplate() string
-	UpdateTemplate() string
-	DeleteTemplate() string
-}
-
-type SuffixedTemplateNameGenerator struct {
-	config config.KfpControllerConfigSpec
-	suffix string
-}
-
-func CompiledTemplateNameGenerator(config config.KfpControllerConfigSpec) TemplateNameGenerator {
-	return SuffixedTemplateNameGenerator{config: config, suffix: "compiled"}
-}
-
-func SimpleTemplateNameGenerator(config config.KfpControllerConfigSpec) TemplateNameGenerator {
-	return SuffixedTemplateNameGenerator{config: config, suffix: "simple"}
-}
-
-func (stng SuffixedTemplateNameGenerator) CreateTemplate() string {
-	return fmt.Sprintf("%screate-%s", stng.config.WorkflowTemplatePrefix, stng.suffix)
-}
-
-func (stng SuffixedTemplateNameGenerator) UpdateTemplate() string {
-	return fmt.Sprintf("%supdate-%s", stng.config.WorkflowTemplatePrefix, stng.suffix)
-}
-
-func (stng SuffixedTemplateNameGenerator) DeleteTemplate() string {
-	return fmt.Sprintf("%sdelete", stng.config.WorkflowTemplatePrefix)
-}
-
 func createProviderServiceUrl(svc corev1.Service, port int) string {
-	return fmt.Sprintf("%s.%s:%d", svc.Name, svc.Namespace, port)
+	return net.JoinHostPort(fmt.Sprintf("%s.%s", svc.Name, svc.Namespace), strconv.Itoa(port))
 }
 
 type ResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any] struct {
 	Config                config.KfpControllerConfigSpec
-	TemplateNameGenerator TemplateNameGenerator
+	TemplateSuffix        string
 	DefinitionCreator     func(pipelineshub.Provider, R) ([]pipelineshub.Patch, ResourceDefinition, error)
 	WorkflowParamsCreator func(pipelineshub.Provider, R) ([]argo.Parameter, error)
+}
+
+const (
+	CompiledSuffix = "compiled"
+	SimpleSuffix   = "simple"
+)
+
+// Template name methods - create and update operations use suffixed templates to differentiate
+// between resource types (e.g., "compiled" for pipelines, "simple" for basic resources).
+// Delete operations use a single shared template since deletion is generic across all resource types.
+func (rwf ResourceWorkflowFactory[R, ResourceDefinition]) createTemplateName() string {
+	return fmt.Sprintf("%screate-%s", rwf.Config.WorkflowTemplatePrefix, rwf.TemplateSuffix)
+}
+
+func (rwf ResourceWorkflowFactory[R, ResourceDefinition]) updateTemplateName() string {
+	return fmt.Sprintf("%supdate-%s", rwf.Config.WorkflowTemplatePrefix, rwf.TemplateSuffix)
+}
+
+func (rwf ResourceWorkflowFactory[R, ResourceDefinition]) deleteTemplateName() string {
+	return fmt.Sprintf("%sdelete", rwf.Config.WorkflowTemplatePrefix)
 }
 
 func WorkflowParamsCreatorNoop[R any](provider pipelineshub.Provider, _ R) ([]argo.Parameter, error) {
@@ -176,7 +167,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 				Parameters: params,
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name: workflows.TemplateNameGenerator.CreateTemplate(),
+				Name: workflows.createTemplateName(),
 			},
 		},
 	}, nil
@@ -242,7 +233,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 				Parameters: params,
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name: workflows.TemplateNameGenerator.UpdateTemplate(),
+				Name: workflows.updateTemplateName(),
 			},
 		},
 	}, nil
@@ -292,7 +283,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name: workflows.TemplateNameGenerator.DeleteTemplate(),
+				Name: workflows.deleteTemplateName(),
 			},
 		},
 	}, nil
