@@ -1,630 +1,250 @@
-<!doctype html>
-<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
-  <head><script src="/kfp-operator/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=kfp-operator/livereload" data-no-instant defer></script>
-    <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link rel="alternate" type="application/rss&#43;xml" href="http://localhost:1313/kfp-operator/docs/ml-engineers/best-practices/index.xml">
-<meta name="robots" content="noindex, nofollow">
-
-
-<link rel="shortcut icon" href="/kfp-operator/favicons/favicon.ico" >
-<link rel="apple-touch-icon" href="/kfp-operator/favicons/apple-touch-icon-180x180.png" sizes="180x180">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/favicon-16x16.png" sizes="16x16">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/favicon-32x32.png" sizes="32x32">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-36x36.png" sizes="36x36">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-48x48.png" sizes="48x48">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-72x72.png" sizes="72x72">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-96x96.png" sizes="96x96">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-144x144.png" sizes="144x144">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-192x192.png" sizes="192x192">
-
-<title>Best Practices | KFP-Operator</title>
-<meta name="description" content="Production-ready patterns and best practices for ML pipeline development">
-<meta property="og:url" content="http://localhost:1313/kfp-operator/docs/ml-engineers/best-practices/">
-  <meta property="og:site_name" content="KFP-Operator">
-  <meta property="og:title" content="Best Practices">
-  <meta property="og:description" content="Production-ready patterns and best practices for ML pipeline development">
-  <meta property="og:locale" content="en_gb">
-  <meta property="og:type" content="website">
-
-  <meta itemprop="name" content="Best Practices">
-  <meta itemprop="description" content="Production-ready patterns and best practices for ML pipeline development">
-  <meta itemprop="wordCount" content="796">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Best Practices">
-  <meta name="twitter:description" content="Production-ready patterns and best practices for ML pipeline development">
-<link href="/kfp-operator/scss/main.css" rel="stylesheet">
-<script
-  src="https://code.jquery.com/jquery-3.7.1.min.js"
-  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-  crossorigin="anonymous"></script>
-
-  </head>
-  <body class="td-section">
-    <header>
-      <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
-<div class="container-fluid flex-column flex-md-row">
-  <a class="navbar-brand" href="/kfp-operator/"><span class="navbar-brand__logo navbar-logo"></span><span class="navbar-brand__name">KFP-Operator</span></a>
-  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" href="/kfp-operator/versions/v0.7.0"><i class='fa-solid fa-book'></i><span>Documentation</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="https://github.com/sky-uk/kfp-operator/discussions" target="_blank" rel="noopener"><i class='fas fa-comments'></i><span>Discuss</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="https://github.com/sky-uk/kfp-operator" target="_blank" rel="noopener"><i class='fab fa-github pr-2'></i><span>GitHub</span></a>
-      </li>
-      <li class="nav-item dropdown d-none d-lg-block">
-        <div class="dropdown">
-  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Version</a>
-  <ul class="dropdown-menu">
-    <li><a class="dropdown-item" href="/kfp-operator/docs/">master</a></li>
-    <li><a class="dropdown-item" href="/kfp-operator/versions/v0.6.0">v0.6.0</a></li>
-    <li><a class="dropdown-item" href="/kfp-operator/versions/v0.7.0">v0.7.0</a></li>
-    </ul>
-</div></li>
-      <li class="td-light-dark-menu nav-item dropdown">
-        <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
-  <symbol id="check2" viewBox="0 0 16 16">
-    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-  </symbol>
-  <symbol id="circle-half" viewBox="0 0 16 16">
-    <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
-  </symbol>
-  <symbol id="moon-stars-fill" viewBox="0 0 16 16">
-    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
-    <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
-  </symbol>
-  <symbol id="sun-fill" viewBox="0 0 16 16">
-    <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
-  </symbol>
-</svg>
-
-<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center"
-        id="bd-theme"
-        type="button"
-        aria-expanded="false"
-        data-bs-toggle="dropdown"
-        data-bs-display="static"
-        aria-label="Toggle theme (auto)">
-  <svg class="bi my-1 theme-icon-active"><use href="#circle-half"></use></svg>
-</button>
-<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme-text">
-  <li>
-    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
-      <svg class="bi me-2 opacity-50"><use href="#sun-fill"></use></svg>
-      Light
-      <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
-    </button>
-  </li>
-  <li>
-    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
-      <svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"></use></svg>
-      Dark
-      <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
-    </button>
-  </li>
-  <li>
-    <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
-      <svg class="bi me-2 opacity-50"><use href="#circle-half"></use></svg>
-      Auto
-      <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
-    </button>
-  </li>
-</ul>
-
-      </li>
-      </ul>
-  </div>
-  <div class="d-none d-lg-block">
-    
-  </div>
-</div>
-</nav>
-    </header>
-    <div class="container-fluid td-outer">
-      <div class="td-main">
-        <div class="row flex-xl-nowrap">
-          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
-            <div id="td-sidebar-menu" class="td-sidebar__inner">
-  <form class="td-sidebar__search d-flex align-items-center">
-    
-    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
-    </button>
-  </form>
-  <nav class="td-sidebar-nav collapse" id="td-section-nav">
-    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
-      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-kfp-operatordocs-li">
-  <a href="/kfp-operator/docs/" title="Documentation (master)" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-kfp-operatordocs"><span class="">Documentation</span></a>
-  <ul class="ul-1">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-kfp-operatordocsml-engineers-li">
-  <a href="/kfp-operator/docs/ml-engineers/" title="For ML Engineers &amp; Data Scientists" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsml-engineers"><span class="">ML Engineers</span></a>
-  <ul class="ul-2 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsml-engineersgetting-started-li">
-  <a href="/kfp-operator/docs/ml-engineers/getting-started/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsml-engineersgetting-started"><span class="">Getting Started</span></a>
-  <ul class="ul-3 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsml-engineersgetting-startedtutorials-li">
-  <a href="/kfp-operator/docs/ml-engineers/getting-started/tutorials/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsml-engineersgetting-startedtutorials"><span class="">Tutorials</span></a>
-  <ul class="ul-4 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsml-engineersgetting-startedtutorialstraining-pipeline-li">
-  <a href="/kfp-operator/docs/ml-engineers/getting-started/tutorials/training-pipeline/" title="Training Pipeline Tutorial" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsml-engineersgetting-startedtutorialstraining-pipeline"><span class="">Training Pipeline</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsml-engineersgetting-startedtutorialspipeline-dependencies-li">
-  <a href="/kfp-operator/docs/ml-engineers/getting-started/tutorials/pipeline-dependencies/" title="Pipeline Dependencies Tutorial" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsml-engineersgetting-startedtutorialspipeline-dependencies"><span class="">Pipeline Dependencies</span></a>
-</li>
-  </ul>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsml-engineersframeworks-li">
-  <a href="/kfp-operator/docs/ml-engineers/frameworks/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsml-engineersframeworks"><span class="">Pipeline Frameworks</span></a>
-  <ul class="ul-3 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsml-engineersframeworkstfx-li">
-  <a href="/kfp-operator/docs/ml-engineers/frameworks/tfx/" title="TensorFlow Extended (TFX)" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsml-engineersframeworkstfx"><span class="">TFX</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsml-engineersframeworkskfpsdk-li">
-  <a href="/kfp-operator/docs/ml-engineers/frameworks/kfpsdk/" title="Kubeflow Pipelines SDK (KFP SDK)" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsml-engineersframeworkskfpsdk"><span class="">KFP SDK</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsml-engineersframeworkscustom-li">
-  <a href="/kfp-operator/docs/ml-engineers/frameworks/custom/" title="Adding a custom pipeline framework" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsml-engineersframeworkscustom"><span class="">Custom</span></a>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-kfp-operatordocsml-engineersbest-practices-li">
-  <a href="/kfp-operator/docs/ml-engineers/best-practices/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsml-engineersbest-practices"><span class="td-sidebar-nav-active-item">Best Practices</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsml-engineerstroubleshooting-li">
-  <a href="/kfp-operator/docs/ml-engineers/troubleshooting/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsml-engineerstroubleshooting"><span class="">Troubleshooting</span></a>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsplatform-engineers-li">
-  <a href="/kfp-operator/docs/platform-engineers/" title="For Platform Engineers &amp; Developers" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsplatform-engineers"><span class="">Platform Engineers</span></a>
-  <ul class="ul-2 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsplatform-engineersinstallation-li">
-  <a href="/kfp-operator/docs/platform-engineers/installation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsplatform-engineersinstallation"><span class="">Installation</span></a>
-  <ul class="ul-3 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsplatform-engineersinstallationhelm-installation-li">
-  <a href="/kfp-operator/docs/platform-engineers/installation/helm-installation/" title="Helm Installation Guide" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsplatform-engineersinstallationhelm-installation"><span class="">Helm Installation</span></a>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsplatform-engineersmaintenanceupgrade-guide-li">
-  <a href="/kfp-operator/docs/platform-engineers/maintenance/upgrade-guide/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsplatform-engineersmaintenanceupgrade-guide"><span class="">Upgrade Guide</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsplatform-engineersconfiguration-li">
-  <a href="/kfp-operator/docs/platform-engineers/configuration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsplatform-engineersconfiguration"><span class="">Configuration</span></a>
-  <ul class="ul-3 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsplatform-engineersconfigurationoperator-configuration-li">
-  <a href="/kfp-operator/docs/platform-engineers/configuration/operator-configuration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsplatform-engineersconfigurationoperator-configuration"><span class="">Operator Configuration</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsplatform-engineersconfigurationproviders-li">
-  <a href="/kfp-operator/docs/platform-engineers/configuration/providers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsplatform-engineersconfigurationproviders"><span class="">Providers</span></a>
-  <ul class="ul-4 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsplatform-engineersconfigurationproviderskfp-li">
-  <a href="/kfp-operator/docs/platform-engineers/configuration/providers/kfp/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsplatform-engineersconfigurationproviderskfp"><span class="">Kubeflow Pipelines V2</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsplatform-engineersconfigurationprovidersvai-li">
-  <a href="/kfp-operator/docs/platform-engineers/configuration/providers/vai/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsplatform-engineersconfigurationprovidersvai"><span class="">Vertex AI</span></a>
-</li>
-  </ul>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsplatform-engineersarchitecture-li">
-  <a href="/kfp-operator/docs/platform-engineers/architecture/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsplatform-engineersarchitecture"><span class="">Architecture</span></a>
-  <ul class="ul-3 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsplatform-engineersarchitecturesystem-overview-li">
-  <a href="/kfp-operator/docs/platform-engineers/architecture/system-overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsplatform-engineersarchitecturesystem-overview"><span class="">System Overview</span></a>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsplatform-engineersevents-li">
-  <a href="/kfp-operator/docs/platform-engineers/events/" title="Event System" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsplatform-engineersevents"><span class="">Events</span></a>
-  <ul class="ul-3 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsplatform-engineerseventsrun-completion-li">
-  <a href="/kfp-operator/docs/platform-engineers/events/run-completion/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsplatform-engineerseventsrun-completion"><span class="">Run Completion Events</span></a>
-</li>
-  </ul>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsreference-li">
-  <a href="/kfp-operator/docs/reference/" title="API Reference" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsreference"><span class="">Reference</span></a>
-  <ul class="ul-2 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsreferenceresources-li">
-  <a href="/kfp-operator/docs/reference/resources/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsreferenceresources"><span class="">Custom Resources</span></a>
-  <ul class="ul-3 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcespipeline-li">
-  <a href="/kfp-operator/docs/reference/resources/pipeline/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcespipeline"><span class="">Pipeline</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesprovider-li">
-  <a href="/kfp-operator/docs/reference/resources/provider/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesprovider"><span class="">Provider</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesrunconfiguration-li">
-  <a href="/kfp-operator/docs/reference/resources/runconfiguration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesrunconfiguration"><span class="">RunConfiguration</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesrun-li">
-  <a href="/kfp-operator/docs/reference/resources/run/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesrun"><span class="">Run</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesrunschedule-li">
-  <a href="/kfp-operator/docs/reference/resources/runschedule/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesrunschedule"><span class="">RunSchedule</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesexperiment-li">
-  <a href="/kfp-operator/docs/reference/resources/experiment/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesexperiment"><span class="">Experiment</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsreferenceresourcesupgrading-resources-li">
-  <a href="/kfp-operator/docs/reference/resources/upgrading-resources/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsreferenceresourcesupgrading-resources"><span class="">Migration</span></a>
-  <ul class="ul-4 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesupgrading-resourcesv1alpha6-li">
-  <a href="/kfp-operator/docs/reference/resources/upgrading-resources/v1alpha6/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesupgrading-resourcesv1alpha6"><span class="">v1alpha5 to v1alpha6</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesupgrading-resourcesv1beta1-li">
-  <a href="/kfp-operator/docs/reference/resources/upgrading-resources/v1beta1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesupgrading-resourcesv1beta1"><span class="">v1alpha6 to v1beta1</span></a>
-</li>
-  </ul>
-</li>
-  </ul>
-</li>
-  </ul>
-</li>
-  </ul>
-</li>
-    </ul>
-  </nav>
-</div>
-
-          </aside>
-          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
-            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
-<a href="https://github.com/sky-uk/kfp-operator/tree/master/docs-gen/content/docs/ml-engineers/best-practices/_index.md" class="td-page-meta--view td-page-meta__view" target="_blank" rel="noopener"><i class="fa-solid fa-file-lines fa-fw"></i> View page source</a>
-  <a href="https://github.com/sky-uk/kfp-operator/edit/master/docs-gen/content/docs/ml-engineers/best-practices/_index.md" class="td-page-meta--edit td-page-meta__edit" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Edit this page</a>
-  <a href="https://github.com/sky-uk/kfp-operator/new/master/docs-gen/content/docs/ml-engineers/best-practices?filename=change-me.md&amp;value=---%0Atitle%3A&#43;%22Long&#43;Page&#43;Title%22%0AlinkTitle%3A&#43;%22Short&#43;Nav&#43;Title%22%0Aweight%3A&#43;100%0Adescription%3A&#43;%3E-%0A&#43;&#43;&#43;&#43;&#43;Page&#43;description&#43;for&#43;heading&#43;and&#43;indexes.%0A---%0A%0A%23%23&#43;Heading%0A%0AEdit&#43;this&#43;template&#43;to&#43;create&#43;your&#43;new&#43;page.%0A%0A%2A&#43;Give&#43;it&#43;a&#43;good&#43;name%2C&#43;ending&#43;in&#43;%60.md%60&#43;-&#43;e.g.&#43;%60getting-started.md%60%0A%2A&#43;Edit&#43;the&#43;%22front&#43;matter%22&#43;section&#43;at&#43;the&#43;top&#43;of&#43;the&#43;page&#43;%28weight&#43;controls&#43;how&#43;its&#43;ordered&#43;amongst&#43;other&#43;pages&#43;in&#43;the&#43;same&#43;directory%3B&#43;lowest&#43;number&#43;first%29.%0A%2A&#43;Add&#43;a&#43;good&#43;commit&#43;message&#43;at&#43;the&#43;bottom&#43;of&#43;the&#43;page&#43;%28%3C80&#43;characters%3B&#43;use&#43;the&#43;extended&#43;description&#43;field&#43;for&#43;more&#43;detail%29.%0A%2A&#43;Create&#43;a&#43;new&#43;branch&#43;so&#43;you&#43;can&#43;preview&#43;your&#43;new&#43;file&#43;and&#43;request&#43;a&#43;review&#43;via&#43;Pull&#43;Request.%0A" class="td-page-meta--child td-page-meta__child" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Create child page</a>
-  <a href="https://github.com/sky-uk/kfp-operator/issues/new?title=Best%20Practices" class="td-page-meta--issue td-page-meta__issue" target="_blank" rel="noopener"><i class="fa-solid fa-list-check fa-fw"></i> Create documentation issue</a>
-  <a href="https://github.com/sky-uk/kfp-operator/issues/new" class="td-page-meta--project td-page-meta__project-issue" target="_blank" rel="noopener"><i class="fa-solid fa-list-check fa-fw"></i> Create project issue</a>
-  
-</div>
-
-            <div class="td-toc">
-        <nav id="TableOfContents">
-  <ul>
-    <li><a href="#pipeline-development">Pipeline Development</a>
-      <ul>
-        <li><a href="#design-principles">Design Principles</a></li>
-        <li><a href="#container-best-practices">Container Best Practices</a></li>
-      </ul>
-    </li>
-    <li><a href="#resource-management">Resource Management</a>
-      <ul>
-        <li><a href="#pipeline-resources">Pipeline Resources</a></li>
-        <li><a href="#namespace-strategy">Namespace Strategy</a></li>
-      </ul>
-    </li>
-    <li><a href="#automation-and-scheduling">Automation and Scheduling</a>
-      <ul>
-        <li><a href="#runconfiguration-best-practices">RunConfiguration Best Practices</a></li>
-      </ul>
-    </li>
-    <li><a href="#security-and-compliance">Security and Compliance</a></li>
-    <li><a href="#monitoring-and-observability">Monitoring and Observability</a>
-      <ul>
-        <li><a href="#pipeline-monitoring">Pipeline Monitoring</a></li>
-      </ul>
-    </li>
-    <li><a href="#version-control-and-gitops">Version Control and GitOps</a>
-      <ul>
-        <li><a href="#pipeline-versioning">Pipeline Versioning</a></li>
-      </ul>
-    </li>
-  </ul>
-</nav>
-      </div>
-    
-            
-
-          </aside>
-          <main class="col-12 col-md-9 col-xl-8 ps-md-5" role="main">
-            
-  
-
-            <nav aria-label="breadcrumb" class="td-breadcrumbs">
-  <ol class="breadcrumb">
-  <li class="breadcrumb-item">
-    <a href="/kfp-operator/docs/">Documentation</a></li>
-  <li class="breadcrumb-item">
-    <a href="/kfp-operator/docs/ml-engineers/">ML Engineers</a></li>
-  <li class="breadcrumb-item active" aria-current="page">
-    Best Practices</li>
-  </ol>
-</nav>
-<div class="td-content">
-	<h1>Best Practices</h1>
-  <div class="lead">Production-ready patterns and best practices for ML pipeline development</div>
-	<header class="article-meta">
-		
-</header>
-	<h1 id="ml-pipeline-best-practices">ML Pipeline Best Practices</h1>
-<p>Proven best practices for developing, deploying, and maintaining production ML pipelines using the KFP Operator.</p>
-<h2 id="pipeline-development">Pipeline Development</h2>
-<h3 id="design-principles">Design Principles</h3>
-<h4 id="1-modular-and-reusable-design">1. Modular and Reusable Design</h4>
-<p><strong>Create pipelines that can be easily modified and reused:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># ✅ Good: Modular pipeline with configurable components</span>
-</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">create_pipeline</span><span class="p">(</span>
-</span></span><span class="line"><span class="cl">    <span class="n">data_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span></span><span class="line"><span class="cl">    <span class="n">model_root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span></span><span class="line"><span class="cl">    <span class="n">preprocessing_config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&#34;default&#34;</span><span class="p">,</span>
-</span></span><span class="line"><span class="cl">    <span class="n">training_config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&#34;default&#34;</span>
-</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tfx</span><span class="o">.</span><span class="n">dsl</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">:</span>
-</span></span><span class="line"><span class="cl">    <span class="c1"># Configurable data ingestion</span>
-</span></span><span class="line"><span class="cl">    <span class="n">example_gen</span> <span class="o">=</span> <span class="n">create_example_gen</span><span class="p">(</span><span class="n">data_root</span><span class="p">,</span> <span class="n">preprocessing_config</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl">    <span class="c1"># Reusable preprocessing</span>
-</span></span><span class="line"><span class="cl">    <span class="n">transform</span> <span class="o">=</span> <span class="n">create_transform_component</span><span class="p">(</span><span class="n">preprocessing_config</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl">    <span class="c1"># Configurable training</span>
-</span></span><span class="line"><span class="cl">    <span class="n">trainer</span> <span class="o">=</span> <span class="n">create_trainer_component</span><span class="p">(</span><span class="n">training_config</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">    
-</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">tfx</span><span class="o">.</span><span class="n">dsl</span><span class="o">.</span><span class="n">Pipeline</span><span class="p">(</span>
-</span></span><span class="line"><span class="cl">        <span class="n">pipeline_name</span><span class="o">=</span><span class="s2">&#34;modular-training-pipeline&#34;</span><span class="p">,</span>
-</span></span><span class="line"><span class="cl">        <span class="n">components</span><span class="o">=</span><span class="p">[</span><span class="n">example_gen</span><span class="p">,</span> <span class="n">transform</span><span class="p">,</span> <span class="n">trainer</span><span class="p">]</span>
-</span></span><span class="line"><span class="cl">    <span class="p">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># ❌ Avoid: Hardcoded, monolithic pipelines</span>
-</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">create_pipeline</span><span class="p">():</span>
-</span></span><span class="line"><span class="cl">    <span class="c1"># Hardcoded paths and configurations</span>
-</span></span><span class="line"><span class="cl">    <span class="n">example_gen</span> <span class="o">=</span> <span class="n">tfx</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">CsvExampleGen</span><span class="p">(</span>
-</span></span><span class="line"><span class="cl">        <span class="n">input_base</span><span class="o">=</span><span class="s2">&#34;/hardcoded/path/to/data&#34;</span>
-</span></span><span class="line"><span class="cl">    <span class="p">)</span>
-</span></span><span class="line"><span class="cl">    <span class="c1"># ... rest of pipeline with hardcoded values</span>
-</span></span></code></pre></div><h4 id="2-proper-parameterization">2. Proper Parameterization</h4>
-<p><strong>Use environment variables for configuration and runtime parameters for experimentation:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># Pipeline resource with proper parameterization</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">pipelines.kubeflow.org/v1alpha5</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Pipeline</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">training-pipeline</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;my-registry/ml-pipeline:v1.2.0&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">env</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c"># Compile-time parameters (environment-specific)</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">DATA_ROOT</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;gs://production-bucket/data&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">MODEL_REGISTRY</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;gs://model-registry/models&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">PREPROCESSING_CONFIG</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;production&#34;</span><span class="w">
-</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># Run with runtime parameters (experiment-specific)</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">pipelines.kubeflow.org/v1beta1</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Run</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">experiment-lr-001</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l">provider-namespace/provider-name</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">pipeline</span><span class="p">:</span><span class="w"> </span><span class="l">training-pipeline</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">parameters</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">learning_rate</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;0.001&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">num_epochs</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;50&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">batch_size</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;64&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">dropout_rate</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;0.2&#34;</span><span class="w">
-</span></span></span></code></pre></div><h4 id="3-comprehensive-testing-strategy">3. Comprehensive Testing Strategy</h4>
-<p><strong>Test pipelines at multiple levels:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="c1"># Unit tests for individual components</span>
-</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">test_preprocessing_component</span><span class="p">():</span>
-</span></span><span class="line"><span class="cl">    <span class="c1"># Test data transformation logic</span>
-</span></span><span class="line"><span class="cl">    <span class="n">input_data</span> <span class="o">=</span> <span class="n">create_test_data</span><span class="p">()</span>
-</span></span><span class="line"><span class="cl">    <span class="n">result</span> <span class="o">=</span> <span class="n">preprocess_data</span><span class="p">(</span><span class="n">input_data</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">    <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">expected_shape</span>
-</span></span><span class="line"><span class="cl">    <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">columns</span> <span class="o">==</span> <span class="n">expected_columns</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Integration tests for pipeline compilation</span>
-</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">test_pipeline_compilation</span><span class="p">():</span>
-</span></span><span class="line"><span class="cl">    <span class="n">pipeline</span> <span class="o">=</span> <span class="n">create_pipeline</span><span class="p">(</span>
-</span></span><span class="line"><span class="cl">        <span class="n">data_root</span><span class="o">=</span><span class="s2">&#34;gs://test-bucket/data&#34;</span><span class="p">,</span>
-</span></span><span class="line"><span class="cl">        <span class="n">model_root</span><span class="o">=</span><span class="s2">&#34;gs://test-bucket/models&#34;</span>
-</span></span><span class="line"><span class="cl">    <span class="p">)</span>
-</span></span><span class="line"><span class="cl">    <span class="c1"># Verify pipeline compiles without errors</span>
-</span></span><span class="line"><span class="cl">    <span class="k">assert</span> <span class="n">pipeline</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-</span></span><span class="line"><span class="cl">    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">pipeline</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># End-to-end tests with test data</span>
-</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">test_pipeline_execution</span><span class="p">():</span>
-</span></span><span class="line"><span class="cl">    <span class="c1"># Run pipeline with small test dataset</span>
-</span></span><span class="line"><span class="cl">    <span class="c1"># Verify outputs are generated correctly</span>
-</span></span><span class="line"><span class="cl">    <span class="k">pass</span>
-</span></span></code></pre></div><h3 id="container-best-practices">Container Best Practices</h3>
-<h4 id="1-efficient-docker-images">1. Efficient Docker Images</h4>
-<p><strong>Build optimized, secure container images:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="line"><span class="cl"><span class="c"># ✅ Good: Multi-stage build with security best practices</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.9-slim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="s">builder</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Install build dependencies</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> apt-get update <span class="o">&amp;&amp;</span> apt-get install -y <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>    build-essential <span class="se">\
-</span></span></span><span class="line"><span class="cl"><span class="se"></span>    <span class="o">&amp;&amp;</span> rm -rf /var/lib/apt/lists/*<span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Install Python dependencies</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">COPY</span> requirements.txt .<span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> pip install --no-cache-dir -r requirements.txt<span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Production stage</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.9-slim</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Create non-root user</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">RUN</span> useradd --create-home --shell /bin/bash mluser<span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Copy installed packages from builder</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">COPY</span> --from<span class="o">=</span>builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages<span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">COPY</span> --from<span class="o">=</span>builder /usr/local/bin /usr/local/bin<span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Copy application code</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">COPY</span> --chown<span class="o">=</span>mluser:mluser pipeline/ /app/pipeline/<span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Switch to non-root user</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">USER</span><span class="w"> </span><span class="s">mluser</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="c"># Set entrypoint</span><span class="err">
-</span></span></span><span class="line"><span class="cl"><span class="err"></span><span class="k">ENTRYPOINT</span> <span class="p">[</span><span class="s2">&#34;python&#34;</span><span class="p">,</span> <span class="s2">&#34;-m&#34;</span><span class="p">,</span> <span class="s2">&#34;pipeline.main&#34;</span><span class="p">]</span><span class="err">
-</span></span></span></code></pre></div><h4 id="2-image-versioning-and-tagging">2. Image Versioning and Tagging</h4>
-<p><strong>Use semantic versioning and meaningful tags:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># ✅ Good: Semantic versioning with descriptive tags</span>
-</span></span><span class="line"><span class="cl">docker build -t my-registry/ml-pipeline:v1.2.0 .
-</span></span><span class="line"><span class="cl">docker tag my-registry/ml-pipeline:v1.2.0 my-registry/ml-pipeline:latest
-</span></span><span class="line"><span class="cl">docker tag my-registry/ml-pipeline:v1.2.0 my-registry/ml-pipeline:stable
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># ✅ Good: Environment-specific tags</span>
-</span></span><span class="line"><span class="cl">docker tag my-registry/ml-pipeline:v1.2.0 my-registry/ml-pipeline:production-v1.2.0
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># ❌ Avoid: Generic or unclear tags</span>
-</span></span><span class="line"><span class="cl">docker build -t my-registry/ml-pipeline:latest .
-</span></span><span class="line"><span class="cl">docker build -t my-registry/ml-pipeline:test .
-</span></span></code></pre></div><h2 id="resource-management">Resource Management</h2>
-<h3 id="pipeline-resources">Pipeline Resources</h3>
-<h4 id="1-proper-resource-allocation">1. Proper Resource Allocation</h4>
-<p><strong>Set appropriate resource requests and limits:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">pipelines.kubeflow.org/v1beta1</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Pipeline</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">training-pipeline</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l">provider-namespace/provider-name</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;my-registry/ml-pipeline:v1.2.0&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">framework</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">tfx</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">pipeline</span><span class="p">:</span><span class="w"> </span><span class="l">training_pipeline.create_components</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">env</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">GPU_ENABLED</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;true&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">NODE_SELECTOR</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;accelerator=nvidia-tesla-v100&#34;</span><span class="w">
-</span></span></span></code></pre></div><h4 id="2-effective-labeling-and-organization">2. Effective Labeling and Organization</h4>
-<p><strong>Use consistent labeling for resource management:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">metadata</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">customer-churn-training</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">labels</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c"># Team and ownership</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">team</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;ml-engineering&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">owner</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;data-science-team&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c"># Project and domain</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">project</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;customer-churn&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">domain</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;marketing&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c"># Environment and lifecycle</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;production&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">lifecycle</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;active&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c"># Version and release</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;v2.1.0&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">release</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;2024-q1&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c"># Cost tracking</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">cost-center</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;ml-infrastructure&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">budget</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;ml-training&#34;</span><span class="w">
-</span></span></span></code></pre></div><h3 id="namespace-strategy">Namespace Strategy</h3>
-<h4 id="1-environment-separation">1. Environment Separation</h4>
-<p><strong>Use namespaces to separate environments:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Development environment</span>
-</span></span><span class="line"><span class="cl">kubectl create namespace ml-dev
-</span></span><span class="line"><span class="cl">kubectl label namespace ml-dev <span class="nv">environment</span><span class="o">=</span>development
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Staging environment</span>
-</span></span><span class="line"><span class="cl">kubectl create namespace ml-staging
-</span></span><span class="line"><span class="cl">kubectl label namespace ml-staging <span class="nv">environment</span><span class="o">=</span>staging
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Production environment</span>
-</span></span><span class="line"><span class="cl">kubectl create namespace ml-prod
-</span></span><span class="line"><span class="cl">kubectl label namespace ml-prod <span class="nv">environment</span><span class="o">=</span>production
-</span></span></code></pre></div><h4 id="2-team-based-organization">2. Team-Based Organization</h4>
-<p><strong>Organize resources by team or project:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Team-based namespaces</span>
-</span></span><span class="line"><span class="cl">kubectl create namespace ml-team-nlp
-</span></span><span class="line"><span class="cl">kubectl create namespace ml-team-vision
-</span></span><span class="line"><span class="cl">kubectl create namespace ml-team-recommendations
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Project-based namespaces</span>
-</span></span><span class="line"><span class="cl">kubectl create namespace customer-churn
-</span></span><span class="line"><span class="cl">kubectl create namespace fraud-detection
-</span></span><span class="line"><span class="cl">kubectl create namespace recommendation-engine
-</span></span></code></pre></div><h2 id="automation-and-scheduling">Automation and Scheduling</h2>
-<h3 id="runconfiguration-best-practices">RunConfiguration Best Practices</h3>
-<h4 id="1-intelligent-scheduling">1. Intelligent Scheduling</h4>
-<p><strong>Set up appropriate scheduling based on data availability and business needs:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">pipelines.kubeflow.org/v1alpha5</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">RunConfiguration</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">daily-model-training</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">pipeline</span><span class="p">:</span><span class="w"> </span><span class="l">training-pipeline</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">runtimeParameters</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">data_date</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;{{ .Date }}&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">schedule</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">cron</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;0 6 * * *&#34;</span><span class="w">  </span><span class="c"># 6 AM daily</span><span class="w">
-</span></span></span></code></pre></div><h2 id="security-and-compliance">Security and Compliance</h2>
-<h2 id="monitoring-and-observability">Monitoring and Observability</h2>
-<h3 id="pipeline-monitoring">Pipeline Monitoring</h3>
-<h4 id="1-comprehensive-logging">1. Comprehensive Logging</h4>
-<p><strong>Implement structured logging throughout your pipeline:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">logging</span>
-</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">json</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Configure structured logging</span>
-</span></span><span class="line"><span class="cl"><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
-</span></span><span class="line"><span class="cl">    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
-</span></span><span class="line"><span class="cl">    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
-</span></span><span class="line"><span class="cl"><span class="p">)</span>
-</span></span><span class="line"><span class="cl"><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">log_pipeline_event</span><span class="p">(</span><span class="n">event_type</span><span class="p">,</span> <span class="n">details</span><span class="p">):</span>
-</span></span><span class="line"><span class="cl">    <span class="n">log_entry</span> <span class="o">=</span> <span class="p">{</span>
-</span></span><span class="line"><span class="cl">        <span class="s1">&#39;event_type&#39;</span><span class="p">:</span> <span class="n">event_type</span><span class="p">,</span>
-</span></span><span class="line"><span class="cl">        <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
-</span></span><span class="line"><span class="cl">        <span class="s1">&#39;pipeline_name&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;PIPELINE_NAME&#39;</span><span class="p">),</span>
-</span></span><span class="line"><span class="cl">        <span class="s1">&#39;run_id&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;RUN_ID&#39;</span><span class="p">),</span>
-</span></span><span class="line"><span class="cl">        <span class="s1">&#39;details&#39;</span><span class="p">:</span> <span class="n">details</span>
-</span></span><span class="line"><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="cl">    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">log_entry</span><span class="p">))</span>
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1"># Usage in pipeline components</span>
-</span></span><span class="line"><span class="cl"><span class="n">log_pipeline_event</span><span class="p">(</span><span class="s1">&#39;data_validation_start&#39;</span><span class="p">,</span> <span class="p">{</span>
-</span></span><span class="line"><span class="cl">    <span class="s1">&#39;dataset_size&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">),</span>
-</span></span><span class="line"><span class="cl">    <span class="s1">&#39;validation_rules&#39;</span><span class="p">:</span> <span class="n">validation_config</span>
-</span></span><span class="line"><span class="cl"><span class="p">})</span>
-</span></span></code></pre></div><h2 id="version-control-and-gitops">Version Control and GitOps</h2>
-<h3 id="pipeline-versioning">Pipeline Versioning</h3>
-<h4 id="1-semantic-versioning">1. Semantic Versioning</h4>
-<p><strong>Version your pipelines semantically:</strong></p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># Version pipeline resources</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">pipelines.kubeflow.org/v1beta1</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Pipeline</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">customer-churn-training</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">labels</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;v2.1.0&#34;</span><span class="w">  </span><span class="c"># Major.Minor.Patch</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">release</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;2024-q1&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">provider</span><span class="p">:</span><span class="w"> </span><span class="l">provider-namespace/provider-name</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;my-registry/customer-churn-pipeline:v2.1.0&#34;</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">framework</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">tfx</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">pipeline</span><span class="p">:</span><span class="w"> </span><span class="l">customer_churn_training.create_components</span><span class="w">
-</span></span></span></code></pre></div>
-	<div class="section-index">
-    
-    
-    </div>
-</div>
-
-          </main>
-        </div>
-      </div>
-      <footer class="td-footer row d-print-none">
-  <div class="container-fluid">
-    <div class="row mx-md-2">
-      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
-        
-      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
-        
-      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
-        
-      </div>
-    </div>
-  </div>
-</footer>
-
-    </div>
-    <script src="/kfp-operator/js/main.js"></script>
-<script defer src="/kfp-operator/js/click-to-copy.js" crossorigin="anonymous"></script>
-<script src='/kfp-operator/js/tabpane-persist.js'></script>
-
-  </body>
-</html>
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=en class=no-js><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><link rel=alternate type=application/rss+xml href=https://sky-uk.github.io/kfp-operator/docs/ml-engineers/best-practices/index.xml><meta name=robots content="index, follow"><link rel="shortcut icon" href=/kfp-operator/favicons/favicon.ico><link rel=apple-touch-icon href=/kfp-operator/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/kfp-operator/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/kfp-operator/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/kfp-operator/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/kfp-operator/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/kfp-operator/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/kfp-operator/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/kfp-operator/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/kfp-operator/favicons/android-192x192.png sizes=192x192><title>Best Practices | KFP-Operator</title><meta name=description content="Production-ready patterns and best practices for ML pipeline development"><meta property="og:url" content="https://sky-uk.github.io/kfp-operator/docs/ml-engineers/best-practices/"><meta property="og:site_name" content="KFP-Operator"><meta property="og:title" content="Best Practices"><meta property="og:description" content="Production-ready patterns and best practices for ML pipeline development"><meta property="og:locale" content="en_gb"><meta property="og:type" content="website"><meta itemprop=name content="Best Practices"><meta itemprop=description content="Production-ready patterns and best practices for ML pipeline development"><meta itemprop=wordCount content="794"><meta name=twitter:card content="summary"><meta name=twitter:title content="Best Practices"><meta name=twitter:description content="Production-ready patterns and best practices for ML pipeline development"><link rel=preload href=/kfp-operator/scss/main.min.c313892c88708e658f4adb2c03cba4ae81345ec8350e4a33abba9815df840012.css as=style integrity="sha256-wxOJLIhwjmWPStssA8ukroE0Xsg1Dkozq7qYFd+EABI=" crossorigin=anonymous><link href=/kfp-operator/scss/main.min.c313892c88708e658f4adb2c03cba4ae81345ec8350e4a33abba9815df840012.css rel=stylesheet integrity="sha256-wxOJLIhwjmWPStssA8ukroE0Xsg1Dkozq7qYFd+EABI=" crossorigin=anonymous><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script></head><body class=td-section><header><nav class="td-navbar js-navbar-scroll" data-bs-theme=dark><div class="container-fluid flex-column flex-md-row"><a class=navbar-brand href=/kfp-operator/><span class="navbar-brand__logo navbar-logo"></span><span class=navbar-brand__name>KFP-Operator</span></a><div class="td-navbar-nav-scroll ms-md-auto" id=main_navbar><ul class=navbar-nav><li class=nav-item><a class=nav-link href=/kfp-operator/versions/v0.7.0><i class='fa-solid fa-book'></i><span>Documentation</span></a></li><li class=nav-item><a class=nav-link href=https://github.com/sky-uk/kfp-operator/discussions target=_blank rel=noopener><i class='fas fa-comments'></i><span>Discuss</span></a></li><li class=nav-item><a class=nav-link href=https://github.com/sky-uk/kfp-operator target=_blank rel=noopener><i class='fab fa-github pr-2'></i><span>GitHub</span></a></li><li class="nav-item dropdown d-none d-lg-block"><div class=dropdown><a class="nav-link dropdown-toggle" href=# role=button data-bs-toggle=dropdown aria-haspopup=true aria-expanded=false>Version</a><ul class=dropdown-menu><li><a class=dropdown-item href=/kfp-operator/docs/>master</a></li><li><a class=dropdown-item href=/kfp-operator/versions/v0.6.0>v0.6.0</a></li><li><a class=dropdown-item href=/kfp-operator/versions/v0.7.0>v0.7.0</a></li></ul></div></li><li class="td-light-dark-menu nav-item dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown data-bs-display=static aria-label="Toggle theme (auto)">
+<svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class="dropdown-menu dropdown-menu-end" aria-labelledby=bd-theme-text><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto
+<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></li></ul></div><div class="d-none d-lg-block"></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main><div class="row flex-xl-nowrap"><aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none"><div id=td-sidebar-menu class=td-sidebar__inner><form class="td-sidebar__search d-flex align-items-center"><button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type=button data-bs-toggle=collapse data-bs-target=#td-section-nav aria-controls=td-section-nav aria-expanded=false aria-label="Toggle section navigation"></button></form><nav class="td-sidebar-nav collapse" id=td-section-nav><ul class="td-sidebar-nav__section pe-md-3 ul-0"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kfp-operatordocs-li><a href=/kfp-operator/docs/ title="Documentation (master)" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id=m-kfp-operatordocs><span>Documentation</span></a><ul class=ul-1><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kfp-operatordocsml-engineers-li><a href=/kfp-operator/docs/ml-engineers/ title="For ML Engineers & Data Scientists" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsml-engineers><span>ML Engineers</span></a><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsml-engineersgetting-started-li><a href=/kfp-operator/docs/ml-engineers/getting-started/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsml-engineersgetting-started><span>Getting Started</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsml-engineersgetting-startedtutorials-li><a href=/kfp-operator/docs/ml-engineers/getting-started/tutorials/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsml-engineersgetting-startedtutorials><span>Tutorials</span></a><ul class="ul-4 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsml-engineersgetting-startedtutorialstraining-pipeline-li><a href=/kfp-operator/docs/ml-engineers/getting-started/tutorials/training-pipeline/ title="Training Pipeline Tutorial" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsml-engineersgetting-startedtutorialstraining-pipeline><span>Training Pipeline</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsml-engineersgetting-startedtutorialspipeline-dependencies-li><a href=/kfp-operator/docs/ml-engineers/getting-started/tutorials/pipeline-dependencies/ title="Pipeline Dependencies Tutorial" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsml-engineersgetting-startedtutorialspipeline-dependencies><span>Pipeline Dependencies</span></a></li></ul></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsml-engineersframeworks-li><a href=/kfp-operator/docs/ml-engineers/frameworks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsml-engineersframeworks><span>Pipeline Frameworks</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsml-engineersframeworkstfx-li><a href=/kfp-operator/docs/ml-engineers/frameworks/tfx/ title="TensorFlow Extended (TFX)" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsml-engineersframeworkstfx><span>TFX</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsml-engineersframeworkskfpsdk-li><a href=/kfp-operator/docs/ml-engineers/frameworks/kfpsdk/ title="Kubeflow Pipelines SDK (KFP SDK)" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsml-engineersframeworkskfpsdk><span>KFP SDK</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsml-engineersframeworkscustom-li><a href=/kfp-operator/docs/ml-engineers/frameworks/custom/ title="Adding a custom pipeline framework" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsml-engineersframeworkscustom><span>Custom</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id=m-kfp-operatordocsml-engineersbest-practices-li><a href=/kfp-operator/docs/ml-engineers/best-practices/ class="align-left ps-0 active td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsml-engineersbest-practices><span class=td-sidebar-nav-active-item>Best Practices</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsml-engineerstroubleshooting-li><a href=/kfp-operator/docs/ml-engineers/troubleshooting/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsml-engineerstroubleshooting><span>Troubleshooting</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsplatform-engineers-li><a href=/kfp-operator/docs/platform-engineers/ title="For Platform Engineers & Developers" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsplatform-engineers><span>Platform Engineers</span></a><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsplatform-engineersinstallation-li><a href=/kfp-operator/docs/platform-engineers/installation/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsplatform-engineersinstallation><span>Installation</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsplatform-engineersinstallationhelm-installation-li><a href=/kfp-operator/docs/platform-engineers/installation/helm-installation/ title="Helm Installation Guide" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsplatform-engineersinstallationhelm-installation><span>Helm Installation</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsplatform-engineersmaintenanceupgrade-guide-li><a href=/kfp-operator/docs/platform-engineers/maintenance/upgrade-guide/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsplatform-engineersmaintenanceupgrade-guide><span>Upgrade Guide</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsplatform-engineersconfiguration-li><a href=/kfp-operator/docs/platform-engineers/configuration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsplatform-engineersconfiguration><span>Configuration</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsplatform-engineersconfigurationoperator-configuration-li><a href=/kfp-operator/docs/platform-engineers/configuration/operator-configuration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsplatform-engineersconfigurationoperator-configuration><span>Operator Configuration</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsplatform-engineersconfigurationproviders-li><a href=/kfp-operator/docs/platform-engineers/configuration/providers/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsplatform-engineersconfigurationproviders><span>Providers</span></a><ul class="ul-4 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsplatform-engineersconfigurationproviderskfp-li><a href=/kfp-operator/docs/platform-engineers/configuration/providers/kfp/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsplatform-engineersconfigurationproviderskfp><span>Kubeflow Pipelines V2</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsplatform-engineersconfigurationprovidersvai-li><a href=/kfp-operator/docs/platform-engineers/configuration/providers/vai/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsplatform-engineersconfigurationprovidersvai><span>Vertex AI</span></a></li></ul></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsplatform-engineersarchitecture-li><a href=/kfp-operator/docs/platform-engineers/architecture/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsplatform-engineersarchitecture><span>Architecture</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsplatform-engineersarchitecturesystem-overview-li><a href=/kfp-operator/docs/platform-engineers/architecture/system-overview/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsplatform-engineersarchitecturesystem-overview><span>System Overview</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsplatform-engineersevents-li><a href=/kfp-operator/docs/platform-engineers/events/ title="Event System" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsplatform-engineersevents><span>Events</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsplatform-engineerseventsrun-completion-li><a href=/kfp-operator/docs/platform-engineers/events/run-completion/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsplatform-engineerseventsrun-completion><span>Run Completion Events</span></a></li></ul></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsreference-li><a href=/kfp-operator/docs/reference/ title="API Reference" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsreference><span>Reference</span></a><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsreferenceresources-li><a href=/kfp-operator/docs/reference/resources/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsreferenceresources><span>Custom Resources</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcespipeline-li><a href=/kfp-operator/docs/reference/resources/pipeline/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcespipeline><span>Pipeline</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesprovider-li><a href=/kfp-operator/docs/reference/resources/provider/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesprovider><span>Provider</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesrunconfiguration-li><a href=/kfp-operator/docs/reference/resources/runconfiguration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesrunconfiguration><span>RunConfiguration</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesrun-li><a href=/kfp-operator/docs/reference/resources/run/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesrun><span>Run</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesrunschedule-li><a href=/kfp-operator/docs/reference/resources/runschedule/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesrunschedule><span>RunSchedule</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesexperiment-li><a href=/kfp-operator/docs/reference/resources/experiment/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesexperiment><span>Experiment</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsreferenceresourcesupgrading-resources-li><a href=/kfp-operator/docs/reference/resources/upgrading-resources/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsreferenceresourcesupgrading-resources><span>Migration</span></a><ul class="ul-4 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesupgrading-resourcesv1alpha6-li><a href=/kfp-operator/docs/reference/resources/upgrading-resources/v1alpha6/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesupgrading-resourcesv1alpha6><span>v1alpha5 to v1alpha6</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesupgrading-resourcesv1beta1-li><a href=/kfp-operator/docs/reference/resources/upgrading-resources/v1beta1/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesupgrading-resourcesv1beta1><span>v1alpha6 to v1beta1</span></a></li></ul></li></ul></li></ul></li></ul></li></ul></nav></div></aside><aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none"><div class="td-page-meta ms-2 pb-1 pt-2 mb-0"><a href=https://github.com/sky-uk/kfp-operator/tree/master/docs-gen/content/docs/ml-engineers/best-practices/_index.md class="td-page-meta--view td-page-meta__view" target=_blank rel=noopener><i class="fa-solid fa-file-lines fa-fw"></i> View page source</a>
+<a href=https://github.com/sky-uk/kfp-operator/edit/master/docs-gen/content/docs/ml-engineers/best-practices/_index.md class="td-page-meta--edit td-page-meta__edit" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> Edit this page</a>
+<a href="https://github.com/sky-uk/kfp-operator/new/master/docs-gen/content/docs/ml-engineers/best-practices?filename=change-me.md&amp;value=---%0Atitle%3A+%22Long+Page+Title%22%0AlinkTitle%3A+%22Short+Nav+Title%22%0Aweight%3A+100%0Adescription%3A+%3E-%0A+++++Page+description+for+heading+and+indexes.%0A---%0A%0A%23%23+Heading%0A%0AEdit+this+template+to+create+your+new+page.%0A%0A%2A+Give+it+a+good+name%2C+ending+in+%60.md%60+-+e.g.+%60getting-started.md%60%0A%2A+Edit+the+%22front+matter%22+section+at+the+top+of+the+page+%28weight+controls+how+its+ordered+amongst+other+pages+in+the+same+directory%3B+lowest+number+first%29.%0A%2A+Add+a+good+commit+message+at+the+bottom+of+the+page+%28%3C80+characters%3B+use+the+extended+description+field+for+more+detail%29.%0A%2A+Create+a+new+branch+so+you+can+preview+your+new+file+and+request+a+review+via+Pull+Request.%0A" class="td-page-meta--child td-page-meta__child" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> Create child page</a>
+<a href="https://github.com/sky-uk/kfp-operator/issues/new?title=Best%20Practices" class="td-page-meta--issue td-page-meta__issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> Create documentation issue</a>
+<a href=https://github.com/sky-uk/kfp-operator/issues/new class="td-page-meta--project td-page-meta__project-issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> Create project issue</a></div><div class=td-toc><nav id=TableOfContents><ul><li><a href=#pipeline-development>Pipeline Development</a><ul><li><a href=#design-principles>Design Principles</a></li><li><a href=#container-best-practices>Container Best Practices</a></li></ul></li><li><a href=#resource-management>Resource Management</a><ul><li><a href=#pipeline-resources>Pipeline Resources</a></li><li><a href=#namespace-strategy>Namespace Strategy</a></li></ul></li><li><a href=#automation-and-scheduling>Automation and Scheduling</a><ul><li><a href=#runconfiguration-best-practices>RunConfiguration Best Practices</a></li></ul></li><li><a href=#security-and-compliance>Security and Compliance</a></li><li><a href=#monitoring-and-observability>Monitoring and Observability</a><ul><li><a href=#pipeline-monitoring>Pipeline Monitoring</a></li></ul></li><li><a href=#version-control>Version Control</a><ul><li><a href=#pipeline-versioning>Pipeline Versioning</a></li></ul></li></ul></nav></div></aside><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><nav aria-label=breadcrumb class=td-breadcrumbs><ol class=breadcrumb><li class=breadcrumb-item><a href=/kfp-operator/docs/>Documentation</a></li><li class=breadcrumb-item><a href=/kfp-operator/docs/ml-engineers/>ML Engineers</a></li><li class="breadcrumb-item active" aria-current=page>Best Practices</li></ol></nav><div class=td-content><h1>Best Practices</h1><div class=lead>Production-ready patterns and best practices for ML pipeline development</div><header class=article-meta></header><h1 id=ml-pipeline-best-practices>ML Pipeline Best Practices</h1><p>Proven best practices for developing, deploying, and maintaining production ML pipelines using the KFP Operator.</p><h2 id=pipeline-development>Pipeline Development</h2><h3 id=design-principles>Design Principles</h3><h4 id=1-modular-and-reusable-design>1. Modular and Reusable Design</h4><p><strong>Create pipelines that can be easily modified and reused:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=c1># ✅ Good: Modular pipeline with configurable components</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>create_pipeline</span><span class=p>(</span>
+</span></span><span class=line><span class=cl>    <span class=n>data_root</span><span class=p>:</span> <span class=nb>str</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=n>model_root</span><span class=p>:</span> <span class=nb>str</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=n>preprocessing_config</span><span class=p>:</span> <span class=nb>str</span> <span class=o>=</span> <span class=s2>&#34;default&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=n>training_config</span><span class=p>:</span> <span class=nb>str</span> <span class=o>=</span> <span class=s2>&#34;default&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span> <span class=o>-&gt;</span> <span class=n>tfx</span><span class=o>.</span><span class=n>dsl</span><span class=o>.</span><span class=n>Pipeline</span><span class=p>:</span>
+</span></span><span class=line><span class=cl>    <span class=c1># Configurable data ingestion</span>
+</span></span><span class=line><span class=cl>    <span class=n>example_gen</span> <span class=o>=</span> <span class=n>create_example_gen</span><span class=p>(</span><span class=n>data_root</span><span class=p>,</span> <span class=n>preprocessing_config</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=c1># Reusable preprocessing</span>
+</span></span><span class=line><span class=cl>    <span class=n>transform</span> <span class=o>=</span> <span class=n>create_transform_component</span><span class=p>(</span><span class=n>preprocessing_config</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=c1># Configurable training</span>
+</span></span><span class=line><span class=cl>    <span class=n>trainer</span> <span class=o>=</span> <span class=n>create_trainer_component</span><span class=p>(</span><span class=n>training_config</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>tfx</span><span class=o>.</span><span class=n>dsl</span><span class=o>.</span><span class=n>Pipeline</span><span class=p>(</span>
+</span></span><span class=line><span class=cl>        <span class=n>pipeline_name</span><span class=o>=</span><span class=s2>&#34;modular-training-pipeline&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=n>components</span><span class=o>=</span><span class=p>[</span><span class=n>example_gen</span><span class=p>,</span> <span class=n>transform</span><span class=p>,</span> <span class=n>trainer</span><span class=p>]</span>
+</span></span><span class=line><span class=cl>    <span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># ❌ Avoid: Hardcoded, monolithic pipelines</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>create_pipeline</span><span class=p>():</span>
+</span></span><span class=line><span class=cl>    <span class=c1># Hardcoded paths and configurations</span>
+</span></span><span class=line><span class=cl>    <span class=n>example_gen</span> <span class=o>=</span> <span class=n>tfx</span><span class=o>.</span><span class=n>components</span><span class=o>.</span><span class=n>CsvExampleGen</span><span class=p>(</span>
+</span></span><span class=line><span class=cl>        <span class=n>input_base</span><span class=o>=</span><span class=s2>&#34;/hardcoded/path/to/data&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=c1># ... rest of pipeline with hardcoded values</span>
+</span></span></code></pre></div><h4 id=2-proper-parameterization>2. Proper Parameterization</h4><p><strong>Use environment variables for configuration and runtime parameters for experimentation:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># Pipeline resource with proper parameterization</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1alpha5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pipeline</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>training-pipeline</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;my-registry/ml-pipeline:v1.2.0&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># Compile-time parameters (environment-specific)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>DATA_ROOT</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;gs://production-bucket/data&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>MODEL_REGISTRY</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;gs://model-registry/models&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>PREPROCESSING_CONFIG</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;production&#34;</span><span class=w>
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># Run with runtime parameters (experiment-specific)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1beta1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Run</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>experiment-lr-001</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>provider</span><span class=p>:</span><span class=w> </span><span class=l>provider-namespace/provider-name</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>pipeline</span><span class=p>:</span><span class=w> </span><span class=l>training-pipeline</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>parameters</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>learning_rate</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;0.001&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>num_epochs</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;50&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>batch_size</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;64&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>dropout_rate</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;0.2&#34;</span><span class=w>
+</span></span></span></code></pre></div><h4 id=3-comprehensive-testing-strategy>3. Comprehensive Testing Strategy</h4><p><strong>Test pipelines at multiple levels:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=c1># Unit tests for individual components</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>test_preprocessing_component</span><span class=p>():</span>
+</span></span><span class=line><span class=cl>    <span class=c1># Test data transformation logic</span>
+</span></span><span class=line><span class=cl>    <span class=n>input_data</span> <span class=o>=</span> <span class=n>create_test_data</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>    <span class=n>result</span> <span class=o>=</span> <span class=n>preprocess_data</span><span class=p>(</span><span class=n>input_data</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=k>assert</span> <span class=n>result</span><span class=o>.</span><span class=n>shape</span> <span class=o>==</span> <span class=n>expected_shape</span>
+</span></span><span class=line><span class=cl>    <span class=k>assert</span> <span class=n>result</span><span class=o>.</span><span class=n>columns</span> <span class=o>==</span> <span class=n>expected_columns</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Integration tests for pipeline compilation</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>test_pipeline_compilation</span><span class=p>():</span>
+</span></span><span class=line><span class=cl>    <span class=n>pipeline</span> <span class=o>=</span> <span class=n>create_pipeline</span><span class=p>(</span>
+</span></span><span class=line><span class=cl>        <span class=n>data_root</span><span class=o>=</span><span class=s2>&#34;gs://test-bucket/data&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=n>model_root</span><span class=o>=</span><span class=s2>&#34;gs://test-bucket/models&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=p>)</span>
+</span></span><span class=line><span class=cl>    <span class=c1># Verify pipeline compiles without errors</span>
+</span></span><span class=line><span class=cl>    <span class=k>assert</span> <span class=n>pipeline</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span>
+</span></span><span class=line><span class=cl>    <span class=k>assert</span> <span class=nb>len</span><span class=p>(</span><span class=n>pipeline</span><span class=o>.</span><span class=n>components</span><span class=p>)</span> <span class=o>&gt;</span> <span class=mi>0</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># End-to-end tests with test data</span>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>test_pipeline_execution</span><span class=p>():</span>
+</span></span><span class=line><span class=cl>    <span class=c1># Run pipeline with small test dataset</span>
+</span></span><span class=line><span class=cl>    <span class=c1># Verify outputs are generated correctly</span>
+</span></span><span class=line><span class=cl>    <span class=k>pass</span>
+</span></span></code></pre></div><h3 id=container-best-practices>Container Best Practices</h3><h4 id=1-efficient-docker-images>1. Efficient Docker Images</h4><p><strong>Build optimized, secure container images:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-dockerfile data-lang=dockerfile><span class=line><span class=cl><span class=c># ✅ Good: Multi-stage build with security best practices</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>FROM</span><span class=w> </span><span class=s>python:3.9-slim</span><span class=w> </span><span class=k>as</span><span class=w> </span><span class=s>builder</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Install build dependencies</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> apt-get update <span class=o>&amp;&amp;</span> apt-get install -y <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    build-essential <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    <span class=o>&amp;&amp;</span> rm -rf /var/lib/apt/lists/*<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Install Python dependencies</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>COPY</span> requirements.txt .<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> pip install --no-cache-dir -r requirements.txt<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Production stage</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>FROM</span><span class=w> </span><span class=s>python:3.9-slim</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Create non-root user</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> useradd --create-home --shell /bin/bash mluser<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Copy installed packages from builder</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>COPY</span> --from<span class=o>=</span>builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>COPY</span> --from<span class=o>=</span>builder /usr/local/bin /usr/local/bin<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Copy application code</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>COPY</span> --chown<span class=o>=</span>mluser:mluser pipeline/ /app/pipeline/<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>WORKDIR</span><span class=w> </span><span class=s>/app</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Switch to non-root user</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>USER</span><span class=w> </span><span class=s>mluser</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=c># Set entrypoint</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>ENTRYPOINT</span> <span class=p>[</span><span class=s2>&#34;python&#34;</span><span class=p>,</span> <span class=s2>&#34;-m&#34;</span><span class=p>,</span> <span class=s2>&#34;pipeline.main&#34;</span><span class=p>]</span><span class=err>
+</span></span></span></code></pre></div><h4 id=2-image-versioning-and-tagging>2. Image Versioning and Tagging</h4><p><strong>Use semantic versioning and meaningful tags:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># ✅ Good: Semantic versioning with descriptive tags</span>
+</span></span><span class=line><span class=cl>docker build -t my-registry/ml-pipeline:v1.2.0 .
+</span></span><span class=line><span class=cl>docker tag my-registry/ml-pipeline:v1.2.0 my-registry/ml-pipeline:latest
+</span></span><span class=line><span class=cl>docker tag my-registry/ml-pipeline:v1.2.0 my-registry/ml-pipeline:stable
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># ✅ Good: Environment-specific tags</span>
+</span></span><span class=line><span class=cl>docker tag my-registry/ml-pipeline:v1.2.0 my-registry/ml-pipeline:production-v1.2.0
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># ❌ Avoid: Generic or unclear tags</span>
+</span></span><span class=line><span class=cl>docker build -t my-registry/ml-pipeline:latest .
+</span></span><span class=line><span class=cl>docker build -t my-registry/ml-pipeline:test .
+</span></span></code></pre></div><h2 id=resource-management>Resource Management</h2><h3 id=pipeline-resources>Pipeline Resources</h3><h4 id=1-proper-resource-allocation>1. Proper Resource Allocation</h4><p><strong>Set appropriate resource requests and limits:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1beta1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pipeline</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>training-pipeline</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>provider</span><span class=p>:</span><span class=w> </span><span class=l>provider-namespace/provider-name</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;my-registry/ml-pipeline:v1.2.0&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>framework</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>tfx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>parameters</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>pipeline</span><span class=p>:</span><span class=w> </span><span class=l>training_pipeline.create_components</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>env</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>GPU_ENABLED</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;true&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>NODE_SELECTOR</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;accelerator=nvidia-tesla-v100&#34;</span><span class=w>
+</span></span></span></code></pre></div><h4 id=2-effective-labeling-and-organization>2. Effective Labeling and Organization</h4><p><strong>Use consistent labeling for resource management:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>customer-churn-training</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># Team and ownership</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>team</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;ml-engineering&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>owner</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;data-science-team&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># Project and domain</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>project</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;customer-churn&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>domain</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;marketing&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># Environment and lifecycle</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>environment</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;production&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>lifecycle</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;active&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># Version and release</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;v2.1.0&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>release</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2024-q1&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># Cost tracking</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>cost-center</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;ml-infrastructure&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>budget</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;ml-training&#34;</span><span class=w>
+</span></span></span></code></pre></div><h3 id=namespace-strategy>Namespace Strategy</h3><h4 id=1-environment-separation>1. Environment Separation</h4><p><strong>Use namespaces to separate environments:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Development environment</span>
+</span></span><span class=line><span class=cl>kubectl create namespace ml-dev
+</span></span><span class=line><span class=cl>kubectl label namespace ml-dev <span class=nv>environment</span><span class=o>=</span>development
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Staging environment</span>
+</span></span><span class=line><span class=cl>kubectl create namespace ml-staging
+</span></span><span class=line><span class=cl>kubectl label namespace ml-staging <span class=nv>environment</span><span class=o>=</span>staging
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Production environment</span>
+</span></span><span class=line><span class=cl>kubectl create namespace ml-prod
+</span></span><span class=line><span class=cl>kubectl label namespace ml-prod <span class=nv>environment</span><span class=o>=</span>production
+</span></span></code></pre></div><h4 id=2-team-based-organization>2. Team-Based Organization</h4><p><strong>Organize resources by team or project:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Team-based namespaces</span>
+</span></span><span class=line><span class=cl>kubectl create namespace ml-team-nlp
+</span></span><span class=line><span class=cl>kubectl create namespace ml-team-vision
+</span></span><span class=line><span class=cl>kubectl create namespace ml-team-recommendations
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Project-based namespaces</span>
+</span></span><span class=line><span class=cl>kubectl create namespace customer-churn
+</span></span><span class=line><span class=cl>kubectl create namespace fraud-detection
+</span></span><span class=line><span class=cl>kubectl create namespace recommendation-engine
+</span></span></code></pre></div><h2 id=automation-and-scheduling>Automation and Scheduling</h2><h3 id=runconfiguration-best-practices>RunConfiguration Best Practices</h3><h4 id=1-intelligent-scheduling>1. Intelligent Scheduling</h4><p><strong>Set up appropriate scheduling based on data availability and business needs:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1alpha5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>RunConfiguration</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>daily-model-training</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>run</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>pipeline</span><span class=p>:</span><span class=w> </span><span class=l>training-pipeline</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>runtimeParameters</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>data_date</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;{{ .Date }}&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>schedule</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>cron</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;0 6 * * *&#34;</span><span class=w>  </span><span class=c># 6 AM daily</span><span class=w>
+</span></span></span></code></pre></div><h2 id=security-and-compliance>Security and Compliance</h2><h2 id=monitoring-and-observability>Monitoring and Observability</h2><h3 id=pipeline-monitoring>Pipeline Monitoring</h3><h4 id=1-comprehensive-logging>1. Comprehensive Logging</h4><p><strong>Implement structured logging throughout your pipeline:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=kn>import</span> <span class=nn>logging</span>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=nn>json</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Configure structured logging</span>
+</span></span><span class=line><span class=cl><span class=n>logging</span><span class=o>.</span><span class=n>basicConfig</span><span class=p>(</span>
+</span></span><span class=line><span class=cl>    <span class=n>level</span><span class=o>=</span><span class=n>logging</span><span class=o>.</span><span class=n>INFO</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nb>format</span><span class=o>=</span><span class=s1>&#39;</span><span class=si>%(asctime)s</span><span class=s1> - </span><span class=si>%(name)s</span><span class=s1> - </span><span class=si>%(levelname)s</span><span class=s1> - </span><span class=si>%(message)s</span><span class=s1>&#39;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>logger</span> <span class=o>=</span> <span class=n>logging</span><span class=o>.</span><span class=n>getLogger</span><span class=p>(</span><span class=vm>__name__</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>def</span> <span class=nf>log_pipeline_event</span><span class=p>(</span><span class=n>event_type</span><span class=p>,</span> <span class=n>details</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>    <span class=n>log_entry</span> <span class=o>=</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=s1>&#39;event_type&#39;</span><span class=p>:</span> <span class=n>event_type</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=s1>&#39;timestamp&#39;</span><span class=p>:</span> <span class=n>datetime</span><span class=o>.</span><span class=n>utcnow</span><span class=p>()</span><span class=o>.</span><span class=n>isoformat</span><span class=p>(),</span>
+</span></span><span class=line><span class=cl>        <span class=s1>&#39;pipeline_name&#39;</span><span class=p>:</span> <span class=n>os</span><span class=o>.</span><span class=n>environ</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;PIPELINE_NAME&#39;</span><span class=p>),</span>
+</span></span><span class=line><span class=cl>        <span class=s1>&#39;run_id&#39;</span><span class=p>:</span> <span class=n>os</span><span class=o>.</span><span class=n>environ</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;RUN_ID&#39;</span><span class=p>),</span>
+</span></span><span class=line><span class=cl>        <span class=s1>&#39;details&#39;</span><span class=p>:</span> <span class=n>details</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=n>logger</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=n>json</span><span class=o>.</span><span class=n>dumps</span><span class=p>(</span><span class=n>log_entry</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1># Usage in pipeline components</span>
+</span></span><span class=line><span class=cl><span class=n>log_pipeline_event</span><span class=p>(</span><span class=s1>&#39;data_validation_start&#39;</span><span class=p>,</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=s1>&#39;dataset_size&#39;</span><span class=p>:</span> <span class=nb>len</span><span class=p>(</span><span class=n>dataset</span><span class=p>),</span>
+</span></span><span class=line><span class=cl>    <span class=s1>&#39;validation_rules&#39;</span><span class=p>:</span> <span class=n>validation_config</span>
+</span></span><span class=line><span class=cl><span class=p>})</span>
+</span></span></code></pre></div><h2 id=version-control>Version Control</h2><h3 id=pipeline-versioning>Pipeline Versioning</h3><h4 id=1-semantic-versioning>1. Semantic Versioning</h4><p><strong>Version your pipelines semantically:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># Version pipeline resources</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1beta1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pipeline</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>customer-churn-training</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>version</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;v2.1.0&#34;</span><span class=w>  </span><span class=c># Major.Minor.Patch</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>release</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2024-q1&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>provider</span><span class=p>:</span><span class=w> </span><span class=l>provider-namespace/provider-name</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;my-registry/customer-churn-pipeline:v2.1.0&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>framework</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>tfx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>parameters</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>pipeline</span><span class=p>:</span><span class=w> </span><span class=l>customer_churn_training.create_components</span><span class=w>
+</span></span></span></code></pre></div><div class=section-index></div></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"></div></div></div></footer></div><script src=/kfp-operator/js/main.min.b22284f36a14e3cf2b5ae38e0b26415f6dc44542030b848166e327e05512a0cb.js integrity="sha256-siKE82oU488rWuOOCyZBX23ERUIDC4SBZuMn4FUSoMs=" crossorigin=anonymous></script><script defer src=/kfp-operator/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js integrity="sha256-c0eKfUgHaYrtfjVesj+YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin=anonymous></script><script src=/kfp-operator/js/tabpane-persist.js></script></body></html>

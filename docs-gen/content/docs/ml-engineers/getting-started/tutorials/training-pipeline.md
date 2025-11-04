@@ -9,18 +9,18 @@ weight: 10
 
 This comprehensive tutorial walks you through creating, deploying, and managing a complete TFX training pipeline using the KFP Operator. You'll learn how to build a penguin species classification pipeline and manage its entire lifecycle through Kubernetes Custom Resources.
 
-## 📋 What You'll Learn
+## What You'll Learn
 
 By the end of this tutorial, you'll be able to:
 
-- **🏗️ Build TFX pipelines** optimized for the KFP Operator
-- **📦 Containerize ML workflows** with proper dependencies
-- **🚀 Deploy pipelines** using Kubernetes resources
-- **⚡ Execute and monitor** pipeline runs
-- **🔄 Set up automated scheduling** for continuous training
-- **📊 Handle events** for model deployment automation
+- ** Build TFX pipelines** optimized for the KFP Operator
+- **Containerize ML workflows** with proper dependencies
+- **Deploy pipelines** using Kubernetes resources
+- **Execute and monitor** pipeline runs
+- **Set up automated scheduling** for continuous training
+- **Handle events** for model deployment automation
 
-## 🎯 Prerequisites
+## Prerequisites
 
 Before starting, ensure you have:
 
@@ -29,7 +29,7 @@ Before starting, ensure you have:
 - **Container registry access** (Docker Hub, GCR, ECR, etc.)
 - **Basic TFX knowledge** (helpful but not required)
 
-## 📁 Example Code
+## Example Code
 
 All code for this tutorial is available on [GitHub]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/master/quickstart).
 
@@ -39,7 +39,7 @@ git clone {{< param "github_repo" >}}.git
 cd kfp-operator/includes/master/quickstart
 ```
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 Our training pipeline follows this architecture:
 
@@ -116,10 +116,10 @@ Create `Dockerfile`:
 
 **Container Features:**
 
-- **🐍 Python 3.9**: Compatible with TFX requirements
-- **📦 TFX Dependencies**: All necessary libraries included
-- **🔒 Security**: Non-root user for security
-- **⚡ Optimized**: Multi-stage build for smaller images
+- **Python 3.9**: Compatible with TFX requirements
+- **TFX Dependencies**: All necessary libraries included
+- **Security**: Non-root user for security
+- **Optimized**: Multi-stage build for smaller images
 
 ### Build and Push the Container
 

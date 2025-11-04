@@ -319,7 +319,7 @@ log_pipeline_event('data_validation_start', {
 })
 ```
 
-## Version Control and GitOps
+## Version Control
 
 ### Pipeline Versioning
 

@@ -9,11 +9,11 @@ weight: 20
 
 This section provides comprehensive, hands-on tutorials for building and deploying machine learning pipelines using the KFP Operator. Each tutorial includes complete code examples, step-by-step instructions, and best practices.
 
-## 🗺️ Recommended Learning Path
+## Recommended Learning Path
 1. **[Training Pipeline](training-pipeline/)** - Build a complete workflow
 2. **[Pipeline Dependencies](pipeline-dependencies/)** - Learn chaining
 
-## 🛠️ Tutorial Prerequisites
+## Tutorial Prerequisites
 
 ### Required for All Tutorials
 - **Kubernetes cluster** with KFP Operator installed
@@ -27,7 +27,7 @@ This section provides comprehensive, hands-on tutorials for building and deployi
 - **Cloud Storage**: Some tutorials require cloud storage (GCS, S3, etc.)
 - **ML Frameworks**: TFX knowledge helpful for advanced tutorials
 
-## 📁 Code Repository
+## Code Repository
 
 All tutorial code is available in our GitHub repository:
 
@@ -39,7 +39,7 @@ git clone https://github.com/sky-uk/kfp-operator.git
 cd kfp-operator/docs-gen/includes/master
 ```
 
-## 🆘 Getting Help
+## Getting Help
 
 If you encounter issues while following the tutorials:
 
@@ -49,7 +49,7 @@ If you encounter issues while following the tutorials:
 4. **Ask in [GitHub Discussions](https://github.com/sky-uk/kfp-operator/discussions)** for community help
 5. **Check [Platform Engineer docs](../../platform-engineers/)** for installation issues
 
-## 🔗 Related Resources
+## Related Resources
 
 ### External Tutorials
 - **[TFX Tutorials](https://www.tensorflow.org/tfx/tutorials)** - TensorFlow Extended framework
