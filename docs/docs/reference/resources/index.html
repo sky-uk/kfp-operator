@@ -29,7 +29,7 @@
 
   <meta itemprop="name" content="Custom Resources">
   <meta itemprop="description" content="Canonical API reference for all Kubernetes Custom Resource Definitions (CRDs)">
-  <meta itemprop="wordCount" content="135">
+  <meta itemprop="wordCount" content="132">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Custom Resources">
   <meta name="twitter:description" content="Canonical API reference for all Kubernetes Custom Resource Definitions (CRDs)">
@@ -269,12 +269,12 @@
             <div class="td-toc">
         <nav id="TableOfContents">
   <ul>
-    <li><a href="#-resource-overview">📋 Resource Overview</a>
+    <li><a href="#resource-overview">Resource Overview</a>
       <ul>
         <li><a href="#resource-hierarchy">Resource Hierarchy</a></li>
       </ul>
     </li>
-    <li><a href="#-available-resources">🔧 Available Resources</a>
+    <li><a href="#available-resources">Available Resources</a>
       <ul>
         <li><a href="#pipeline">Pipeline</a></li>
         <li><a href="#run">Run</a></li>
@@ -282,7 +282,7 @@
         <li><a href="#provider">Provider</a></li>
       </ul>
     </li>
-    <li><a href="#-common-resource-patterns">📋 Common Resource Patterns</a></li>
+    <li><a href="#common-resource-patterns">Common Resource Patterns</a></li>
   </ul>
 </nav>
       </div>
@@ -312,7 +312,7 @@
 </header>
 	<h1 id="custom-resource-definitions-crds">Custom Resource Definitions (CRDs)</h1>
 <p>This section provides the canonical API reference for all Kubernetes Custom Resource Definitions (CRDs) provided by the KFP Operator.</p>
-<h2 id="-resource-overview">📋 Resource Overview</h2>
+<h2 id="resource-overview">Resource Overview</h2>
 <p>The KFP Operator extends Kubernetes with four primary Custom Resource types:</p>
 <h3 id="resource-hierarchy">Resource Hierarchy</h3>
 <pre tabindex="0"><code>Provider (Platform Connection)
@@ -322,7 +322,7 @@ Pipeline (Template Definition)
 Run (Individual Execution)
     ↑
 RunConfiguration (Automation Rules)
-</code></pre><h2 id="-available-resources">🔧 Available Resources</h2>
+</code></pre><h2 id="available-resources">Available Resources</h2>
 <h3 id="pipeline"><a href="pipeline/">Pipeline</a></h3>
 <p>Defines reusable ML pipeline templates with container specifications, environment configuration, and execution parameters.</p>
 <h3 id="run"><a href="run/">Run</a></h3>
@@ -331,7 +331,7 @@ RunConfiguration (Automation Rules)
 <p>Configures automated pipeline execution with scheduling, event triggers, and parameter templates.</p>
 <h3 id="provider"><a href="provider/">Provider</a></h3>
 <p>Manages connections to ML orchestration platforms with authentication, health monitoring, and load balancing.</p>
-<h2 id="-common-resource-patterns">📋 Common Resource Patterns</h2>
+<h2 id="common-resource-patterns">Common Resource Patterns</h2>
 <p>All Custom Resources share common metadata and status patterns. See individual resource documentation for complete field specifications, validation rules, and examples.</p>
 
 	<div class="section-index">
