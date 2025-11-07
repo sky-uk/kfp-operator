@@ -55,7 +55,12 @@ func main() {
 	}
 	defer nc.Close()
 
-	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
+	// Create dual publisher (supports both NATS and JetStream)
+	dualPublisher, err := publisher.NewDualPublisher(ctx, nc, &config.NATSConfig)
+	if err != nil {
+		logger.Error(err, "failed to create dual publisher")
+		panic(err)
+	}
 
 	srvMetrics := server.NewServerMetrics()
 
@@ -68,11 +73,11 @@ func main() {
 
 	pb.RegisterRunCompletionEventTriggerServer(
 		grpcServer,
-		&server.Server{Config: config, Publisher: natsPublisher},
+		&server.Server{Config: config, Publisher: dualPublisher},
 	)
 	healthpb.RegisterHealthServer(
 		grpcServer,
-		&server.HealthServer{HealthCheck: natsPublisher},
+		&server.HealthServer{HealthCheck: dualPublisher},
 	)
 	reflection.Register(grpcServer)
 

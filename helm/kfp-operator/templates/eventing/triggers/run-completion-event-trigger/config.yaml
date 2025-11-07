@@ -11,6 +11,13 @@ data:
       serverConfig:
         host: eventbus-{{ include "kfp-operator.fullname" . }}-events-stan-svc
         port: {{ .Values.runcompletionEventTrigger.nats.server.port }}
+      jetstream:
+        enabled: {{ .Values.runcompletionEventTrigger.nats.jetstream.enabled | default false }}
+        streamName: {{ .Values.runcompletionEventTrigger.nats.jetstream.streamName | default "run-completion-events" }}
+        subject: {{ .Values.runcompletionEventTrigger.nats.jetstream.subject | default .Values.runcompletionEventTrigger.nats.subject }}
+        maxAge: {{ .Values.runcompletionEventTrigger.nats.jetstream.maxAge | default "1h" }}
+        maxMsgs: {{ .Values.runcompletionEventTrigger.nats.jetstream.maxMsgs | default 1000 }}
+        maxBytes: {{ .Values.runcompletionEventTrigger.nats.jetstream.maxBytes | default 10485760 }}
     serverConfig:
       host: 0.0.0.0
       port: {{ .Values.runcompletionEventTrigger.server.port }}

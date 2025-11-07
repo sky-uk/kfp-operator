@@ -103,4 +103,54 @@ var _ = Describe("PublisherHandler", func() {
 			})
 		})
 	})
+
+	Describe("DualPublisher", func() {
+		Context("when JetStream is disabled", func() {
+			It("should only use NATS publisher", func() {
+				mockNatsConn := &MockNatsConn{}
+				natsPublisher := &NatsPublisher{
+					NatsConn: mockNatsConn,
+					Subject:  "test-subject",
+				}
+
+				dualPublisher := &DualPublisher{
+					natsPublisher:      natsPublisher,
+					jetstreamPublisher: nil,
+					jetstreamEnabled:   false,
+				}
+
+				event := common.RunCompletionEvent{
+					RunId: "test-run-id",
+				}
+
+				expectedData, _ := json.Marshal(DataWrapper{Data: event})
+				mockNatsConn.On("Publish", "test-subject", expectedData).Return(nil)
+
+				err := dualPublisher.Publish(event)
+
+				Expect(err).ToNot(HaveOccurred())
+				mockNatsConn.AssertExpectations(GinkgoT())
+			})
+
+			It("should return NATS publisher name", func() {
+				dualPublisher := &DualPublisher{
+					jetstreamEnabled: false,
+				}
+
+				name := dualPublisher.Name()
+				Expect(name).To(Equal("nats-only-publisher"))
+			})
+		})
+
+		Context("when JetStream is enabled", func() {
+			It("should return dual publisher name", func() {
+				dualPublisher := &DualPublisher{
+					jetstreamEnabled: true,
+				}
+
+				name := dualPublisher.Name()
+				Expect(name).To(Equal("dual-publisher"))
+			})
+		})
+	})
 })

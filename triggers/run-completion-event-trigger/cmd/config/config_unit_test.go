@@ -29,6 +29,14 @@ var _ = Context("LoadConfig", func() {
 						Host: "localhost",
 						Port: "4222",
 					},
+					JetStream: JetStreamConfig{
+						Enabled:    true,
+						StreamName: "run-completion-events",
+						Subject:    "events",
+						MaxAge:     "1h",
+						MaxMsgs:    1000,
+						MaxBytes:   10485760,
+					},
 				},
 				ServerConfig: ServerConfig{
 					Host: "localhost",
@@ -54,6 +62,14 @@ var _ = Context("LoadConfig", func() {
 					ServerConfig: ServerConfig{
 						Host: "localhost",
 						Port: "5000",
+					},
+					JetStream: JetStreamConfig{
+						Enabled:    true,
+						StreamName: "run-completion-events",
+						Subject:    "events",
+						MaxAge:     "1h",
+						MaxMsgs:    1000,
+						MaxBytes:   10485760,
 					},
 				},
 				ServerConfig: ServerConfig{

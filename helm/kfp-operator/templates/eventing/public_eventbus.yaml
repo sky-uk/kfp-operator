@@ -11,6 +11,8 @@ spec:
         resources:
           requests:
             cpu: 100m
+        args:
+          - "--jetstream"
       metadata:
         labels:
           app: {{ include "kfp-operator.fullname" . }}-events
