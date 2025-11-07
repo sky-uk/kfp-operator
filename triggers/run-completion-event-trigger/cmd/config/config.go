@@ -15,8 +15,18 @@ type Config struct {
 }
 
 type NATSConfig struct {
-	Subject      string       `mapstructure:"subject"`
-	ServerConfig ServerConfig `mapstructure:"serverConfig"`
+	Subject      string          `mapstructure:"subject"`
+	ServerConfig ServerConfig    `mapstructure:"serverConfig"`
+	JetStream    JetStreamConfig `mapstructure:"jetstream"`
+}
+
+type JetStreamConfig struct {
+	Enabled    bool   `mapstructure:"enabled"`
+	StreamName string `mapstructure:"streamName"`
+	Subject    string `mapstructure:"subject"`
+	MaxAge     string `mapstructure:"maxAge"`
+	MaxMsgs    int64  `mapstructure:"maxMsgs"`
+	MaxBytes   int64  `mapstructure:"maxBytes"`
 }
 
 type ServerConfig struct {

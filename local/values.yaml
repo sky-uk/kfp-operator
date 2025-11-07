@@ -32,6 +32,13 @@ runcompletionEventTrigger:
     subject: events
     server:
       port: 4222
+    jetstream:
+      enabled: false
+      streamName: run-completion-events
+      subject: events
+      maxAge: 1h
+      maxMsgs: 1000
+      maxBytes: 10485760  # 10MB
   server:
     port: 50051
   metrics:
