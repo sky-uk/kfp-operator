@@ -7,6 +7,10 @@ bin/
 __pycache__/
 .venv/
 .pytest_cache
+*.egg-info/
+build/
+# uv
+.uv-cache/
 
 # Tests
 pids

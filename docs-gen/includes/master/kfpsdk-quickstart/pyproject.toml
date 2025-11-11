@@ -1,9 +1,16 @@
-[tool.poetry]
+[project]
 name = "getting_started"
 version = "0.1.0"
 description = ""
 authors = []
+requires-python = ">=3.9"
+dependencies = [
+    "kfp>=2,<3",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9"
-kfp = ">=2,<3"
+[tool.setuptools]
+packages = ["getting_started"]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"

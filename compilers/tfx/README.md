@@ -4,8 +4,8 @@ This module compiles a TFX component definition into a Kubeflow Pipelines file.
 
 ## Setup
 
-Note that we use the [dynamic versioning plugin](https://pypi.org/project/poetry-dynamic-versioning/) for Poetry to version this module.
-The version differs from those of the resulting containers (which are based on `git describe`) because Poetry would otherwise reject it. This will be installed automatically when running the `build` make target.
+Note that we use setuptools-scm for dynamic versioning of this module.
+The version differs from those of the resulting containers (which are based on `git describe`) because setuptools-scm uses a different versioning scheme. This will be configured automatically when running the `build` make target.
 
 ## Usage
 
@@ -18,7 +18,7 @@ It requires a valid configuration file similar to [pipeline_conf.yaml](acceptanc
 ```bash
 PIPELINE_CONFIG=$(cat acceptance/pipeline_conf.yaml)
 export PYTHONPATH="$PYTHONPATH:$(pwd)/../docs/quickstart/penguin_pipeline"
-poetry run python kfp_compiler/compiler.py --pipeline_config "${PIPELINE_CONFIG}" --output_file out.yaml
+uv run python compiler/compiler.py --pipeline_config "${PIPELINE_CONFIG}" --output_file out.yaml
 ```
 
 ## Run tests

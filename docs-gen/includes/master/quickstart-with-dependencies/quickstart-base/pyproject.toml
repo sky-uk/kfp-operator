@@ -1,13 +1,20 @@
-[tool.poetry]
+[project]
 name = "penguin_examples"
 version = "0.1.0"
 description = ""
 authors = []
+requires-python = "==3.10.12"
+dependencies = [
+    "tfx==1.15.1",
+    "shapely<2",
+    "kfp==2.0.0",
+    "setuptools~=70.0",
+    "dill==0.3.1.1",
+]
 
-[tool.poetry.dependencies]
-python = "3.10.12"
-tfx = "1.15.1"
-shapely = "<2"
-kfp = "2.0.0"
-setuptools = "~=70.0"
-dill = "0.3.1.1"
+[tool.setuptools]
+packages = ["penguin_examples"]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
