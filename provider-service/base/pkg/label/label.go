@@ -12,6 +12,8 @@ const (
 	RunConfigurationNamespace = "runconfiguration-namespace"
 	RunName                   = "run-name"
 	RunNamespace              = "run-namespace"
+	SchemaVersion             = "schema_version"
+	SdkVersion                = "sdk_version"
 )
 
 var LabelKeys = []string{

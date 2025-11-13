@@ -29,9 +29,7 @@ func (dls DefaultLabelSanitizer) Sanitize(labels map[string]string) map[string]s
 
 		// Differing methods of replacing invalid chars due to historical decisions.
 		switch key {
-		case label.PipelineVersion:
-			value = vaiCompliant.ReplaceAllString(value, "-")
-		case "schema_version", "sdk_version":
+		case label.PipelineVersion, label.SchemaVersion, label.SdkVersion:
 			value = vaiCompliant.ReplaceAllString(value, "_")
 		default:
 			key = vaiCompliant.ReplaceAllString(key, "")
