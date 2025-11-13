@@ -3,7 +3,7 @@ module github.com/sky-uk/kfp-operator
 go 1.25.3
 
 require (
-	cloud.google.com/go/aiplatform v1.108.0
+	cloud.google.com/go/aiplatform v1.109.0
 	cloud.google.com/go/pubsub v1.50.1
 	cloud.google.com/go/storage v1.57.1
 	github.com/Masterminds/semver/v3 v3.4.0
