@@ -39,15 +39,9 @@ var _ = Describe("DefaultLabelSanitizer", func() {
 			),
 
 			Entry(
-				"if key is pipeline-version then it replaces invalid characters with hyphen",
-				map[string]string{"pipeline-version": "0.0.1"},
-				map[string]string{"pipeline-version": "0-0-1"},
-			),
-
-			Entry(
-				"if key is schema_version or sdk_version then it replaces invalid characters with underscore",
-				map[string]string{"schema_version": "2.1.0", "sdk_version": "kfp-2.12.2"},
-				map[string]string{"schema_version": "2_1_0", "sdk_version": "kfp-2_12_2"},
+				"if key is pipeline-version, schema_version or sdk_version then it replaces invalid characters with underscore",
+				map[string]string{"pipeline-version": "0.0.1", "schema_version": "2.1.0", "sdk_version": "kfp-2.12.2"},
+				map[string]string{"pipeline-version": "0_0_1", "schema_version": "2_1_0", "sdk_version": "kfp-2_12_2"},
 			),
 		)
 
