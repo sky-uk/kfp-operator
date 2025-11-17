@@ -5,7 +5,7 @@ go 1.25.3
 require (
 	cloud.google.com/go/aiplatform v1.109.0
 	cloud.google.com/go/pubsub v1.50.1
-	cloud.google.com/go/storage v1.57.1
+	cloud.google.com/go/storage v1.57.2
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/argoproj/argo-workflows/v3 v3.7.3
 	github.com/distribution/reference v0.6.0
