@@ -1,0 +1,11 @@
+apiVersion: v2
+name: kfp-operator-cluster-wide
+description: A Helm chart for kfp-operator cluster wide resources
+
+type: application
+
+# Set at packaging time
+version: 0.0.0
+
+# Set at packaging time
+appVersion: "latest"
