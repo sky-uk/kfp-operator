@@ -5,8 +5,9 @@ import (
 	"strings"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +15,7 @@ import (
 )
 
 type RunScheduleDefinitionCreator struct {
-	Config config.KfpControllerConfigSpec
+	Config config.ConfigSpec
 }
 
 func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
@@ -81,7 +82,7 @@ func runConfigurationNameForRunSchedule(
 }
 
 func RunScheduleWorkflowFactory(
-	config config.KfpControllerConfigSpec,
+	config config.ConfigSpec,
 ) *ResourceWorkflowFactory[*pipelineshub.RunSchedule, providers.RunScheduleDefinition] {
 	return &ResourceWorkflowFactory[*pipelineshub.RunSchedule, providers.RunScheduleDefinition]{
 		DefinitionCreator: RunScheduleDefinitionCreator{

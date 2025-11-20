@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -32,7 +32,7 @@ type ProviderReconciler struct {
 	StatusManager     ProviderStatusManager
 }
 
-func NewProviderReconciler(ec K8sExecutionContext, config config.KfpControllerConfigSpec) *ProviderReconciler {
+func NewProviderReconciler(ec K8sExecutionContext, config config.ConfigSpec) *ProviderReconciler {
 	return &ProviderReconciler{
 		ProviderLoader: ResourceReconciler[*pipelineshub.Provider]{
 			EC:     ec,

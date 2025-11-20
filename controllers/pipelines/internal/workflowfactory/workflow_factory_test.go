@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -17,7 +17,7 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		owner := pipelineshub.RandomResource()
 		namespace := RandomString()
 		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
-			Config: config.KfpControllerConfigSpec{
+			Config: config.ConfigSpec{
 				WorkflowNamespace: namespace,
 			},
 		}
@@ -35,7 +35,7 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		owner := pipelineshub.RandomResource()
 		configuredNamespace := "configuredNamespace"
 		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
-			Config: config.KfpControllerConfigSpec{
+			Config: config.ConfigSpec{
 				WorkflowNamespace: configuredNamespace,
 			},
 		}

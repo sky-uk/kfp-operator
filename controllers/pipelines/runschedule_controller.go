@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -23,7 +23,7 @@ type RunScheduleReconciler struct {
 func NewRunScheduleReconciler(
 	ec K8sExecutionContext,
 	workflowRepository WorkflowRepository,
-	config config.KfpControllerConfigSpec,
+	config config.ConfigSpec,
 ) *RunScheduleReconciler {
 	return &RunScheduleReconciler{
 		StateHandler: StateHandler[*pipelineshub.RunSchedule]{

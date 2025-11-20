@@ -2,16 +2,14 @@ package workflowfactory
 
 import (
 	"fmt"
-	"strings"
-
-	"github.com/samber/lo"
-
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	"github.com/samber/lo"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
+	"strings"
 )
 
 type PipelineParamsCreator struct{}
@@ -67,7 +65,7 @@ func (ppc PipelineParamsCreator) additionalParams(provider pipelineshub.Provider
 }
 
 func PipelineWorkflowFactory(
-	config config.KfpControllerConfigSpec,
+	config config.ConfigSpec,
 ) *ResourceWorkflowFactory[*pipelineshub.Pipeline, providers.PipelineDefinition] {
 	creator := PipelineParamsCreator{}
 	return &ResourceWorkflowFactory[*pipelineshub.Pipeline, providers.PipelineDefinition]{

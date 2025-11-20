@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -15,7 +15,7 @@ import (
 var (
 	K8sClient  client.Client
 	Ctx        context.Context
-	TestConfig config.KfpControllerConfigSpec
+	TestConfig config.ConfigSpec
 	Provider   *pipelineshub.Provider
 )
 
