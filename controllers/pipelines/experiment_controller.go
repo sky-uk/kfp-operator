@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -24,7 +24,7 @@ type ExperimentReconciler struct {
 func NewExperimentReconciler(
 	ec K8sExecutionContext,
 	workflowRepository WorkflowRepository,
-	config config.KfpControllerConfigSpec,
+	config config.ConfigSpec,
 ) *ExperimentReconciler {
 	return &ExperimentReconciler{
 		StateHandler: StateHandler[*pipelineshub.Experiment]{

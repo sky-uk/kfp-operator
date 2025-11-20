@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"sigs.k8s.io/controller-runtime/pkg/config"
 )
 
 func K8sClientConfig() (k8sConfig *rest.Config, err error) {
@@ -59,12 +61,26 @@ type DefaultProviderValues struct {
 }
 
 type ServiceConfiguration struct {
-	Port      int        `json:"port,omitempty"`
-	Endpoints []Endpoint `json:"endpoints,omitempty"`
+	Port      int        `yaml:"port,omitempty"`
+	Endpoints []Endpoint `yaml:"endpoints,omitempty"`
 }
 
 type Endpoint struct {
-	Host string `json:"host,omitempty"`
-	Port int    `json:"port,omitempty"`
-	Path string `json:"path,omitempty"`
+	Host string `yaml:"host,omitempty"`
+	Port int    `yaml:"port,omitempty"`
+	Path string `yaml:"path,omitempty"`
+}
+
+func (e Endpoint) URL() string {
+	return fmt.Sprintf("%s:%d%s", e.Host, e.Port, e.Path)
+}
+
+func (cw *ControllerWrapper) ToController() config.Controller {
+	return config.Controller{
+		GroupKindConcurrency:    cw.GroupKindConcurrency,
+		MaxConcurrentReconciles: cw.MaxConcurrentReconciles,
+		CacheSyncTimeout:        cw.CacheSyncTimeout,
+		RecoverPanic:            cw.RecoverPanic,
+		NeedLeaderElection:      cw.NeedLeaderElection,
+	}
 }

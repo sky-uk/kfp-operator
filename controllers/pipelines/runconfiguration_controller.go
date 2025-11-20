@@ -9,9 +9,9 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,12 +33,12 @@ type RunConfigurationReconciler struct {
 	DependingOnRunConfigurationReconciler[*pipelineshub.RunConfiguration]
 	EC     K8sExecutionContext
 	Scheme *runtime.Scheme
-	Config config.KfpControllerConfigSpec
+	Config config.ConfigSpec
 }
 
 func NewRunConfigurationReconciler(
 	ec K8sExecutionContext,
-	config config.KfpControllerConfigSpec,
+	config config.ConfigSpec,
 ) *RunConfigurationReconciler {
 	return &RunConfigurationReconciler{
 		DependingOnPipelineReconciler[*pipelineshub.RunConfiguration]{

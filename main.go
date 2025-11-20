@@ -24,6 +24,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/internal/metrics"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	runtimeMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
@@ -32,7 +33,6 @@ import (
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	pipelineshubalpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	pipelineshubalpha6 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
@@ -62,7 +62,6 @@ func init() {
 	utilruntime.Must(pipelineshubalpha5.AddToScheme(scheme))
 	utilruntime.Must(pipelineshubalpha6.AddToScheme(scheme))
 	utilruntime.Must(pipelineshub.AddToScheme(scheme))
-	utilruntime.Must(config.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 
 	utilruntime.Must(external.InitSchemes(scheme))
@@ -89,7 +88,7 @@ func main() {
 	flag.Parse()
 
 	var err error
-	ctrlConfig := config.KfpControllerConfig{}
+	ctrlConfig := config.OperatorConfig{}
 	options := ctrl.Options{Scheme: scheme, HealthProbeBindAddress: ":8081"}
 
 	if configFile != "" {
@@ -102,7 +101,7 @@ func main() {
 			setupLog.Error(err, "unable to parse the config file", "path", configFile, "content", string(bytes))
 			os.Exit(1)
 		}
-		options.Controller = ctrlConfig.ControllerWrapper.ToController()
+		options.Controller = ctrlConfig.Controller.ToController()
 	}
 
 	// TODO: This is temporary whilst have conversion from v1alpha5/6 to v1beta1, this is to be removed once v1alpha6 is removed.

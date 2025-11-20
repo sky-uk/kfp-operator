@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -35,7 +35,7 @@ type RunReconciler struct {
 func NewRunReconciler(
 	ec K8sExecutionContext,
 	workflowRepository WorkflowRepository,
-	config config.KfpControllerConfigSpec,
+	config config.ConfigSpec,
 ) *RunReconciler {
 	return &RunReconciler{
 		StateHandler: StateHandler[*pipelineshub.Run]{
