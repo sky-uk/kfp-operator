@@ -123,6 +123,7 @@ func main() {
 
 	workflowRepository := pipelinescontrollers.WorkflowRepositoryImpl{
 		Client: client,
+		Config: ctrlConfig.Spec,
 		Scheme: mgr.GetScheme(),
 	}
 
