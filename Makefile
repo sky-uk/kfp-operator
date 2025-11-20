@@ -179,6 +179,7 @@ define helm-upload
 		curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz "$(1)"; \
 	fi
 endef
+
 endif
 
 INDEXED_YAML := $(YQ) e --no-doc '{([.metadata.name, .kind] | join("-")): .}'
