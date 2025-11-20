@@ -170,16 +170,16 @@ helm-publish:: helm-package ## Publish Helm chart to repositories
 	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES),$(call helm-upload,$(url)))
 
 define helm-upload
-	@echo "Publishing Helm chart to $(1)"
-	@if echo "$(1)" | grep -q "^oci://"; then \
-		echo "Using Helm OCI push"; \
-		helm push dist/kfp-operator-$(VERSION).tgz $(1)/kfp-operator; \
-	else \
-		echo "Using curl upload"; \
-		curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz "$(1)"; \
-	fi
+@echo "Publishing Helm chart to $(1)"
+@if echo "$(1)" | grep -q "^oci://"; then \
+	echo "Using Helm OCI push"; \
+	helm push dist/kfp-operator-$(VERSION).tgz $(1)/kfp-operator; \
+else \
+	echo "Using curl upload"; \
+	curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz "$(1)"; \
+fi
+$(NEWLINE)
 endef
-
 endif
 
 INDEXED_YAML := $(YQ) e --no-doc '{([.metadata.name, .kind] | join("-")): .}'
