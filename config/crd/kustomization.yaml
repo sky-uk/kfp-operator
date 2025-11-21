@@ -3,7 +3,6 @@
 # It should be run by config/default
 resources:
 - bases/pipelines.kubeflow.org_pipelines.yaml
-- bases/config.kubeflow.org_kfpcontrollerconfigs.yaml
 - bases/pipelines.kubeflow.org_runs.yaml
 - bases/pipelines.kubeflow.org_runconfigurations.yaml
 - bases/pipelines.kubeflow.org_runschedules.yaml
@@ -14,7 +13,6 @@ resources:
 patchesStrategicMerge:
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix.
 # patches here are for enabling the conversion webhook for each CRD
-#- patches/webhook_in_kfpcontrollerconfigs.yaml
 - patches/webhook_in_pipelines.yaml
 - patches/webhook_in_runs.yaml
 - patches/webhook_in_runconfigurations.yaml
