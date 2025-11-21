@@ -3,7 +3,7 @@
 &lt;h2 id="what-youll-learn"&gt;What You&amp;rsquo;ll Learn&lt;/h2&gt;
 &lt;p&gt;By the end of this tutorial, you&amp;rsquo;ll be able to:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;** Build TFX pipelines** optimized for the KFP Operator&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Build TFX pipelines&lt;/strong&gt;&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Containerize ML workflows&lt;/strong&gt; with proper dependencies&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Deploy pipelines&lt;/strong&gt; using Kubernetes resources&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Execute and monitor&lt;/strong&gt; pipeline runs&lt;/li&gt;

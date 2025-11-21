@@ -10,7 +10,6 @@ weight: 10
 The Kubeflow Pipelines Operator provides a **Kubernetes-native API** for Kubeflow and VertexAI pipelines. Define and manage ML pipelines as code using kubectl.
 
 ## Key Features
-- 
 - **Infrastructure as Code**: Apply Kubernetes patterns to ML workflows
 - **Event-Driven**: Automated pipeline execution and management
 - **Enterprise Ready**: RBAC, security policies, and multi-tenant isolation

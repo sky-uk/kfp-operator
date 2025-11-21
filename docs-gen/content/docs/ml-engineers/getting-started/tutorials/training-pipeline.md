@@ -13,7 +13,7 @@ This comprehensive tutorial walks you through creating, deploying, and managing 
 
 By the end of this tutorial, you'll be able to:
 
-- ** Build TFX pipelines** optimized for the KFP Operator
+- **Build TFX pipelines**
 - **Containerize ML workflows** with proper dependencies
 - **Deploy pipelines** using Kubernetes resources
 - **Execute and monitor** pipeline runs
@@ -36,33 +36,7 @@ All code for this tutorial is available on [GitHub]({{< param "github_repo" >}}/
 ```bash
 # Clone the repository to follow along
 git clone {{< param "github_repo" >}}.git
-cd kfp-operator/includes/master/quickstart
-```
-
-## Architecture Overview
-
-Our training pipeline follows this architecture:
-
-```mermaid
-graph TB
-    Data[Penguin Dataset] --> ExampleGen[Example Generation]
-    ExampleGen --> StatisticsGen[Statistics Generation]
-    StatisticsGen --> SchemaGen[Schema Generation]
-    SchemaGen --> ExampleValidator[Example Validation]
-    ExampleValidator --> Transform[Feature Engineering]
-    Transform --> Trainer[Model Training]
-    Trainer --> Evaluator[Model Evaluation]
-    Evaluator --> Pusher[Model Deployment]
-
-    subgraph "KFP Operator"
-        Pipeline[Pipeline Resource]
-        Run[Run Resource]
-        RunConfig[RunConfiguration]
-    end
-
-    Pipeline --> ExampleGen
-    Run --> Pipeline
-    RunConfig --> Run
+cd kfp-operator/docs-gen/includes/master/quickstart
 ```
 
 ## Step 1: Build the TFX Pipeline
@@ -88,25 +62,11 @@ Create `penguin_pipeline/pipeline.py`:
 
 {{% readfile file="/includes/master/quickstart/penguin_pipeline/pipeline.py" code="true" lang="python"%}}
 
-**Key Features of This Pipeline:**
-
-- **🎯 Simplified Interface**: No DAG runner or metadata configuration needed
-- **🔧 Parameterized**: Uses environment variables for flexibility
-- **📦 Containerized**: Designed to run in Kubernetes environments
-- **🔄 Cacheable**: Enables component caching for faster iterations
-
 ### Create the Training Module
 
 Create `penguin_pipeline/trainer.py`:
 
 {{% readfile file="/includes/master/quickstart/penguin_pipeline/trainer.py" code="true" lang="python"%}}
-
-**Training Features:**
-
-- **🧠 Neural Network**: Simple but effective architecture
-- **📊 Metrics**: Comprehensive evaluation metrics
-- **💾 Model Export**: TensorFlow SavedModel format
-- **🔧 Hyperparameters**: Configurable training parameters
 
 ### Create the Container Image
 
@@ -114,53 +74,19 @@ Create `Dockerfile`:
 
 {{% readfile file="/includes/master/quickstart/Dockerfile" code="true" lang="dockerfile"%}}
 
-**Container Features:**
-
-- **Python 3.9**: Compatible with TFX requirements
-- **TFX Dependencies**: All necessary libraries included
-- **Security**: Non-root user for security
-- **Optimized**: Multi-stage build for smaller images
-
 ### Build and Push the Container
 
 Build the pipeline container and push to your registry:
 
 ```bash
 # Set your container registry
-export REGISTRY="your-registry.com/your-project"
+export CONTAINER_REGISTRY="your-registry.com/your-project"
 
 # Build the container
-docker build -t ${REGISTRY}/penguin-pipeline:v1.0.0 .
+make docker-build
 
 # Push to registry
-docker push ${REGISTRY}/penguin-pipeline:v1.0.0
-```
-
-**Alternative: Using Cloud Build (GCP)**
-
-```bash
-# Build using Google Cloud Build
-gcloud builds submit --tag gcr.io/your-project/penguin-pipeline:v1.0.0 .
-```
-
-**Alternative: Using GitHub Actions**
-
-```yaml
-# .github/workflows/build-pipeline.yml
-name: Build Pipeline
-on:
-  push:
-    branches: [main]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          push: true
-          tags: ${{ secrets.REGISTRY }}/penguin-pipeline:${{ github.sha }}
+make docker-push
 ```
 
 ### Verify the Build
@@ -171,7 +97,6 @@ Test your container locally:
 # Run container to verify it works
 docker run --rm ${REGISTRY}/penguin-pipeline:v1.0.0 python -c "
 import tfx
-from penguin_pipeline.pipeline import create_pipeline
 print('Pipeline build successful!')
 print(f'TFX version: {tfx.__version__}')
 "
@@ -196,28 +121,17 @@ kubectl apply -f resources/pipeline.yaml
 The pipeline now gets uploaded to Kubeflow in several steps. After a few seconds to minutes, the following command should result in a success:
 
 ```bash
-kubectl get pipeline
+kubectl get mlp
 
 NAME               SYNCHRONIZATIONSTATE   PROVIDERID
-penguin-pipeline   Succeeded              53905abe-0337-48de-875d-67b9285f3cf7
+penguin-pipeline   Succeeded              provider-namespace/provider-name
 ```
 
 Now visit your Kubeflow Pipelines UI. You should be able to see the newly created pipeline named `penguin-pipeline`. 
 Note that you will see two versions: 'penguin-pipeline' and 'v1'. This is due to an [open issue on Kubeflow](https://github.com/kubeflow/pipelines/issues/5881) where you can't specify a version when creating a pipeline.
 
-## 3. Create an Experiment resource
 
-Note: this step is optional. You can continue with the next step if you want to use the `Default` experiment instead.
-
-Create `experiment.yaml`:
-
-{{% readfile file="/includes/master/quickstart/resources/experiment.yaml" code="true" lang="yaml" %}}
-
-```bash
-kubectl apply -f resources/experiment.yaml
-```
-
-## 4. Create a pipeline RunConfiguration resource
+## 3. Create a pipeline RunConfiguration resource
 
 We can now define a recurring run declaratively using the `RunConfiguration` resource.
 
@@ -233,7 +147,7 @@ kubectl apply -f resources/runconfiguration.yaml
 
 This will trigger run of `penguin-pipeline` once every hour. Note that the cron schedule uses a 6-place space separated syntax as defined [here](https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format).
 
-## 5. (Optional) Deploy newly trained models
+## 4. (Optional) Deploy newly trained models
 
 If the operator has been installed with [Argo-Events](https://argoproj.github.io/argo-events/) support, we can now specify eventsources and sensors to update arbitrary Kubernetes config when a pipeline has been trained successfully.
 In this example we are updating a serving component with the location of the newly trained model. 
