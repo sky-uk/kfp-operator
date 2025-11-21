@@ -214,8 +214,6 @@ This approach keeps the **stored version** on a stable release while allowing yo
 
 **Purpose**: Know how Kubernetes handles multiple CRD versions.
 
-> **📚 Key Concepts**:
-
 **Version Priority Algorithm**: Kubernetes serves the highest priority version by default:
 - Stable versions (v1, v1beta1) have higher priority than alpha versions
 - Higher version numbers have priority (v1beta2 > v1beta1)
