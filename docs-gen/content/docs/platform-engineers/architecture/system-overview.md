@@ -288,17 +288,16 @@ React to pipeline execution completion with detailed status information:
 apiVersion: pipelines.kubeflow.org/v1alpha5
 kind: RunConfiguration
 metadata:
-  name: auto-retrain-on-completion
+  name: retrain-on-dependency-completion
 spec:
   run:
     pipeline: training-pipeline
   triggers:
-    - eventSource: run-completion
-      conditions:
-        - key: status
-          value: "succeeded"
-        - key: pipeline
-          value: "data-validation-pipeline"
+    onChange:
+    - pipeline
+    - runSpec
+    runConfigurations:
+    - some-namespace/some-dependency-rc
 ```
 
 **Use Cases:**
