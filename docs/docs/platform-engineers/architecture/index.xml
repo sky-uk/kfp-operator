@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Architecture on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/architecture/</link><description>Recent content in Architecture on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/platform-engineers/architecture/index.xml" rel="self" type="application/rss+xml"/><item><title>System Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/architecture/system-overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/architecture/system-overview/</guid><description>&lt;h1 id="introduction-to-the-kfp-operator"&gt;Introduction to the KFP Operator&lt;/h1&gt;
+&lt;p&gt;The &lt;strong&gt;Kubeflow Pipelines Operator&lt;/strong&gt; is a Kubernetes-native solution that brings GitOps and declarative management to machine learning workflows. Instead of manually managing pipelines through UIs or imperative scripts, you can define your entire ML infrastructure as code using familiar Kubernetes patterns.&lt;/p&gt;
+&lt;h2 id="why-use-the-kfp-operator"&gt;Why Use the KFP Operator?&lt;/h2&gt;
+&lt;h3 id="traditional-ml-pipeline-management-challenges"&gt;Traditional ML Pipeline Management Challenges&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Manual Deployment&lt;/strong&gt;: Uploading pipelines through web UIs or scripts&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Configuration Drift&lt;/strong&gt;: Environment-specific settings scattered across systems&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Limited Automation&lt;/strong&gt;: Manual intervention required for pipeline lifecycle&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Inconsistent Environments&lt;/strong&gt;: Different configurations between dev/staging/prod&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="kfp-operator-solutions"&gt;KFP Operator Solutions&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Infrastructure as Code&lt;/strong&gt;: Declarative pipeline definitions using Kubernetes CRDs&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Automated Lifecycle&lt;/strong&gt;: Event-driven pipeline execution and management&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Enterprise Security&lt;/strong&gt;: RBAC, policies, and multi-tenant isolation&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Developer Experience&lt;/strong&gt;: Use familiar tools like &lt;code&gt;kubectl&lt;/code&gt;, Helm, and CI/CD&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="core-concepts"&gt;Core Concepts&lt;/h2&gt;
+&lt;h3 id="custom-resource-definitions-crds"&gt;Custom Resource Definitions (CRDs)&lt;/h3&gt;
+&lt;p&gt;The operator extends Kubernetes with custom resources that represent ML pipeline entities:&lt;/p&gt;</description></item></channel></rss>

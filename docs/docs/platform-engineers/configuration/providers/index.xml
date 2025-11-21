@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Providers on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/configuration/providers/</link><description>Recent content in Providers on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/platform-engineers/configuration/providers/index.xml" rel="self" type="application/rss+xml"/><item><title>Kubeflow Pipelines V2</title><link>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/configuration/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/configuration/providers/kfp/</guid><description>&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
+&lt;p&gt;The &lt;strong&gt;Kubeflow Pipelines Provider Service&lt;/strong&gt; is included within this project to interface directly with the
+Kubeflow Pipelines V2 backend. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines V2,
+facilitating operations such as pipeline submission, status monitoring, schedules and experiment management.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/kfp.svg" alt="KFP Provider"&gt;&lt;/p&gt;
+&lt;h2 id="deployment-and-usage"&gt;Deployment and Usage&lt;/h2&gt;
+&lt;p&gt;Set up the service with the necessary configurations, including API endpoints and authentication
+credentials for the Kubeflow Pipelines Provider. &lt;a href="../../../getting-started/installation/#providers"&gt;See the getting started guide.&lt;/a&gt;&lt;/p&gt;</description></item><item><title>Vertex AI</title><link>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/configuration/providers/vai/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/configuration/providers/vai/</guid><description>&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
+&lt;p&gt;The &lt;strong&gt;Vertex AI (VAI) Provider Service&lt;/strong&gt; is included within this project to interface directly with
+Google Cloud&amp;rsquo;s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling
+seamless management and execution of machine learning workflows.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/vai.svg" alt="VAI Provider"&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Note: VAI does not support the &lt;code&gt;experiment&lt;/code&gt; resource&lt;/p&gt;&lt;/blockquote&gt;
+&lt;h2 id="deployment-and-usage"&gt;Deployment and Usage&lt;/h2&gt;
+&lt;p&gt;Set up the service with the necessary configurations, including API endpoints and authentication
+credentials for the Vertex AI instance. &lt;a href="../../../getting-started/installation/#providers"&gt;See the getting started guide.&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>

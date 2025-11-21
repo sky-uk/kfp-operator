@@ -38,6 +38,13 @@ canonifyURLs = false
 [markup.goldmark.renderer]
 unsafe = true
 
+[markup.highlight]
+style = "github-dark"
+lineNos = false
+lineNumbersInTable = false
+noClasses = false
+tabWidth = 2
+
 [params]
   description = "Kubernetes operator to manage ML pipelines on Kubeflow"
   github_repo = "https://github.com/sky-uk/kfp-operator"

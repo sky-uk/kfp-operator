@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tutorials on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/</link><description>Recent content in Tutorials on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/index.xml" rel="self" type="application/rss+xml"/><item><title>Training Pipeline Tutorial</title><link>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/training-pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/training-pipeline/</guid><description>&lt;h1 id="ml-pipeline-training-tutorial"&gt;ML Pipeline Training Tutorial&lt;/h1&gt;
+&lt;p&gt;This comprehensive tutorial walks you through creating, deploying, and managing a complete TFX training pipeline using the KFP Operator. You&amp;rsquo;ll learn how to build a penguin species classification pipeline and manage its entire lifecycle through Kubernetes Custom Resources.&lt;/p&gt;
+&lt;h2 id="what-youll-learn"&gt;What You&amp;rsquo;ll Learn&lt;/h2&gt;
+&lt;p&gt;By the end of this tutorial, you&amp;rsquo;ll be able to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Build TFX pipelines&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Containerize ML workflows&lt;/strong&gt; with proper dependencies&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Deploy pipelines&lt;/strong&gt; using Kubernetes resources&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Execute and monitor&lt;/strong&gt; pipeline runs&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Set up automated scheduling&lt;/strong&gt; for continuous training&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Handle events&lt;/strong&gt; for model deployment automation&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
+&lt;p&gt;Before starting, ensure you have:&lt;/p&gt;</description></item><item><title>Pipeline Dependencies Tutorial</title><link>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/pipeline-dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/pipeline-dependencies/</guid><description>&lt;p&gt;Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The data of an earlier step changes at a lower frequency than the data for subsequent steps&lt;/li&gt;
+&lt;li&gt;Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data&lt;/li&gt;
+&lt;li&gt;Serving a combined model of two or more pipelines&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In this example, we break up the penguin example pipeline into two pipelines:&lt;/p&gt;</description></item></channel></rss>

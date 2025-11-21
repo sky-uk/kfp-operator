@@ -1,0 +1,164 @@
+// Modern Typography Stack
+// Using system fonts for better performance and native feel
+$font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$font-family-monospace: "JetBrains Mono", "SF Mono", Monaco, Inconsolata, "Roboto Mono", "Droid Sans Mono", "Liberation Mono", Menlo, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace !default;
+
+// Modern Color Palette
+// Primary colors - Professional blue palette
+$primary: #2563eb !default;        // Modern blue
+$primary-100: #dbeafe !default;    // Very light blue
+$primary-200: #bfdbfe !default;    // Light blue
+$primary-300: #93c5fd !default;    // Medium light blue
+$primary-400: #60a5fa !default;    // Medium blue
+$primary-500: #3b82f6 !default;    // Base blue
+$primary-600: #2563eb !default;    // Primary blue (same as $primary)
+$primary-700: #1d4ed8 !default;    // Dark blue
+$primary-800: #1e40af !default;    // Darker blue
+$primary-900: #1e3a8a !default;    // Darkest blue
+
+// Secondary colors - Modern teal (Material Design)
+$secondary: #0d9488 !default;      // Modern teal
+$secondary-100: #ccfbf1 !default;  // Very light teal
+$secondary-200: #99f6e4 !default;  // Light teal
+$secondary-300: #5eead4 !default;  // Medium light teal
+$secondary-400: #2dd4bf !default;  // Medium teal
+$secondary-500: #14b8a6 !default;  // Base teal
+$secondary-600: #0d9488 !default;  // Primary teal (same as $secondary)
+$secondary-700: #0f766e !default;  // Dark teal
+$secondary-800: #115e59 !default;  // Darker teal
+$secondary-900: #134e4a !default;  // Darkest teal
+
+// Semantic colors
+$success: #10b981 !default;        // Modern green
+$info: #0ea5e9 !default;           // Modern cyan
+$warning: #f59e0b !default;        // Modern amber (distinct from secondary)
+$danger: #ef4444 !default;         // Modern red
+
+// Neutral colors - Modern gray scale
+$gray-50: #f9fafb !default;
+$gray-100: #f3f4f6 !default;
+$gray-200: #e5e7eb !default;
+$gray-300: #d1d5db !default;
+$gray-400: #9ca3af !default;
+$gray-500: #6b7280 !default;
+$gray-600: #4b5563 !default;
+$gray-700: #374151 !default;
+$gray-800: #1f2937 !default;
+$gray-900: #111827 !default;
+
+// Override default Bootstrap grays
+$gray: $gray-500 !default;
+$gray-dark: $gray-700 !default;
+
+// Background and text colors
+$body-bg: #ffffff !default;
+$body-color: $gray-800 !default;
+$text-muted: $gray-600 !default;
+
+// Link colors
+$link-color: $primary !default;
+$link-hover-color: $primary-700 !default;
+
+// Border and divider colors
+$border-color: $gray-200 !default;
+$hr-color: $gray-200 !default;
+
+// Typography improvements
+$font-size-base: 1rem !default;
+$font-weight-light: 300 !default;
+$font-weight-normal: 400 !default;
+$font-weight-medium: 500 !default;
+$font-weight-semibold: 600 !default;
+$font-weight-bold: 700 !default;
+
+$line-height-base: 1.6 !default;
+$line-height-sm: 1.4 !default;
+$line-height-lg: 1.8 !default;
+
+// Headings
+$headings-font-family: $font-family-sans-serif !default;
+$headings-font-weight: $font-weight-semibold !default;
+$headings-line-height: 1.3 !default;
+$headings-color: $gray-900 !default;
+
+// Spacing improvements
+$spacer: 1rem !default;
+$spacers: (
+  0: 0,
+  1: $spacer * 0.25,   // 4px
+  2: $spacer * 0.5,    // 8px
+  3: $spacer * 0.75,   // 12px
+  4: $spacer,          // 16px
+  5: $spacer * 1.25,   // 20px
+  6: $spacer * 1.5,    // 24px
+  7: $spacer * 2,      // 32px
+  8: $spacer * 2.5,    // 40px
+  9: $spacer * 3,      // 48px
+  10: $spacer * 4,     // 64px
+  11: $spacer * 5,     // 80px
+  12: $spacer * 6      // 96px
+) !default;
+
+// Border radius improvements
+$border-radius: 0.5rem !default;
+$border-radius-sm: 0.25rem !default;
+$border-radius-lg: 0.75rem !default;
+$border-radius-xl: 1rem !default;
+
+// Button improvements
+$btn-font-weight: $font-weight-medium !default;
+$btn-border-radius: $border-radius !default;
+$btn-border-radius-sm: $border-radius-sm !default;
+$btn-border-radius-lg: $border-radius-lg !default;
+$btn-padding-y: 0.75rem !default;
+$btn-padding-x: 1.5rem !default;
+$btn-padding-y-sm: 0.5rem !default;
+$btn-padding-x-sm: 1rem !default;
+$btn-padding-y-lg: 1rem !default;
+$btn-padding-x-lg: 2rem !default;
+
+// Card improvements
+$card-border-radius: $border-radius-lg !default;
+$card-border-color: $gray-200 !default;
+$card-cap-bg: $gray-50 !default;
+
+// Navigation improvements
+$navbar-padding-y: 1rem !default;
+$navbar-brand-font-size: 1.5rem !default;
+$navbar-brand-font-weight: $font-weight-bold !default;
+
+// Code styling improvements
+$code-font-size: 0.875em !default;
+$code-color: $primary-700 !default;
+$pre-color: $gray-800 !default;
+
+// Alert improvements
+$alert-border-radius: $border-radius !default;
+$alert-border-width: 0 !default;
+$alert-border-left-width: 4px !default;
+
+// Table improvements
+$table-cell-padding-y: 0.75rem !default;
+$table-cell-padding-x: 1rem !default;
+$table-striped-bg: $gray-50 !default;
+$table-hover-bg: $gray-100 !default;
+$table-bg: white !default;
+$table-color: $gray-600 !default;
+$table-border-color: $gray-200 !default;
+$table-striped-color: $gray-600 !default;
+$table-active-bg: $gray-100 !default;
+$table-active-color: $gray-700 !default;
+
+// Form improvements
+$input-border-radius: $border-radius !default;
+$input-border-color: $gray-300 !default;
+$input-focus-border-color: $primary !default;
+$input-focus-box-shadow: 0 0 0 0.2rem rgba($primary, 0.25) !default;
+
+// Shadow improvements for depth
+$box-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !default;
+$box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !default;
+$box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !default;
+
+// Docsy-specific overrides
+$td-enable-google-fonts: false !default;
