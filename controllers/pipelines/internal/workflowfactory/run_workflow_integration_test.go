@@ -6,9 +6,9 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	testutil "github.com/sky-uk/kfp-operator/pkg/common/testutil/provider"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	corev1 "k8s.io/api/core/v1"
@@ -16,7 +16,7 @@ import (
 )
 
 var _ = Context("Run Resource Workflows", Serial, func() {
-	workflowFactory := RunWorkflowFactory(config.KfpControllerConfigSpec{
+	workflowFactory := RunWorkflowFactory(config.ConfigSpec{
 		DefaultProvider: "not-used",
 		DefaultProviderValues: config.DefaultProviderValues{
 			ServicePort: 8080,

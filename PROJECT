@@ -24,14 +24,6 @@ resources:
 - api:
     crdVersion: v1
     namespaced: true
-  domain: kubeflow.org
-  group: config
-  kind: KfpControllerConfig
-  path: github.com/sky-uk/kfp-operator/apis/config/v1alpha4
-  version: v1alpha4
-- api:
-    crdVersion: v1
-    namespaced: true
   controller: true
   domain: kubeflow.org
   group: pipelines

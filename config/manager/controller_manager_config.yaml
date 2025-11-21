@@ -1,5 +1,3 @@
-apiVersion: config.kubeflow.org/v1beta1
-kind: KfpControllerConfig
 controller:
   health:
     healthProbeBindAddress: :8081

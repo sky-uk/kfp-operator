@@ -13,7 +13,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
