@@ -48,7 +48,7 @@ type ConfigSpec struct {
 	Multiversion           bool                  `yaml:"multiversion,omitempty"`
 	DefaultExperiment      string                `yaml:"defaultExperiment,omitempty"`
 	RunCompletionTTL       *metav1.Duration      `yaml:"runCompletionTTL,omitempty"`
-	RunCompletionFeed      ServiceConfiguration  `yaml:"runCompletionFeed,omitempty"`
+	RunCompletionFeed      ServiceConfig         `yaml:"runCompletionFeed,omitempty"`
 }
 
 type DefaultProviderValues struct {
@@ -60,7 +60,7 @@ type DefaultProviderValues struct {
 	MetricsPort          int                `yaml:"metricsPort,omitempty"`
 }
 
-type ServiceConfiguration struct {
+type ServiceConfig struct {
 	Port      int        `yaml:"port,omitempty"`
 	Endpoints []Endpoint `yaml:"endpoints,omitempty"`
 }
