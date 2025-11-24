@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>For Platform Engineers &amp; Developers on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/</link><description>Recent content in For Platform Engineers &amp; Developers on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/platform-engineers/index.xml" rel="self" type="application/rss+xml"/><item><title>Upgrade Guide</title><link>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/maintenance/upgrade-guide/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/maintenance/upgrade-guide/</guid><description>&lt;h1 id="kfp-operator-upgrade-guide"&gt;KFP Operator Upgrade Guide&lt;/h1&gt;
+&lt;p&gt;This guide provides step-by-step procedures for safely upgrading the KFP Operator to new versions, including both stable and unstable CRD versions.&lt;/p&gt;
+&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
+&lt;p&gt;Before starting any upgrade, ensure you have:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Cluster Access&lt;/strong&gt;: Administrative access to your Kubernetes cluster&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Helm Installed&lt;/strong&gt;: Helm 3.x installed and configured&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Backup Strategy&lt;/strong&gt;: Current resource configurations backed up&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Maintenance Window&lt;/strong&gt;: Scheduled downtime if required&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Rollback Plan&lt;/strong&gt;: Clear rollback procedure documented&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Important&lt;/strong&gt;: Always test upgrades in a non-production environment first.&lt;/p&gt;</description></item></channel></rss>

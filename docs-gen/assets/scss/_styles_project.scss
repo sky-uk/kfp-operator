@@ -1,7 +1,1255 @@
-@import 'td/code-dark';
+// Import modern typography
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+
 @import 'spoiler';
 
-// To enable dark mode for Swagger UI
+// High Contrast Darkular Theme Enhancements
+// Additional styling for ultra-high contrast code blocks
+
+// High Contrast Darkular Code Syntax Highlighting
+.highlight {
+    background-color: #0a0a0a;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    border: 1px solid #1a1a1a;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 8px 25px -5px rgba(0, 0, 0, 0.4),
+        0 4px 10px -2px rgba(0, 0, 0, 0.3);
+
+    pre {
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        color: #f8fafc;
+        font-family: "JetBrains Mono", "SF Mono", Monaco, Inconsolata, "Roboto Mono", monospace;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        font-weight: 400;
+    }
+
+    code {
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
+        font-size: inherit;
+        font-weight: inherit;
+    }
+
+    // High Contrast Darkular Syntax Colors
+    .c { color: #6b7280; font-style: italic; } // Comment - muted gray, italic
+    .err { color: #ff6b6b; background-color: rgba(255, 107, 107, 0.1); } // Error - bright red with background
+    .k { color: #c084fc; font-weight: 600; } // Keyword - bright purple, bold
+    .l { color: #22d3ee; } // Literal - bright cyan
+    .n { color: #f8fafc; } // Name - bright white
+    .o { color: #fbbf24; font-weight: 500; } // Operator - bright amber, medium weight
+    .p { color: #cbd5e1; } // Punctuation - light gray
+    .cm { color: #6b7280; font-style: italic; } // Comment.Multiline
+    .cp { color: #c084fc; font-weight: 600; } // Comment.Preproc - bright purple
+    .c1 { color: #6b7280; font-style: italic; } // Comment.Single
+    .cs { color: #6b7280; font-style: italic; font-weight: 500; } // Comment.Special
+    .gd { color: #ff6b6b; background-color: rgba(255, 107, 107, 0.1); } // Generic.Deleted
+    .ge { font-style: italic; } // Generic.Emph
+    .gi { color: #4ade80; background-color: rgba(74, 222, 128, 0.1); } // Generic.Inserted
+    .gs { font-weight: bold; } // Generic.Strong
+    .gu { color: #c084fc; font-weight: 600; } // Generic.Subheading
+    .kc { color: #c084fc; font-weight: 600; } // Keyword.Constant
+    .kd { color: #c084fc; font-weight: 600; } // Keyword.Declaration
+    .kn { color: #c084fc; font-weight: 600; } // Keyword.Namespace
+    .kp { color: #c084fc; font-weight: 600; } // Keyword.Pseudo
+    .kr { color: #c084fc; font-weight: 600; } // Keyword.Reserved
+    .kt { color: #22d3ee; font-weight: 500; } // Keyword.Type - bright cyan
+    .ld { color: #4ade80; } // Literal.Date
+    .m { color: #fbbf24; font-weight: 500; } // Literal.Number - bright amber
+    .s { color: #4ade80; } // Literal.String - bright green
+    .na { color: #22d3ee; } // Name.Attribute - bright cyan
+    .nb { color: #60a5fa; font-weight: 500; } // Name.Builtin - bright blue
+    .nc { color: #60a5fa; font-weight: 600; } // Name.Class - bright blue, bold
+    .no { color: #ff6b6b; font-weight: 500; } // Name.Constant - bright red
+    .nd { color: #c084fc; } // Name.Decorator - bright purple
+    .ni { color: #ff6b6b; } // Name.Entity
+    .ne { color: #ff6b6b; font-weight: 500; } // Name.Exception
+    .nf { color: #60a5fa; font-weight: 500; } // Name.Function - bright blue
+    .nl { color: #ff6b6b; } // Name.Label
+    .nn { color: #f8fafc; } // Name.Namespace
+    .nx { color: #f8fafc; } // Name.Other
+    .py { color: #f8fafc; } // Name.Property
+    .nt { color: #c084fc; font-weight: 500; } // Name.Tag - bright purple
+    .nv { color: #ff6b6b; } // Name.Variable - bright red
+    .ow { color: #c084fc; font-weight: 600; } // Operator.Word
+    .w { color: #f8fafc; } // Text.Whitespace
+    .mf { color: #fbbf24; font-weight: 500; } // Literal.Number.Float
+    .mh { color: #fbbf24; font-weight: 500; } // Literal.Number.Hex
+    .mi { color: #fbbf24; font-weight: 500; } // Literal.Number.Integer
+    .mo { color: #fbbf24; font-weight: 500; } // Literal.Number.Oct
+    .sb { color: #4ade80; } // Literal.String.Backtick
+    .sc { color: #4ade80; } // Literal.String.Char
+    .sd { color: #6b7280; font-style: italic; } // Literal.String.Doc
+    .s2 { color: #4ade80; } // Literal.String.Double
+    .se { color: #fbbf24; font-weight: 500; } // Literal.String.Escape
+    .sh { color: #4ade80; } // Literal.String.Heredoc
+    .si { color: #fbbf24; font-weight: 500; } // Literal.String.Interpol
+    .sx { color: #4ade80; } // Literal.String.Other
+    .sr { color: #4ade80; } // Literal.String.Regex
+    .s1 { color: #4ade80; } // Literal.String.Single
+    .ss { color: #4ade80; } // Literal.String.Symbol
+    .bp { color: #60a5fa; font-weight: 500; } // Name.Builtin.Pseudo
+    .vc { color: #ff6b6b; } // Name.Variable.Class
+    .vg { color: #ff6b6b; } // Name.Variable.Global
+    .vi { color: #ff6b6b; } // Name.Variable.Instance
+    .il { color: #fbbf24; font-weight: 500; } // Literal.Number.Integer.Long
+
+    // Additional high contrast enhancements
+    .language-yaml .na { color: #22d3ee; font-weight: 500; } // YAML keys
+    .language-yaml .s { color: #4ade80; } // YAML values
+    .language-bash .nb { color: #60a5fa; font-weight: 600; } // Bash commands
+    .language-json .na { color: #22d3ee; font-weight: 500; } // JSON keys
+    .language-json .s2 { color: #4ade80; } // JSON string values
+    .language-dockerfile .k { color: #c084fc; font-weight: 700; } // Dockerfile keywords
+    .language-python .kn { color: #c084fc; font-weight: 600; } // Python imports
+    .language-python .nn { color: #60a5fa; } // Python modules
+
+    // Enhanced visibility for important elements
+    .highlight-line {
+        background-color: rgba(96, 165, 250, 0.1);
+        border-left: 3px solid #60a5fa;
+        padding-left: 1rem;
+        margin-left: -1rem;
+    }
+}
+
+// Modern Typography Enhancements
+body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+}
+
+// Improved heading hierarchy
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    color: #111827;
+    margin-bottom: 1rem;
+}
+
+h1, .h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+
+    @media (max-width: 768px) {
+        font-size: 2rem;
+    }
+}
+
+h2, .h2 {
+    font-size: 2rem;
+    margin-top: 2.5rem;
+
+    @media (max-width: 768px) {
+        font-size: 1.75rem;
+    }
+}
+
+h3, .h3 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+
+    @media (max-width: 768px) {
+        font-size: 1.375rem;
+    }
+}
+
+h4, .h4 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+h5, .h5 {
+    font-size: 1.125rem;
+    margin-top: 1.25rem;
+}
+
+h6, .h6 {
+    font-size: 1rem;
+    margin-top: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+}
+
+// Enhanced paragraph and text styling
+p {
+    margin-bottom: 1.25rem;
+    color: #374151;
+    line-height: 1.7;
+}
+
+.lead {
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: #4b5563;
+    margin-bottom: 2rem;
+}
+
+// High Contrast Darkular inline code styling
+code {
+    font-family: "JetBrains Mono", "SF Mono", Monaco, Inconsolata, "Roboto Mono", monospace;
+    font-size: 0.875em;
+    font-weight: 500;
+    color: #60a5fa;
+    background-color: #0f172a;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.375rem;
+    border: 1px solid #1e293b;
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.1);
+}
+
+pre {
+    font-family: "JetBrains Mono", "SF Mono", Monaco, Inconsolata, "Roboto Mono", monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    background-color: #0a0a0a;
+    color: #2b557f;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    border: 1px solid #1a1a1a;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 8px 25px -5px rgba(0, 0, 0, 0.4),
+        0 4px 10px -2px rgba(0, 0, 0, 0.3);
+}
+
+pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+    box-shadow: none;
+}
+
+// Modern link styling
+a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 2px;
+    }
+
+    &:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+        border-radius: 0.25rem;
+    }
+}
+
+// Enhanced button styling
+.btn {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1rem;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:focus {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+    }
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, $primary-500 0%, $primary 100%);
+    border-color: $primary;
+    color: white;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+    &:hover {
+        background: linear-gradient(135deg, $primary 0%, $primary-700 100%);
+        border-color: $primary-700;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, $secondary 0%, $secondary-700 100%);
+    border-color: $secondary-700;
+    color: white;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+    &:hover {
+        background: linear-gradient(135deg, $secondary-700 0%, $secondary-800 100%);
+        border-color: $secondary-800;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+}
+
+.btn-outline-primary {
+    border-color: $primary;
+    color: $primary;
+    background: white;
+
+    &:hover {
+        background: $primary;
+        border-color: $primary;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    border-radius: 0.375rem;
+}
+
+// Modern Navigation Styling
+.td-navbar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid $gray-200;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+    .navbar-brand {
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: $gray-900;
+        letter-spacing: -0.02em;
+    }
+
+    .navbar-nav .nav-link {
+        font-weight: 500;
+        color: $gray-600;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        transition: all 0.2s ease-in-out;
+
+        &:hover {
+            color: $primary;
+            background-color: $gray-50;
+        }
+
+        &.active {
+            color: $primary;
+            background-color: $primary-100;
+        }
+    }
+
+    // Homepage cover navbar styling - override the hardcoded dark theme
+    &.td-navbar-cover {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid $gray-200;
+
+        .navbar-brand {
+            color: $gray-900 !important;
+            text-shadow: none !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: $gray-600 !important;
+            text-shadow: none !important;
+
+            &:hover {
+                color: $primary !important;
+                background-color: $gray-50 !important;
+            }
+
+            &.active {
+                color: $primary !important;
+                background-color: $primary-100 !important;
+            }
+        }
+
+        // Override the navbar-bg-onscroll class
+        &.navbar-bg-onscroll {
+            background: rgba(255, 255, 255, 0.95) !important;
+
+            .navbar-nav .nav-link {
+                text-shadow: none !important;
+            }
+        }
+    }
+}
+
+// Modern Card Styling
+.card {
+    border: 1px solid $gray-200;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease-in-out;
+    background: white;
+
+    &:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        background: $gray-50;
+        border-bottom: 1px solid $gray-200;
+        border-radius: 0.75rem 0.75rem 0 0;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        color: $gray-900;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .card-title {
+        font-weight: 600;
+        color: $gray-900;
+        margin-bottom: 0.75rem;
+    }
+
+    .card-text {
+        color: $gray-600;
+        line-height: 1.6;
+    }
+}
+
+// Modern Alert Styling
+.alert {
+    border: none;
+    border-left: 4px solid;
+    border-radius: 0.5rem;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    font-weight: 500;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+    &.alert-primary {
+        background-color: $primary-100;
+        border-left-color: $primary;
+        color: $primary-800;
+
+        .alert-heading {
+            color: $primary-800;
+        }
+    }
+
+    &.alert-success {
+        background-color: rgba($success, 0.1);
+        border-left-color: $success;
+        color: darken($success, 30%);
+
+        .alert-heading {
+            color: darken($success, 30%);
+        }
+    }
+
+    &.alert-warning {
+        background-color: rgba($warning, 0.1);
+        border-left-color: $warning;
+        color: darken($warning, 30%);
+
+        .alert-heading {
+            color: darken($warning, 30%);
+        }
+    }
+
+    &.alert-danger {
+        background-color: rgba($danger, 0.1);
+        border-left-color: $danger;
+        color: darken($danger, 20%);
+
+        .alert-heading {
+            color: darken($danger, 20%);
+        }
+    }
+
+    &.alert-info {
+        background-color: rgba($info, 0.1);
+        border-left-color: $info;
+        color: darken($info, 30%);
+
+        .alert-heading {
+            color: darken($info, 30%);
+        }
+    }
+}
+
+// Modern Table Styling
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    background-color: white;
+
+    th {
+        background-color: $gray-50;
+        font-weight: 600;
+        color: $gray-700;
+        border-bottom: 2px solid $gray-200;
+        padding: 0.75rem 1rem;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+
+    td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid $gray-100;
+        color: $gray-600;
+    }
+
+    tbody tr {
+        transition: background-color 0.2s ease-in-out;
+
+        // Striped rows for better readability
+        &:nth-child(even) {
+            background-color: $gray-50;
+        }
+
+        &:nth-child(odd) {
+            background-color: white;
+        }
+
+        &:hover {
+            background-color: $gray-100 !important;
+        }
+
+        &:last-child td {
+            border-bottom: none;
+        }
+    }
+
+    // Table striped variant
+    &.table-striped {
+        tbody tr:nth-child(even) {
+            background-color: $gray-50;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: white;
+        }
+    }
+}
+
+// Modern Form Styling
+.form-control {
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease-in-out;
+    background-color: white;
+
+    &:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+    }
+
+    &::placeholder {
+        color: #9ca3af;
+    }
+}
+
+.form-label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+// Modern Badge Styling
+.badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &.bg-primary {
+        background-color: $primary !important;
+        color: white;
+    }
+
+    &.bg-secondary {
+        background-color: $secondary !important;
+        color: white;
+    }
+
+    &.bg-success {
+        background-color: $success !important;
+        color: white;
+    }
+
+    &.bg-warning {
+        background-color: $warning !important;
+        color: white;
+    }
+
+    &.bg-danger {
+        background-color: $danger !important;
+        color: white;
+    }
+}
+
+// Docsy-specific Modern Styling
+.td-content {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #374151;
+
+    > h1, > h2, > h3, > h4, > h5, > h6 {
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+
+        &:first-child {
+            margin-top: 0;
+        }
+    }
+
+    code {
+      padding: .2em !important;
+    }
+
+    > p, > ul, > ol {
+        margin-bottom: 1.25rem;
+    }
+
+    ul, ol {
+        padding-left: 1.5rem;
+
+        li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+    }
+
+    blockquote {
+        border-left: 4px solid #2563eb;
+        background-color: #f1f5f9;
+        padding: 1rem 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: 0 0.5rem 0.5rem 0;
+        font-style: italic;
+        color: #4b5563;
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+// Modern Sidebar Styling
+.td-sidebar {
+    background: $gray-50;
+    border-right: 1px solid $gray-200;
+
+    .td-sidebar-nav {
+        .td-sidebar-link {
+            color: $gray-600;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem !important; // Reduced padding for more compact appearance
+            border-radius: 0.375rem;
+            transition: all 0.2s ease-in-out;
+          display: block;
+            text-decoration: none;
+
+            &:hover {
+                color: $primary;
+                background-color: $primary-100;
+                text-decoration: none;
+            }
+
+            &.active {
+                color: $primary;
+                background-color: $primary-100;
+                font-weight: 600;
+                padding: 0.25rem 0.5rem; // Ensure active state has proper padding
+            }
+        }
+
+        .td-sidebar-nav__section {
+            margin-bottom: 1rem; // Reduced section spacing
+
+            .td-sidebar-nav__section-title {
+                font-weight: 600;
+                color: $gray-900;
+                font-size: 0.875rem;
+                margin-bottom: 0.5rem; // Reduced margin
+            }
+        }
+    }
+}
+
+// Modern Cover Block Styling - Professional Technical Background
+.td-cover-block {
+    // Override any background images with professional gradient and pattern
+    background-image:
+        // Subtle geometric pattern overlay
+        radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(13, 148, 136, 0.1) 0%, transparent 50%),
+        // Main gradient background
+        linear-gradient(135deg, $gray-900 0%, $gray-800 25%, $gray-700 75%, $gray-600 100%) !important;
+
+    // Add subtle texture with CSS patterns
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image:
+            // Subtle dot pattern for technical feel
+            radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+        background-size: 20px 20px;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    // Ensure content is above the pattern
+    .td-overlay__inner {
+        position: relative;
+        z-index: 2;
+    }
+
+    color: white;
+    position: relative;
+    overflow: hidden;
+
+    h1, h2, h3, h4, h5, h6 {
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 2;
+    }
+
+    .lead {
+        color: $gray-200;
+        font-size: 1.25rem;
+        font-weight: 400;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        position: relative;
+        z-index: 2;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    }
+}
+
+// Floating animation for modern tech aesthetic
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.7;
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.3;
+    }
+}
+
+// Responsive adjustments for the cover block
+@media (max-width: 768px) {
+    .td-cover-block {
+        &::before {
+            background-size: 15px 15px;
+        }
+
+        &::after {
+            width: 60px;
+            height: 60px;
+            top: 5%;
+            right: 5%;
+        }
+    }
+}
+
+// Override Hugo-generated background images with professional design
+#td-cover-block-0,
+[id^="td-cover-block"] {
+    // Force override of any Hugo-generated background images
+    background-image:
+        radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(13, 148, 136, 0.1) 0%, transparent 50%),
+        linear-gradient(135deg, $gray-900 0%, $gray-800 25%, $gray-700 75%, $gray-600 100%) !important;
+}
+
+// Dark mode adjustments
+[data-bs-theme="dark"] {
+    .td-cover-block,
+    #td-cover-block-0,
+    [id^="td-cover-block"] {
+        background-image:
+            radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 75% 75%, rgba(13, 148, 136, 0.15) 0%, transparent 50%),
+            linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 75%, #475569 100%) !important;
+
+        &::before {
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0);
+        }
+    }
+}
+
+// Modern Section Blocks
+.td-block {
+    padding: 4rem 0;
+
+    &.td-block--primary {
+        background: linear-gradient(135deg, $primary-100 0%, $primary-200 100%);
+        color: $primary-800;
+    }
+
+    &.td-block--secondary {
+        background: linear-gradient(135deg, $secondary-100 0%, $secondary-200 100%);
+        color: $secondary-800;
+    }
+
+    &.td-block--dark {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        color: #f9fafb;
+    }
+
+    &.td-block--light {
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        color: #111827;
+    }
+}
+
+// Modern Feature Blocks
+.td-feature {
+    text-align: center;
+    padding: 2rem 1rem;
+
+    .td-feature__icon {
+        font-size: 3rem;
+        color: #2563eb;
+        margin-bottom: 1.5rem;
+        display: block;
+    }
+
+    .td-feature__title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 1rem;
+    }
+
+    .td-feature__description {
+        color: #4b5563;
+        line-height: 1.6;
+    }
+}
+
+// Responsive improvements
+@media (max-width: 768px) {
+    .td-content {
+        font-size: 0.875rem;
+
+        h1, .h1 {
+            font-size: 1.875rem;
+        }
+
+        h2, .h2 {
+            font-size: 1.5rem;
+        }
+
+        h3, .h3 {
+            font-size: 1.25rem;
+        }
+    }
+
+    .btn {
+        padding: 0.625rem 1.25rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-lg {
+        padding: 0.875rem 1.75rem;
+        font-size: 0.875rem;
+    }
+
+    .td-block {
+        padding: 2rem 0;
+    }
+}
+
+// Accessibility improvements
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+// Focus improvements for keyboard navigation
+*:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+button:focus,
+.btn:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+// Modern Dark Mode Enhancements
 [data-bs-theme="dark"] {
     @import 'swagger';
+
+    // Override Bootstrap CSS custom properties for dark mode tables
+    --bs-table-bg: #{$gray-800};
+    --bs-table-striped-bg: #{$gray-700};
+    --bs-table-striped-color: #{$gray-300};
+    --bs-table-active-bg: #{$gray-600};
+    --bs-table-active-color: #{$gray-100};
+    --bs-table-hover-bg: #{$gray-600};
+    --bs-table-hover-color: #{$gray-100};
+    --bs-table-color: #{$gray-300};
+    --bs-table-border-color: #{$gray-700};
+
+    // Dark mode typography
+    body {
+        background-color: $gray-900;
+        color: $gray-50;
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    .h1, .h2, .h3, .h4, .h5, .h6 {
+        color: #f9fafb;
+    }
+
+    p {
+        color: #d1d5db;
+    }
+
+    .lead {
+        color: #9ca3af;
+    }
+
+    // Dark mode links
+    a {
+        color: #ffffff;
+
+        &:hover {
+            color: #989cfc;
+        }
+    }
+
+    // Dark mode navigation
+    .td-navbar {
+        background: rgba($gray-900, 0.95);
+        border-bottom-color: $gray-700;
+
+        .navbar-brand {
+            color: $gray-50;
+        }
+
+        .navbar-nav .nav-link {
+            color: $gray-300;
+
+            &:hover {
+                color: $primary-400;
+                background-color: $gray-800;
+            }
+
+            &.active {
+                color: $primary-400;
+                background-color: $primary-900;
+            }
+        }
+
+        // Dark mode homepage cover navbar
+        &.td-navbar-cover {
+            background: rgba($gray-900, 0.95) !important;
+            border-bottom-color: $gray-700;
+
+            .navbar-brand {
+                color: $gray-50 !important;
+                text-shadow: none !important;
+            }
+
+            .navbar-nav .nav-link {
+                color: $gray-300 !important;
+                text-shadow: none !important;
+
+                &:hover {
+                    color: $primary-400 !important;
+                    background-color: $gray-800 !important;
+                }
+
+                &.active {
+                    color: $primary-400 !important;
+                    background-color: $primary-900 !important;
+                }
+            }
+
+            // Dark mode navbar-bg-onscroll
+            &.navbar-bg-onscroll {
+                background: rgba($gray-900, 0.95) !important;
+
+                .navbar-nav .nav-link {
+                    text-shadow: none !important;
+                }
+            }
+        }
+    }
+
+    // Dark mode cards
+    .card {
+        background-color: #1f2937;
+        border-color: #374151;
+
+        .card-header {
+            background-color: #111827;
+            border-bottom-color: #374151;
+            color: #f9fafb;
+        }
+
+        .card-title {
+            color: #f9fafb;
+        }
+
+        .card-text {
+            color: #d1d5db;
+        }
+    }
+
+    // Dark mode sidebar
+    .td-sidebar {
+        background-color: $gray-900;
+        border-right-color: $gray-700;
+
+        .td-sidebar-nav {
+            .td-sidebar-link {
+                color: $gray-300;
+
+                &:hover {
+                    color: $primary-400;
+                    background-color: $gray-800;
+                }
+
+                &.active {
+                    color: $primary-400;
+                    background-color: $primary-900;
+                    padding: 0.25rem 0.5rem; // Ensure consistent padding in dark mode
+                }
+            }
+
+            .td-sidebar-nav__section-title {
+                color: $gray-50;
+                text-transform: none; // Remove uppercase in dark mode too
+                letter-spacing: normal; // Reset letter spacing in dark mode
+            }
+        }
+    }
+
+    // Dark mode content
+    .td-content {
+        color: #d1d5db;
+
+        blockquote {
+            background-color: #1f2937;
+            border-left-color: #60a5fa;
+            color: #d1d5db;
+        }
+    }
+
+    // Dark mode tables - Override Bootstrap CSS custom properties
+    .table {
+        // Override Bootstrap's CSS custom properties for dark mode
+        --bs-table-bg: #{$gray-800};
+        --bs-table-striped-bg: #{$gray-700};
+        --bs-table-striped-color: #{$gray-300};
+        --bs-table-active-bg: #{$gray-600};
+        --bs-table-active-color: #{$gray-100};
+        --bs-table-hover-bg: #{$gray-600};
+        --bs-table-hover-color: #{$gray-100};
+        --bs-table-color: #{$gray-300};
+        --bs-table-border-color: #{$gray-700};
+
+        color: $gray-300;
+        background-color: $gray-800;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+
+        th {
+            background-color: $gray-700;
+            color: $gray-100;
+            border-bottom-color: $gray-600;
+        }
+
+        td {
+            border-bottom-color: $gray-700;
+            color: $gray-300;
+        }
+
+        tbody tr {
+            // Dark mode striped rows with proper contrast
+            &:nth-child(even) {
+                background-color: $gray-700 !important;
+            }
+
+            &:nth-child(odd) {
+                background-color: $gray-800 !important;
+            }
+
+            &:hover {
+                background-color: $gray-600 !important;
+            }
+        }
+
+        // Dark mode table striped variant - force override Bootstrap
+        &.table-striped {
+            --bs-table-striped-bg: #{$gray-700};
+
+            tbody tr:nth-child(even) {
+                background-color: $gray-700 !important;
+            }
+
+            tbody tr:nth-child(odd) {
+                background-color: $gray-800 !important;
+            }
+        }
+
+        // Additional Bootstrap table variants
+        &.table-hover {
+            tbody tr:hover {
+                background-color: $gray-600 !important;
+                color: $gray-100;
+            }
+        }
+    }
+
+    // Dark mode forms
+    .form-control {
+        background-color: #1f2937;
+        border-color: #374151;
+        color: #f9fafb;
+
+        &:focus {
+            background-color: #1f2937;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        &::placeholder {
+            color: #6b7280;
+        }
+    }
+
+    .form-label {
+        color: #f9fafb;
+    }
+
+    // High Contrast Darkular inline code in dark mode
+    code {
+        background-color: #000000;
+        color: #60a5fa;
+        border-color: #1a1a1a;
+    }
+
+    // Enhanced High Contrast Darkular syntax highlighting in dark mode
+    .highlight {
+        background-color: #000000;
+        border-color: #111111;
+        box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.08),
+            0 12px 35px -8px rgba(0, 0, 0, 0.6),
+            0 6px 15px -3px rgba(0, 0, 0, 0.4);
+
+        pre {
+            color: #ffffff;
+        }
+
+        // Ultra High Contrast Dark Mode Syntax Colors
+        .c { color: #6b7280; font-style: italic; } // Comment
+        .err { color: #ff4757; background-color: rgba(255, 71, 87, 0.15); } // Error - brighter red
+        .k { color: #d946ef; font-weight: 600; } // Keyword - brighter magenta
+        .l { color: #06d6a0; } // Literal - bright teal
+        .n { color: #ffffff; } // Name - pure white
+        .o { color: #ffd60a; font-weight: 500; } // Operator - bright yellow
+        .p { color: #e2e8f0; } // Punctuation - bright gray
+        .s { color: #06ffa5; } // Literal.String - bright mint green
+        .na { color: #06d6a0; } // Name.Attribute
+        .nb { color: #4cc9f0; font-weight: 500; } // Name.Builtin - bright sky blue
+        .nc { color: #4cc9f0; font-weight: 600; } // Name.Class
+        .nf { color: #4cc9f0; font-weight: 500; } // Name.Function
+        .nt { color: #d946ef; font-weight: 500; } // Name.Tag
+        .nv { color: #ff4757; } // Name.Variable
+        .m { color: #ffd60a; font-weight: 500; } // Literal.Number
+        .mf { color: #ffd60a; font-weight: 500; } // Literal.Number.Float
+        .mi { color: #ffd60a; font-weight: 500; } // Literal.Number.Integer
+        .s2 { color: #06ffa5; } // Literal.String.Double
+        .s1 { color: #06ffa5; } // Literal.String.Single
+        .kc { color: #d946ef; font-weight: 600; } // Keyword.Constant
+        .kd { color: #d946ef; font-weight: 600; } // Keyword.Declaration
+        .kt { color: #06d6a0; font-weight: 500; } // Keyword.Type
+        .se { color: #ffd60a; font-weight: 500; } // Literal.String.Escape
+        .sr { color: #06ffa5; } // Literal.String.Regex
+        .bp { color: #4cc9f0; font-weight: 500; } // Name.Builtin.Pseudo
+    }
 }

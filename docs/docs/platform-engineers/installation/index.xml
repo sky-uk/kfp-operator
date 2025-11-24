@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Installation on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/installation/</link><description>Recent content in Installation on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/platform-engineers/installation/index.xml" rel="self" type="application/rss+xml"/><item><title>Helm Installation Guide</title><link>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/installation/helm-installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/platform-engineers/installation/helm-installation/</guid><description>&lt;h1 id="installing-the-kfp-operator"&gt;Installing the KFP Operator&lt;/h1&gt;
+&lt;p&gt;This guide provides comprehensive instructions for installing the Kubeflow Pipelines Operator in your Kubernetes cluster. We recommend using Helm for a declarative approach to managing Kubernetes resources.&lt;/p&gt;
+&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;
+&lt;p&gt;The KFP Operator installation consists of three main components:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Prerequisites&lt;/strong&gt;: Required dependencies (Argo Workflows, Argo Events)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;KFP Operator&lt;/strong&gt;: The core operator and controllers&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Providers&lt;/strong&gt;: ML orchestration platform integrations (KFP, Vertex AI)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="prerequisites"&gt;Prerequisites&lt;/h2&gt;
+&lt;p&gt;Before installing the KFP Operator, ensure your cluster meets these requirements:&lt;/p&gt;</description></item></channel></rss>
