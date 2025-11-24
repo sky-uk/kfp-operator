@@ -8,10 +8,11 @@ import (
 	"strconv"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/jsonutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,7 +43,7 @@ func createProviderServiceUrl(svc corev1.Service, port int) string {
 }
 
 type ResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any] struct {
-	Config                config.KfpControllerConfigSpec
+	Config                config.ConfigSpec
 	TemplateSuffix        string
 	DefinitionCreator     func(pipelineshub.Provider, R) ([]pipelineshub.Patch, ResourceDefinition, error)
 	WorkflowParamsCreator func(pipelineshub.Provider, R) ([]argo.Parameter, error)

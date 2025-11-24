@@ -1,14 +1,14 @@
 package workflowfactory
 
 import (
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
 type ExperimentDefinitionCreator struct {
-	Config config.KfpControllerConfigSpec
+	Config config.ConfigSpec
 }
 
 func (edc ExperimentDefinitionCreator) experimentDefinition(
@@ -26,7 +26,7 @@ func (edc ExperimentDefinitionCreator) experimentDefinition(
 }
 
 func ExperimentWorkflowFactory(
-	config config.KfpControllerConfigSpec,
+	config config.ConfigSpec,
 ) *ResourceWorkflowFactory[*pipelineshub.Experiment, providers.ExperimentDefinition] {
 	return &ResourceWorkflowFactory[*pipelineshub.Experiment, providers.ExperimentDefinition]{
 		DefinitionCreator: ExperimentDefinitionCreator{

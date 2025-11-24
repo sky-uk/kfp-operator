@@ -4,14 +4,14 @@ package workflowfactory
 
 import (
 	. "github.com/onsi/ginkgo/v2"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	testutil "github.com/sky-uk/kfp-operator/pkg/common/testutil/provider"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
 var _ = Context("RunSchedule Resource Workflows", Serial, func() {
-	workflowFactory := RunScheduleWorkflowFactory(config.KfpControllerConfigSpec{
+	workflowFactory := RunScheduleWorkflowFactory(config.ConfigSpec{
 		DefaultProvider: "not-used",
 		DefaultProviderValues: config.DefaultProviderValues{
 			ServicePort: 8080,

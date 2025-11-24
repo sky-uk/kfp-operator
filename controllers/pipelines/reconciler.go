@@ -4,9 +4,9 @@ import (
 	"context"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -26,7 +26,7 @@ type ProviderLoader interface {
 
 type ResourceReconciler[R pipelineshub.Resource] struct {
 	EC     K8sExecutionContext
-	Config config.KfpControllerConfigSpec
+	Config config.ConfigSpec
 }
 
 func (br ResourceReconciler[R]) LoadProvider(

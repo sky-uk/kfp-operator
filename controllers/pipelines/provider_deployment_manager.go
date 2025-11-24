@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -36,7 +36,7 @@ type DeploymentResourceManager interface {
 type DeploymentManager struct {
 	client *controllers.OptInClient
 	scheme *runtime.Scheme
-	config *config.KfpControllerConfigSpec
+	config *config.ConfigSpec
 }
 
 const ProviderNameEnvVar = "PROVIDERNAME"

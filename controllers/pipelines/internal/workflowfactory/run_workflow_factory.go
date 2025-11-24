@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
@@ -18,7 +18,7 @@ var RunConfigurationConstants = struct {
 }
 
 type RunDefinitionCreator struct {
-	Config config.KfpControllerConfigSpec
+	Config config.ConfigSpec
 }
 
 func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipelineshub.Run) ([]pipelineshub.Patch, providers.RunDefinition, error) {
@@ -73,7 +73,7 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 }
 
 func RunWorkflowFactory(
-	config config.KfpControllerConfigSpec,
+	config config.ConfigSpec,
 ) *ResourceWorkflowFactory[*pipelineshub.Run, providers.RunDefinition] {
 	return &ResourceWorkflowFactory[*pipelineshub.Run, providers.RunDefinition]{
 		DefinitionCreator: RunDefinitionCreator{

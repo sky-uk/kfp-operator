@@ -4,10 +4,10 @@ import (
 	"context"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/selection"
@@ -29,7 +29,7 @@ type WorkflowRepository interface {
 
 type WorkflowRepositoryImpl struct {
 	Client controllers.OptInClient
-	Config config.KfpControllerConfigSpec
+	Config config.ConfigSpec
 	Scheme *runtime.Scheme
 }
 

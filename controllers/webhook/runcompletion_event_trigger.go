@@ -8,7 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"google.golang.org/grpc/credentials/insecure"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc"
 	"sigs.k8s.io/controller-runtime/pkg/log"
