@@ -9,10 +9,10 @@ containerRegistry: "ghcr.io/kfp-operator"
 namespace:
   create: true
   name: "kfp-operator-system"
-  metadata: {}
+  metadata: { }
 
 manager:
-  metadata: {}
+  metadata: { }
   rbac:
     create: true
   serviceAccount:
@@ -26,13 +26,13 @@ manager:
       cpu: 100m
       memory: 200Mi
   replicas: 1
-  configuration: {}
+  configuration: { }
   argo:
     serviceAccount:
       name: "kfp-operator-argo"
       create: true
-    containerDefaults: {}
-    metadata: {}
+    containerDefaults: { }
+    metadata: { }
     ttlStrategy:
       secondsAfterCompletion: 3600
     stepTimeoutSeconds:
@@ -43,7 +43,7 @@ manager:
     rbacSecured: false
     serviceMonitor:
       create: false
-      endpointConfiguration: {}
+      endpointConfiguration: { }
   multiversion:
     enabled: false
     storedVersion: v1beta1
@@ -52,12 +52,30 @@ manager:
   webhookServicePort: 9443
   runcompletionWebhook:
     servicePort: 8082
-    endpoints: []
+    endpoints: [ ]
 
 runcompletionEventTrigger:
-  metadata: {}
+  metadata: { }
   enabled: false
   monitoring: false
+  nats:
+    subject: "events"
+    server:
+      host: "eventbus-jetstream-test-js-svc"
+      port: "4222"
+    tls:
+      secretName: "my-secret-nats-server-secret"
+      tlsCertPath: "tls.crt"
+      caCertPath: "ca.crt"
+      privateKeyPath: "tls.key"
+    auth:
+      client:
+        secretName: "my-secret-nats-client-secret"
+  server:
+    port: 50051
+  metrics:
+    port: 8081
+
 
 statusFeedback:
   enabled: false

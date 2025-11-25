@@ -33,7 +33,7 @@ func (s *Server) ProcessEventFeed(
 		return nil, status.Error(codes.InvalidArgument, errMsg)
 	}
 
-	if err = s.Publisher.Publish(commonRunCompletionEvent); err != nil {
+	if err = s.Publisher.Publish(ctx, commonRunCompletionEvent); err != nil {
 		var marshallingError *publisher.MarshallingError
 		var connectionError *publisher.ConnectionError
 

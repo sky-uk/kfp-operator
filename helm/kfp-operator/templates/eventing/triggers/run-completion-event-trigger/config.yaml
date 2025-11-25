@@ -9,8 +9,18 @@ data:
     natsConfig:
       subject: {{ .Values.runcompletionEventTrigger.nats.subject }}
       serverConfig:
-        host: eventbus-{{ include "kfp-operator.fullname" . }}-events-stan-svc
+        host: {{ .Values.runcompletionEventTrigger.nats.server.host | default "eventbus-jetstream-test-js-svc" }}
         port: {{ .Values.runcompletionEventTrigger.nats.server.port }}
+      jetstream:
+        enabled: true
+        stream: "run-completion-events"
+      auth:
+        tls:
+          enabled: true
+          certFile: "/etc/ssl/certs/{{ .Values.runcompletionEventTrigger.nats.tls.tlsCertPath }}"
+          keyFile: "/etc/ssl/private/{{ .Values.runcompletionEventTrigger.nats.tls.privateKeyPath }}"
+          caFile: "/etc/ssl/certs/{{ .Values.runcompletionEventTrigger.nats.tls.caCertPath }}"
+          insecureSkipVerify: true
     serverConfig:
       host: 0.0.0.0
       port: {{ .Values.runcompletionEventTrigger.server.port }}

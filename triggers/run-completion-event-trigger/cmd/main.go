@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/nats-io/nats.go"
 	"github.com/sky-uk/kfp-operator/internal/log"
 	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/cmd/config"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
@@ -48,14 +47,20 @@ func main() {
 		panic(err)
 	}
 
-	nc, err := nats.Connect(config.NATSConfig.ServerConfig.ToAddr())
+	// Create appropriate NATS publisher based on configuration
+	// The factory function handles all connection options including TLS, auth, and JetStream
+	natsPublisher, err := publisher.NewPublisherFromConfig(ctx, &config.NATSConfig)
 	if err != nil {
-		logger.Error(err, "failed to connect to NATS server", "addr", config.NATSConfig.ServerConfig.ToAddr())
+		logger.Error(err, "failed to create NATS publisher")
 		panic(err)
 	}
-	defer nc.Close()
 
-	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
+	// Close publisher connection on shutdown
+	defer func() {
+		if closer, ok := natsPublisher.(interface{ Close() }); ok {
+			closer.Close()
+		}
+	}()
 
 	srvMetrics := server.NewServerMetrics()
 

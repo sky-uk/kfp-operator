@@ -25,16 +25,28 @@ spec:
         runAsNonRoot: true
       containers:
       - name: run-completion-event-trigger
-        image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-run-completion-event-trigger:{{ .Chart.AppVersion }}
+        image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-run-completion-event-trigger:{{ .Chart.AppVersion }}
+        env:
+        - name: NATSCONFIG_AUTH_CLIENTAUTH
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.runcompletionEventTrigger.nats.auth.client.secretName }}
+              key: client-auth
         ports:
         - name: grpc
           containerPort: {{ .Values.runcompletionEventTrigger.server.port }}
         - name: http-metrics
           containerPort: {{ .Values.runcompletionEventTrigger.metrics.port }}
         volumeMounts:
-          - name: config
-            mountPath: /etc/run-completion-event-trigger/config.yaml
-            subPath: config.yaml
+        - name: config
+          mountPath: /etc/run-completion-event-trigger/config.yaml
+          subPath: config.yaml
+        - name: nats-tls-certs
+          mountPath: /etc/ssl/certs
+          readOnly: true
+        - name: nats-tls-private
+          mountPath: /etc/ssl/private
+          readOnly: true
         livenessProbe:
           grpc:
             port: {{ .Values.runcompletionEventTrigger.server.port }}
@@ -50,7 +62,25 @@ spec:
           periodSeconds: 5
           failureThreshold: 2
       volumes:
-        - name: config
-          configMap:
-            name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger
+      - name: config
+        configMap:
+          name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger
+      # Certificate volume (public certs)
+      - name: nats-tls-certs
+        secret:
+          secretName: {{ .Values.runcompletionEventTrigger.nats.tls.secretName }}
+          items:
+          - key: cert
+            path: {{ .Values.runcompletionEventTrigger.nats.tls.tlsCertPath }}
+          - key: ca-cert
+            path: {{ .Values.runcompletionEventTrigger.nats.tls.caCertPath }}
+          defaultMode: 0644
+      # Private key volume (restricted access)
+      - name: nats-tls-private
+        secret:
+          secretName: {{ .Values.runcompletionEventTrigger.nats.tls.secretName }}
+          items:
+          - key: private-key
+            path: {{ .Values.runcompletionEventTrigger.nats.tls.privateKeyPath }}
+          defaultMode: 0600  # Restrict private key permissions
 {{- end -}}

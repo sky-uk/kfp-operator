@@ -15,10 +15,18 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type PublishFunc func(runCompletionEvent common.RunCompletionEvent) error
+type PublishFunc func(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error
 
-func (pf PublishFunc) Publish(runCompletionEvent common.RunCompletionEvent) error {
-	return pf(runCompletionEvent)
+func (pf PublishFunc) Publish(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
+	return pf(ctx, runCompletionEvent)
+}
+
+func (pf PublishFunc) Name() string {
+	return "test-publisher"
+}
+
+func (pf PublishFunc) IsHealthy() bool {
+	return true
 }
 
 var _ = Context("ProcessEventFeed", func() {
@@ -29,7 +37,7 @@ var _ = Context("ProcessEventFeed", func() {
 			stubPublisher := struct {
 				publisher.PublisherHandler
 			}{
-				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) error {
+				PublishFunc(func(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
 					return &publisher.MarshallingError{Message: "test error"}
 				}),
 			}
@@ -49,7 +57,7 @@ var _ = Context("ProcessEventFeed", func() {
 			stubPublisher := struct {
 				publisher.PublisherHandler
 			}{
-				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) error {
+				PublishFunc(func(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
 					return &publisher.ConnectionError{Message: "test error"}
 				}),
 			}
@@ -69,7 +77,7 @@ var _ = Context("ProcessEventFeed", func() {
 			stubPublisher := struct {
 				publisher.PublisherHandler
 			}{
-				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) error {
+				PublishFunc(func(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
 					return nil
 				}),
 			}

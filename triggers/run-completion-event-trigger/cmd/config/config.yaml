@@ -3,6 +3,28 @@ natsConfig:
   serverConfig:
     host: localhost
     port: 4222
+  # Optional: Enable JetStream for persistent messaging
+  jetstream:
+    enabled: false
+    stream: "run-completion-events"
+    storage: "file"        # "file" or "memory", defaults to "file"
+    maxAge: "7d"          # Duration (e.g., "24h", "7d", "30m"), defaults to "7d"
+  # Optional: Authentication configuration
+  auth:
+    # TLS certificate-based authentication
+    tls:
+      enabled: false
+      certFile: "/etc/ssl/certs/tls.crt"
+      keyFile: "/etc/ssl/private/tls.key"
+      caFile: "/etc/ssl/certs/ca.crt"
+      insecureSkipVerify: false
+    # Username/password authentication
+    clientAuth: |
+      username: your-username
+      password: your-password
+    # Token-based authentication
+    token:
+      token: "your-nats-token"
 serverConfig:
   host: localhost
   port: 50051
