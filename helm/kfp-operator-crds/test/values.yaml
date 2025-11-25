@@ -1,0 +1,7 @@
+fullnameOverride: kfp-operator
+
+manager:
+  multiversion:
+    enabled: true
+  webhookCertificates:
+    provider: cert-manager
