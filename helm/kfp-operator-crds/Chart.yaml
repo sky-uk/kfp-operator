@@ -1,6 +1,6 @@
 apiVersion: v2
-name: kfp-operator-cluster-wide
-description: A Helm chart for kfp-operator cluster wide resources
+name: kfp-operator-crds
+description: A Helm chart for kfp-operator crds
 
 type: application
 

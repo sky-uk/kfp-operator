@@ -146,19 +146,19 @@ kustomize: ## Download kustomize locally if necessary.
 ##@ Package
 helm-package: helm-cmd helm-test ## Package and test helm charts
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
-	$(HELM) package helm/kfp-operator-cluster-wide --version $(VERSION) --app-version $(VERSION) -d dist
+	$(HELM) package helm/kfp-operator-crds --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-install: helm-package values.yaml values-cluster-wide.yaml ## Install helm charts
+helm-install: helm-package values.yaml values-crds.yaml ## Install helm charts
 	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
-	$(HELM) install -f values-cluster-wide.yaml kfp-operator-cluster-wide dist/kfp-operator-cluster-wide-$(VERSION).tgz
+	$(HELM) install -f values-crds.yaml kfp-operator-crds dist/kfp-operator-crds-$(VERSION).tgz
 
 helm-uninstall: ## Uninstall helm charts
 	$(HELM) uninstall kfp-operator
-	$(HELM) uninstall kfp-operator-cluster-wide
+	$(HELM) uninstall kfp-operator-crds
 
-helm-upgrade: helm-package values.yaml values-cluster-wide.yaml ## Upgrade helm charts
+helm-upgrade: helm-package values.yaml values-crds.yaml ## Upgrade helm charts
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
-	$(HELM) upgrade -f values-cluster-wide.yaml kfp-operator-cluster-wide dist/kfp-operator-cluster-wide-$(VERSION).tgz
+	$(HELM) upgrade -f values-crds.yaml kfp-operator-crds dist/kfp-operator-crds-$(VERSION).tgz
 
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
 helm-publish:
@@ -171,7 +171,7 @@ endif
 helm-publish:: helm-package ## Publish Helm charts to repositories
 	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES), \
 		$(call helm-upload,$(url),kfp-operator) \
-		$(call helm-upload,$(url),kfp-operator-cluster-wide) \
+		$(call helm-upload,$(url),kfp-operator-crds) \
 	)
 
 define helm-upload
@@ -193,8 +193,8 @@ helm-test: manifests helm-cmd kustomize yq dyff ## Test helm charts against kust
 
 	# Create yaml files with helm and kustomize.
 	$(HELM) template helm/kfp-operator -f helm/kfp-operator/test/values.yaml > $(TMP)/helm_namespaced.yaml
-	$(HELM) template helm/kfp-operator-cluster-wide -f helm/kfp-operator-cluster-wide/test/values.yaml > $(TMP)/helm_cluster_wide.yaml
-	cat $(TMP)/helm_namespaced.yaml $(TMP)/helm_cluster_wide.yaml > $(TMP)/helm_combined.yaml
+	$(HELM) template helm/kfp-operator-crds -f helm/kfp-operator-crds/test/values.yaml > $(TMP)/helm_crds.yaml
+	cat $(TMP)/helm_namespaced.yaml $(TMP)/helm_crds.yaml > $(TMP)/helm_combined.yaml
 
 	$(KUSTOMIZE) build config/default > $(TMP)/kustomize
 	# Because both tools create multi-document files, we have to convert them into '{name}-{kind}'-indexed objects to help the diff tools
