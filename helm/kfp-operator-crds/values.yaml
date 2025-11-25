@@ -1,18 +1,13 @@
-# Default values for kfp-operator-cluster-wide.
+# Default values for kfp-operator-crds.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+fullnameOverride: kfp-operator
 namespace:
   name: "kfp-operator-system"
-
 manager:
-  monitoring:
-    create: false
-    rbacSecured: false
   multiversion:
     enabled: false
     storedVersion: v1beta1
-  rbac:
-    create: true
-  serviceAccount:
-    name: "kfp-operator-controller-manager"
+  webhookCertificates:
+    provider: cert-manager
