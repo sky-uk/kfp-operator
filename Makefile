@@ -173,7 +173,7 @@ define helm-upload
 @echo "Publishing Helm chart to $(1)"
 @if echo "$(1)" | grep -q "^oci://"; then \
 	echo "Using Helm OCI push"; \
-	helm push dist/kfp-operator-$(VERSION).tgz $(1)/kfp-operator; \
+	helm push dist/kfp-operator-$(VERSION).tgz $(1); \
 else \
 	echo "Using curl upload"; \
 	curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz "$(1)"; \
