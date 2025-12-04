@@ -148,17 +148,17 @@ helm-package: helm-cmd helm-test ## Package and test helm charts
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 	$(HELM) package helm/kfp-operator-crds --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-install: helm-package values.yaml values-crds.yaml ## Install helm charts
-	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+helm-install: helm-package ## Install helm charts
 	$(HELM) install -f values-crds.yaml kfp-operator-crds dist/kfp-operator-crds-$(VERSION).tgz
+	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
 helm-uninstall: ## Uninstall helm charts
 	$(HELM) uninstall kfp-operator
 	$(HELM) uninstall kfp-operator-crds
 
-helm-upgrade: helm-package values.yaml values-crds.yaml ## Upgrade helm charts
-	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+helm-upgrade: helm-package ## Upgrade helm charts
 	$(HELM) upgrade -f values-crds.yaml kfp-operator-crds dist/kfp-operator-crds-$(VERSION).tgz
+	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
 helm-publish:
