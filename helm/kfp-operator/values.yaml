@@ -46,7 +46,6 @@ manager:
       endpointConfiguration: {}
   multiversion:
     enabled: false
-    storedVersion: v1beta1
   webhookCertificates:
     provider: cert-manager
   webhookServicePort: 9443

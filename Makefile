@@ -90,7 +90,7 @@ test: fmt vet unit-test decoupled-test functional-test ## Run all tests
 test-compilers: ## Run all tests for compilers
 	$(MAKE) -C compilers test-all
 
-test-all: test helm-test-operator test-compilers ## Run all tests
+test-all: test helm-test test-compilers ## Run all tests
 
 integration-test-all: integration-test ## Run all integration tests
 	$(MAKE) -C compilers integration-test-all
@@ -144,18 +144,20 @@ kustomize: ## Download kustomize locally if necessary.
 	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
 
 ##@ Package
-helm-package-operator: helm-cmd helm-test-operator ## Package and test operator helm-chart
+helm-package: helm-cmd helm-test ## Package and test helm charts
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
+	$(HELM) package helm/kfp-operator-crds --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-package: helm-package-operator ## Package operator helm-chart
-
-helm-install-operator: helm-package-operator values.yaml ## Install operator
+helm-install: helm-package ## Install helm charts
+	$(HELM) install -f values-crds.yaml kfp-operator-crds dist/kfp-operator-crds-$(VERSION).tgz
 	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
-helm-uninstall-operator: ## Uninstall operator
+helm-uninstall: ## Uninstall helm charts
 	$(HELM) uninstall kfp-operator
+	$(HELM) uninstall kfp-operator-crds
 
-helm-upgrade-operator: helm-package-operator values.yaml ## Upgrade operator with helm chart
+helm-upgrade: helm-package ## Upgrade helm charts
+	$(HELM) upgrade -f values-crds.yaml kfp-operator-crds dist/kfp-operator-crds-$(VERSION).tgz
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
@@ -166,31 +168,37 @@ ifdef NETRC_FILE
 helm-publish:: $(NETRC_FILE)
 endif
 
-helm-publish:: helm-package ## Publish Helm chart to repositories
-	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES),$(call helm-upload,$(url)))
+helm-publish:: helm-package ## Publish Helm charts to repositories
+	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES), \
+		$(call helm-upload,$(url),kfp-operator) \
+		$(call helm-upload,$(url),kfp-operator-crds) \
+	)
 
 define helm-upload
-@echo "Publishing Helm chart to $(1)"
+@echo "Publishing Helm chart to $(2) to $(1)"
 @if echo "$(1)" | grep -q "^oci://"; then \
 	echo "Using Helm OCI push"; \
-	helm push dist/kfp-operator-$(VERSION).tgz $(1); \
+	helm push dist/$(2)-$(VERSION).tgz $(1); \
 else \
 	echo "Using curl upload"; \
-	curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz "$(1)"; \
+	curl --fail --netrc-file $(NETRC_FILE) -T dist/$(2)-$(VERSION).tgz "$(1)"; \
 fi
 $(NEWLINE)
 endef
 endif
 
 INDEXED_YAML := $(YQ) e --no-doc '{([.metadata.name, .kind] | join("-")): .}'
-helm-test-operator: manifests helm-cmd kustomize yq dyff ## Test operator helm chart against kustomize
+helm-test: manifests helm-cmd kustomize yq dyff ## Test helm charts against kustomize
 	$(eval TMP := $(shell mktemp -d))
 
 	# Create yaml files with helm and kustomize.
-	$(HELM) template helm/kfp-operator -f helm/kfp-operator/test/values.yaml > $(TMP)/helm
+	$(HELM) template helm/kfp-operator -f helm/kfp-operator/test/values.yaml > $(TMP)/helm_namespaced.yaml
+	$(HELM) template helm/kfp-operator-crds -f helm/kfp-operator-crds/test/values.yaml > $(TMP)/helm_crds.yaml
+	cat $(TMP)/helm_namespaced.yaml $(TMP)/helm_crds.yaml > $(TMP)/helm_combined.yaml
+
 	$(KUSTOMIZE) build config/default > $(TMP)/kustomize
 	# Because both tools create multi-document files, we have to convert them into '{name}-{kind}'-indexed objects to help the diff tools
-	$(INDEXED_YAML) $(TMP)/helm > $(TMP)/helm_indexed
+	$(INDEXED_YAML) $(TMP)/helm_combined.yaml > $(TMP)/helm_indexed
 	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
 	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
 	rm -rf $(TMP)

@@ -6,178 +6,178 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-manager-role
 rules:
 - apiGroups:
-    - ""
+  - ""
   resources:
-    - events
+  - events
   verbs:
-    - create
-    - patch
+  - create
+  - patch
 - apiGroups:
-    - argoproj.io
+  - argoproj.io
   resources:
-    - workflows
+  - workflows
   verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - experiments
+  - experiments
   verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - experiments/finalizers
+  - experiments/finalizers
   verbs:
-    - update
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - experiments/status
+  - experiments/status
   verbs:
-    - get
-    - patch
-    - update
+  - get
+  - patch
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - pipelines
+  - pipelines
   verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - pipelines/finalizers
+  - pipelines/finalizers
   verbs:
-    - update
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - pipelines/status
+  - pipelines/status
   verbs:
-    - get
-    - patch
-    - update
+  - get
+  - patch
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - providers
+  - providers
   verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - providers/finalizers
+  - providers/finalizers
   verbs:
-    - update
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - providers/status
+  - providers/status
   verbs:
-    - get
-    - patch
-    - update
+  - get
+  - patch
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - runconfigurations
+  - runconfigurations
   verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - runconfigurations/finalizers
+  - runconfigurations/finalizers
   verbs:
-    - update
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - runconfigurations/status
+  - runconfigurations/status
   verbs:
-    - get
-    - patch
-    - update
+  - get
+  - patch
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - runs
+  - runs
   verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - runs/finalizers
+  - runs/finalizers
   verbs:
-    - update
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - runs/status
+  - runs/status
   verbs:
-    - get
-    - patch
-    - update
+  - get
+  - patch
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - runschedules
+  - runschedules
   verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - runschedules/finalizers
+  - runschedules/finalizers
   verbs:
-    - update
+  - update
 - apiGroups:
-    - pipelines.kubeflow.org
+  - pipelines.kubeflow.org
   resources:
-    - runschedules/status
+  - runschedules/status
   verbs:
-    - get
-    - patch
-    - update
+  - get
+  - patch
+  - update
 {{- end -}}
