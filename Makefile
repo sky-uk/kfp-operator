@@ -233,6 +233,6 @@ publish-all: docker-push docker-push-compilers docker-push-triggers docker-push-
 
 ##@ CI
 
-prBuild: package-all git-status-check ## Run all tests and build all packages
+prBuild: test-all package-all git-status-check ## Run all tests and build all packages
 
 cdBuild: prBuild publish-all docker-push-quickstart ## Run all tests, build all packages and publish them
