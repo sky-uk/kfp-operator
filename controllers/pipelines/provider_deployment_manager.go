@@ -123,7 +123,7 @@ func (dm DeploymentManager) Construct(provider *pipelineshub.Provider) (*appsv1.
 			GenerateName: fmt.Sprintf("%s-", prefixedProviderName),
 			Namespace:    provider.Namespace,
 			Labels:       deploymentLabels,
-			Annotations:  map[string]string{},
+			Annotations:  map[string]string{"foo": "bar"},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
