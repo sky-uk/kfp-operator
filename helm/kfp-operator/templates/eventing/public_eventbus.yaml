@@ -18,7 +18,4 @@ spec:
         resources:
           requests:
             cpu: 100m
-      securityContext:
-        runAsUser: 1000
-        runAsNonRoot: true
 {{- end -}}
