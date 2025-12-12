@@ -6,6 +6,9 @@ fullnameOverride: ""
 
 containerRegistry: "ghcr.io/kfp-operator"
 
+crds:
+  create: true
+
 namespace:
   create: true
   name: "kfp-operator-system"

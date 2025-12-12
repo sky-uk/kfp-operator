@@ -1,3 +1,5 @@
+crds:
+  create: true
 namespace:
   create: false
 fullnameOverride: kfp-operator
