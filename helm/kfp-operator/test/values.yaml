@@ -2,6 +2,7 @@ fullnameOverride: kfp-operator
 containerRegistry: ""
 crds:
   create: true
+  keep: false
 manager:
   argo:
     containerDefaults: {}

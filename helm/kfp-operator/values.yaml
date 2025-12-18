@@ -8,6 +8,7 @@ containerRegistry: "ghcr.io/kfp-operator"
 
 crds:
   create: true
+  keep: true
 
 namespace:
   create: true
