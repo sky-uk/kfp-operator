@@ -6,15 +6,18 @@ import (
 	"context"
 	"encoding/json"
 
+	"cloud.google.com/go/storage"
 	"github.com/fsouza/fake-gcs-server/fakestorage"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/api/option"
 )
 
 var _ = Describe("GcsFileHandler", Ordered, func() {
 	var (
 		ctx       = context.Background()
 		server    *fakestorage.Server
+		client    *storage.Client
 		handler   GcsFileHandler
 		bucket    string
 		filePath  string
@@ -24,23 +27,32 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 
 	BeforeAll(func() {
 		var err error
-		server = fakestorage.NewServer(nil)
+		server, err = fakestorage.NewServerWithOptions(fakestorage.Options{
+			InitialObjects: []fakestorage.Object{},
+			NoListener:     true,
+		})
 		Expect(err).ShouldNot(HaveOccurred())
 
 		ctx = context.Background()
 
+		// Create a GCS client using the fake server's HTTP client
+		// Use option.WithoutAuthentication() to avoid ADC conflicts
+		client, err = storage.NewClient(ctx,
+			option.WithHTTPClient(server.HTTPClient()),
+			option.WithoutAuthentication())
+		Expect(err).ShouldNot(HaveOccurred())
+
 		// fake GCS server doesn't share data between different clients
 		// (required for a round-trip test), so the same client must be used
 		// throughout.
-		handler = GcsFileHandler{*server.Client()}
-		Expect(err).ShouldNot(HaveOccurred())
+		handler = GcsFileHandler{*client}
 
 		bucket = "test-bucket"
 		filePath = "test-folder/test-file.json"
 		testData = map[string]any{"key": "value"}
 		testBytes, _ = json.Marshal(testData)
 
-		err = server.Client().Bucket(bucket).Create(ctx, "test-project", nil)
+		err = client.Bucket(bucket).Create(ctx, "test-project", nil)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
@@ -55,7 +67,7 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 				err = handler.Write(ctx, testBytes, bucket, "test-folder/test-file2.json")
 				Expect(err).ShouldNot(HaveOccurred())
 
-				obj, err := server.Client().Bucket(bucket).Object(filePath).Attrs(ctx)
+				obj, err := client.Bucket(bucket).Object(filePath).Attrs(ctx)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(obj.Name).To(Equal(filePath))
 			})
