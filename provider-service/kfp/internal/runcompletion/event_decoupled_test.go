@@ -59,8 +59,6 @@ const (
 )
 
 var _ = BeforeSuite(func() {
-	ctx := context.Background()
-
 	testEnv := &envtest.Environment{
 		DownloadBinaryAssets: true,
 		CRDDirectoryPaths: []string{
@@ -78,9 +76,6 @@ var _ = BeforeSuite(func() {
 	mockMetadataStore = mocks.MockMetadataStore{}
 	mockKfpApi = mocks.MockKfpApi{}
 
-	eventSource, err = sources.NewWorkflowSource(ctx, defaultNamespace, pkg.K8sClient{Client: k8sClient})
-	Expect(err).ToNot(HaveOccurred())
-
 	config := &config.Config{
 		Name: providerName,
 	}
@@ -90,6 +85,9 @@ var _ = BeforeSuite(func() {
 
 	eventFlow, err = NewEventFlow(context.Background(), *config, &mockKfpApi, &mockMetadataStore)
 	Expect(err).ToNot(HaveOccurred())
+
+	// Give the informer time to start and sync
+	time.Sleep(500 * time.Millisecond)
 })
 
 var _ = BeforeEach(func() {
@@ -123,9 +121,19 @@ func WithTestContext(fun func(context.Context)) {
 	)
 	webhookSink = sinks.NewWebhookSink(ctx, client, webhookUrl, make(chan pkg.StreamMessage[*common.RunCompletionEventData]))
 
+	// Create a new event flow for this test to avoid goroutine conflicts
+	config := &config.Config{
+		Name: providerName,
+	}
+	testEventFlow, err := NewEventFlow(ctx, *config, &mockKfpApi, &mockMetadataStore)
+	Expect(err).ToNot(HaveOccurred())
+
 	go func() {
-		eventFlow.From(eventSource).To(webhookSink)
+		testEventFlow.From(eventSource).To(webhookSink)
 	}()
+
+	// Give the flow time to wire up all the goroutines
+	time.Sleep(200 * time.Millisecond)
 
 	fun(ctx)
 }
@@ -302,6 +310,9 @@ func createAndTriggerPhaseUpdate(ctx context.Context, pipelineName string, runId
 	if err != nil {
 		return nil, err
 	}
+
+	// Give the informer time to see the workflow before updating it
+	time.Sleep(500 * time.Millisecond)
 
 	return updatePhase(ctx, wf.GetName(), to)
 }
