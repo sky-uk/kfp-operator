@@ -23,7 +23,7 @@ require (
 	github.com/hashicorp/go-bexpr v0.1.15
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/kubeflow/pipelines v0.0.0-20250902140602-fc3214d4b4d3
-	github.com/nats-io/nats.go v1.47.0
+	github.com/nats-io/nats.go v1.48.0
 	github.com/onsi/ginkgo/v2 v2.27.3
 	github.com/onsi/gomega v1.38.2
 	github.com/prometheus/client_golang v1.23.2
