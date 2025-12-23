@@ -24,7 +24,10 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 
 	BeforeAll(func() {
 		var err error
-		server = fakestorage.NewServer(nil)
+		server, err = fakestorage.NewServerWithOptions(fakestorage.Options{
+			InitialObjects: []fakestorage.Object{},
+			NoListener:     true,
+		})
 		Expect(err).ShouldNot(HaveOccurred())
 
 		ctx = context.Background()
@@ -33,7 +36,6 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 		// (required for a round-trip test), so the same client must be used
 		// throughout.
 		handler = GcsFileHandler{*server.Client()}
-		Expect(err).ShouldNot(HaveOccurred())
 
 		bucket = "test-bucket"
 		filePath = "test-folder/test-file.json"
