@@ -4,6 +4,9 @@ package pipelines
 
 import (
 	"context"
+	"crypto/tls"
+	"fmt"
+	"net"
 	"path/filepath"
 	"testing"
 	"time"
@@ -23,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
@@ -76,9 +80,11 @@ var _ = BeforeSuite(func() {
 		CertDir: webhookInstallOptions.LocalServingCertDir,
 	})
 	k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
-		Scheme:         scheme.Scheme,
-		WebhookServer:  webhook,
-		LeaderElection: false,
+		Scheme:                 scheme.Scheme,
+		WebhookServer:          webhook,
+		LeaderElection:         false,
+		Metrics:                metricsserver.Options{BindAddress: "0"},
+		HealthProbeBindAddress: "0",
 	})
 
 	Expect(err).ToNot(HaveOccurred())
@@ -151,6 +157,18 @@ var _ = BeforeSuite(func() {
 		defer GinkgoRecover()
 		Expect(k8sManager.Start(managerCtx)).To(Succeed())
 	}()
+
+	// Wait for webhook server to be ready
+	dialer := &net.Dialer{Timeout: time.Second}
+	addrPort := fmt.Sprintf("%s:%d", webhookInstallOptions.LocalServingHost, webhookInstallOptions.LocalServingPort)
+	Eventually(func() error {
+		conn, err := tls.DialWithDialer(dialer, "tcp", addrPort, &tls.Config{InsecureSkipVerify: true})
+		if err != nil {
+			return err
+		}
+		conn.Close()
+		return nil
+	}).Should(Succeed())
 })
 
 var _ = BeforeEach(func() {
