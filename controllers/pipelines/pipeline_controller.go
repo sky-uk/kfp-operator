@@ -14,9 +14,7 @@ import (
 )
 
 var (
-	workflowOwnerKey = ".metadata.controller"
-	apiGVStr         = pipelineshub.GroupVersion.String()
-	finalizerName    = "finalizer.pipelines.kubeflow.org"
+	finalizerName = "finalizer.pipelines.kubeflow.org"
 )
 
 type PipelineReconciler struct {

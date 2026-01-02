@@ -56,49 +56,6 @@ var _ = Context("Eventing Flow", func() {
 		})
 	})
 
-	Describe("getPipelineNameFromEntrypoint", func() {
-		It("returns empty when the workflow has no entrypoint", func() {
-			workflow := &unstructured.Unstructured{}
-
-			extractedName := getPipelineNameFromEntrypoint(workflow)
-			Expect(extractedName).To(BeEmpty())
-		})
-
-		It("returns empty when the workflow's entrypoint is empty'", func() {
-			workflow := &unstructured.Unstructured{}
-			setWorkflowEntryPoint(workflow, "")
-
-			extractedName := getPipelineNameFromEntrypoint(workflow)
-			Expect(extractedName).To(BeEmpty())
-		})
-
-		It("returns the pipeline's name when the workflow has an entrypoint'", func() {
-			pipelineName := common.RandomString()
-			workflow := &unstructured.Unstructured{}
-			setWorkflowEntryPoint(workflow, pipelineName)
-
-			extractedName := getPipelineNameFromEntrypoint(workflow)
-			Expect(extractedName).To(Equal(pipelineName))
-		})
-	})
-
-	pipelineName := common.RandomString()
-	entrypoint := common.RandomString()
-
-	DescribeTable("getPipelineName", func(annotationValue string, entrypoint string, expected string) {
-		workflow := &unstructured.Unstructured{}
-		setWorkflowEntryPoint(workflow, entrypoint)
-		setPipelineNameInSpec(workflow, annotationValue)
-
-		extractedName := getPipelineName(workflow)
-		Expect(extractedName).To(Equal(expected))
-	},
-		Entry("Returns empty when none is present", "", "", ""),
-		Entry("Returns the annotation value", pipelineName, "", pipelineName),
-		Entry("Falls back to the entrypoint", "", entrypoint, entrypoint),
-		Entry("Prefers the annotation value", pipelineName, entrypoint, pipelineName),
-	)
-
 	Describe("eventForWorkflow", func() {
 		It("Doesn't emit an event when the workflow has not finished", func() {
 			workflow := &unstructured.Unstructured{}

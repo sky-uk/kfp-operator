@@ -174,21 +174,3 @@ func getPipelineNameFromAnnotation(workflow *unstructured.Unstructured) string {
 
 	return spec.Name
 }
-
-func getPipelineName(workflow *unstructured.Unstructured) (name string) {
-	if name = getPipelineNameFromAnnotation(workflow); name == "" {
-		name = getPipelineNameFromEntrypoint(workflow)
-	}
-
-	return name
-}
-
-func getPipelineNameFromEntrypoint(workflow *unstructured.Unstructured) string {
-	name, ok, err := unstructured.NestedString(workflow.Object, "spec", "entrypoint")
-
-	if !ok || err != nil {
-		return ""
-	}
-
-	return name
-}

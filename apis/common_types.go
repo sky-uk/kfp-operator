@@ -37,14 +37,6 @@ type ControllerWrapper struct {
 	NeedLeaderElection      *bool          `json:"needLeaderElection,omitempty"`
 }
 
-func (cw *ControllerWrapper) FromController(c config.Controller) {
-	cw.GroupKindConcurrency = c.GroupKindConcurrency
-	cw.MaxConcurrentReconciles = c.MaxConcurrentReconciles
-	cw.CacheSyncTimeout = c.CacheSyncTimeout
-	cw.RecoverPanic = c.RecoverPanic
-	cw.NeedLeaderElection = c.NeedLeaderElection
-}
-
 func (cw *ControllerWrapper) ToController() config.Controller {
 	return config.Controller{
 		GroupKindConcurrency:    cw.GroupKindConcurrency,
