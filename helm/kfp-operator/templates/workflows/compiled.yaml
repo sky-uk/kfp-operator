@@ -90,6 +90,10 @@ spec:
     - name: pipeline-framework-image
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
+  {{- if .Values.manager.argo.securityContext }}
+  securityContext:
+    {{- .Values.manager.argo.securityContext | toYaml | nindent 4 }}
+  {{- end }}
   templates:
   - name: main
     outputs:
@@ -155,6 +159,10 @@ spec:
     - name: pipeline-framework-image
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
+  {{- if .Values.manager.argo.securityContext }}
+  securityContext:
+    {{- .Values.manager.argo.securityContext | toYaml | nindent 4 }}
+  {{- end }}
   templates:
   - name: main
     outputs:

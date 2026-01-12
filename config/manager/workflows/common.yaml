@@ -139,6 +139,10 @@ spec:
     - name: resource-id
   entrypoint: main
   serviceAccountName: kfp-operator-argo
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
   templates:
   - name: main
     outputs:
