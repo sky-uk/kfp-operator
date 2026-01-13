@@ -14,7 +14,20 @@ Note that we currently need to use kubebuilder version 3 or below, as [work is r
 
 Install Go by following the instructions on the [website](https://golang.org/doc/install).
 
-We use [asdf](http://asdf-vm.com) to set up the development environment. Install it it following the [Getting Started Guide](http://asdf-vm.com/guide/getting-started.html).
+We use [asdf](http://asdf-vm.com) to set up the development environment. Install it following the [Getting Started Guide](http://asdf-vm.com/guide/getting-started.html).
+
+Add the required asdf plugins:
+
+```sh
+asdf plugin add python
+asdf plugin add protoc
+asdf plugin add hugo
+asdf plugin add golang
+asdf plugin add nodejs
+asdf plugin add minikube
+asdf plugin add uv
+```
+
 Install all tool versions as follows:
 
 ```sh
