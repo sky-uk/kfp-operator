@@ -233,41 +233,60 @@ manager:
 
 Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/values.yaml" >}}) are:
 
-| Parameter name                                            | Description                                                                                                                                                                                                         |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `containerRegistry`                                       | Container Registry base path for all container images                                                                                                                                                               |
-| `namespace.create`                                        | Create the namespace for the operator                                                                                                                                                                               |
-| `namespace.name`                                          | Operator namespace name                                                                                                                                                                                             |
-| `manager.argo.containerDefaults`                          | Container Spec defaults to be used for Argo workflow pods created by the operator                                                                                                                                   |
-| `manager.argo.metadata`                                   | Container Metadata defaults to be used for Argo workflow pods created by the operator                                                                                                                               |
-| `manager.argo.ttlStrategy`                                | [TTL Strategy](https://argoproj.github.io/argo-workflows/fields/#ttlstrategy) used for all Argo Workflows                                                                                                           |
-| `manager.argo.stepTimeoutSeconds.compile`                 | Timeout in seconds for compiler steps - defaults to 1800 (30m)                                                                                                                                                      |
-| `manager.argo.stepTimeoutSeconds.default`                 | Default [timeout in seconds](https://argoproj.github.io/argo-workflows/walk-through/timeouts/) for workflow steps - defaults to 300 (5m)                                                                            |
-| `manager.argo.serviceAccount.name`                        | The [k8s service account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) used to run Argo workflows                                                                           |
-| `manager.argo.serviceAccount.create`                      | Create the Argo Workflows service account (or assume it has been created externally)                                                                                                                                |
-| `manager.argo.serviceAccount.metadata`                    | Optional Argo Workflows service account default metadata                                                                                                                                                            |
-| `manager.metadata`                                        | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the manager's pods                                                                            |
-| `manager.rbac.create`                                     | Create roles and rolebindings for the operator                                                                                                                                                                      |
-| `manager.serviceAccount.name`                             | Manager service account's name                                                                                                                                                                                      |
-| `manager.serviceAccount.create`                           | Create the manager's service account or expect it to be created externally                                                                                                                                          |
-| `manager.replicas`                                        | Number of replicas for the manager deployment                                                                                                                                                                       |
-| `manager.resources`                                       | Manager resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources)                                                                              |
-| `manager.configuration`                                   | Manager configuration as defined in [Configuration](../configuration/operator-configuration) (note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied) |
-| `manager.monitoring.create`                               | Create the manager's monitoring resources                                                                                                                                                                           |
-| `manager.monitoring.rbacSecured`                          | Enable addtional RBAC-based security                                                                                                                                                                                |
-| `manager.monitoring.serviceMonitor.create`                | Create a ServiceMonitor for the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)                                                                                                   |
-| `manager.monitoring.serviceMonitor.endpointConfiguration` | Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided)                                                                                                            |
-| `manager.multiversion.enabled`                            | Enable multiversion API. Should be used in production to allow version migration, disable for simplified installation                                                                                               |
-| `manager.multiversion.storedVersion`                      | Specifies which CRD version should be set as the stored version. Only takes effect if `manager.multiversion.enabled` is set to `true`. Defaults to the latest version.                                              |
-| `manager.webhookCertificates.provider`                    | K8s conversion webhook TLS certificate provider - choose `cert-manager` for Helm to deploy certificates if cert-manager is available or `custom` otherwise (see below)                                              |
-| `manager.webhookCertificates.secretName`                  | Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the `custom` provider is chosen                                                                          |
-| `manager.webhookCertificates.caBundle`                    | CA bundle of the certificate authority that has signed the webhook's certificate, required if the `custom` provider is chosen                                                                                       |
-| `manager.webhookServicePort`                              | Port for the webhook service to listen on - defaults to 9443                                                                                                                                                        |
-| `manager.runcompletionWebhook.servicePort`                | Port for the run completion event webhook service to listen on - defaults to 8082                                                                                                                                   |
-| `manager.runcompletionWebhook.endpoints`                  | Array of endpoints for the run completion event handlers to be called when a run completion event is passed                                                                                                         |
-| `manager.pipeline.frameworks`                             | Map of additional pipeline frameworks to their respective container images - defaults to empty                                                                                                                      |
-| `logging.verbosity`                                       | Logging verbosity for all components - see the [logging documentation]({{< param "github_project_repo" >}}/blob/master/CONTRIBUTING.md#logging) for valid values                                                    |
-| `statusFeedback.enabled`                                  | Whether run completion eventing and status update feedback loop should be installed - defaults to `false`                                                                                                           |
+| Parameter name | Description | Default |
+|---|---|---|
+| `containerRegistry` | Container Registry base path for all container images | `ghcr.io/kfp-operator` |
+| `crds.create` | Create CRDs during installation | `true` |
+| `crds.keep` | Keep CRDs when uninstalling the chart | `true` |
+| `namespace.create` | Create the namespace for the operator | `true` |
+| `namespace.name` | Operator namespace name | `kfp-operator-system` |
+| `namespace.metadata` | Object Metadata for the namespace | `{}` |
+| `manager.argo.containerDefaults` | Container Spec defaults to be used for Argo workflow pods created by the operator | `{}` |
+| `manager.argo.metadata` | Container Metadata defaults to be used for Argo workflow pods created by the operator | `{}` |
+| `manager.argo.ttlStrategy` | [TTL Strategy](https://argoproj.github.io/argo-workflows/fields/#ttlstrategy) used for all Argo Workflows | `secondsAfterCompletion: 3600` |
+| `manager.argo.stepTimeoutSeconds.compile` | Timeout in seconds for compiler steps | `1800` |
+| `manager.argo.stepTimeoutSeconds.default` | Default [timeout in seconds](https://argoproj.github.io/argo-workflows/walk-through/timeouts/) for workflow steps | `300` |
+| `manager.argo.serviceAccount.name` | The [k8s service account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) used to run Argo workflows | `kfp-operator-argo` |
+| `manager.argo.serviceAccount.create` | Create the Argo Workflows service account (or assume it has been created externally) | `true` |
+| `manager.argo.serviceAccount.metadata` | Optional Argo Workflows service account default metadata | `{}` |
+| `manager.metadata` | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the manager's pods | `{}` |
+| `manager.rbac.create` | Create roles and rolebindings for the operator | `true` |
+| `manager.serviceAccount.name` | Manager service account's name | `kfp-operator-controller-manager` |
+| `manager.serviceAccount.create` | Create the manager's service account or expect it to be created externally | `true` |
+| `manager.replicas` | Number of replicas for the manager deployment | `1` |
+| `manager.resources` | Manager resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) | `requests: {cpu: 100m, memory: 200Mi}`<br>`limits: {cpu: 100m, memory: 300Mi}` |
+| `manager.configuration` | Manager configuration as defined in [Configuration](../configuration/operator-configuration) | `{}` |
+| `manager.monitoring.create` | Create the manager's monitoring resources | `false` |
+| `manager.monitoring.rbacSecured` | Enable addtional RBAC-based security | `false` |
+| `manager.monitoring.serviceMonitor.create` | Create a ServiceMonitor for the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) | `false` |
+| `manager.monitoring.serviceMonitor.endpointConfiguration` | Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided) | `{}` |
+| `manager.multiversion.enabled` | Enable multiversion API. Should be used in production to allow version migration, disable for simplified installation | `false` |
+| `manager.multiversion.storedVersion` | Specifies which CRD version should be set as the stored version. Only takes effect if `manager.multiversion.enabled` is set to `true`. | `v1beta1` |
+| `manager.webhookCertificates.provider` | K8s conversion webhook TLS certificate provider - choose `cert-manager` for Helm to deploy certificates if cert-manager is available or `custom` otherwise | `cert-manager` |
+| `manager.webhookCertificates.secretName` | Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the `custom` provider is chosen | `""` |
+| `manager.webhookCertificates.caBundle` | CA bundle of the certificate authority that has signed the webhook's certificate, required if the `custom` provider is chosen | `""` |
+| `manager.webhookServicePort` | Port for the webhook service to listen on | `9443` |
+| `manager.runcompletionWebhook.servicePort` | Port for the run completion event webhook service to listen on | `8082` |
+| `manager.runcompletionWebhook.endpoints` | Array of endpoints for the run completion event handlers to be called when a run completion event is passed | `[]` |
+| `logging.verbosity` | Logging verbosity for all components - see the [logging documentation]({{< param "github_project_repo" >}}/blob/master/CONTRIBUTING.md#logging) for valid values | `""` |
+| `statusFeedback.enabled` | Whether run completion eventing and status update feedback loop should be installed | `false` |
+| `provider.replicas` | Number of replicas for the provider deployment | `1` |
+| `provider.resources` | Provider resources | `requests: {cpu: 250m, memory: 128Mi}`<br>`limits: {cpu: 500m, memory: 256Mi}` |
+| `provider.servicePort` | Provider service port | `8080` |
+| `provider.metricsPort` | Provider metrics port | `8081` |
+| `provider.env` | Extra environment variables for the provider | `[]` |
+| `provider.labels` | Extra labels for the provider pods | `{}` |
+| `provider.podTemplateLabels` | Extra labels for the provider pod template | `{}` |
+| `provider.volumes` | Extra volumes for the provider | `[]` |
+| `provider.volumeMounts` | Extra volume mounts for the provider | `[]` |
+| `runcompletionEventTrigger.enabled` | Enable run completion event trigger | `false` |
+| `runcompletionEventTrigger.replicas` | Number of replicas for the event trigger | `1` |
+| `runcompletionEventTrigger.monitoring` | Enable monitoring for the event trigger | `false` |
+| `runcompletionEventTrigger.metadata` | Object Metadata for the event trigger | `{}` |
+| `runcompletionEventTrigger.server.port` | Port for the event trigger server | `8080` |
+| `runcompletionEventTrigger.metrics.port` | Port for the event trigger metrics | `9090` |
+| `runcompletionEventTrigger.nats.server.port` | Port for the NATS server | `4222` |
+| `runcompletionEventTrigger.nats.subject` | NATS subject | `workflow.status` |
 
 Examples for these values can be found in the [test configuration]({{< ghblob "/helm/kfp-operator/test/values.yaml" >}})
 

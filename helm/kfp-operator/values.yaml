@@ -62,6 +62,15 @@ runcompletionEventTrigger:
   metadata: {}
   enabled: false
   monitoring: false
+  replicas: 1
+  server:
+    port: 8080
+  metrics:
+    port: 9090
+  nats:
+    server:
+      port: 4222
+    subject: "workflow.status"
 
 statusFeedback:
   enabled: false
@@ -80,3 +89,8 @@ provider:
       memory: 256Mi
   servicePort: 8080
   metricsPort: 8081
+  env: []
+  labels: {}
+  podTemplateLabels: {}
+  volumes: []
+  volumeMounts: []
