@@ -23389,6 +23389,8 @@ a {
     margin-bottom: 1rem; }
     .td-content > h1:first-child, .td-content > .h1:first-child, .td-content > h2:first-child, .td-content > .h2:first-child, .td-content > h3:first-child, .td-content > .h3:first-child, .td-content > .td-footer__links-item:first-child, .td-content > h4:first-child, .td-content > .h4:first-child, .td-content > h5:first-child, .td-content > .h5:first-child, .td-content > h6:first-child, .td-content > .h6:first-child {
       margin-top: 0; }
+  .td-content code {
+    padding: .2em !important; }
   .td-content > p, .td-content > ul, .td-content > ol {
     margin-bottom: 1.25rem; }
   .td-content ul, .td-content ol {

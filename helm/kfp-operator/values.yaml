@@ -37,6 +37,10 @@ manager:
       create: true
     containerDefaults: {}
     metadata: {}
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 1000
     ttlStrategy:
       secondsAfterCompletion: 3600
     stepTimeoutSeconds:

@@ -14,6 +14,10 @@ spec:
     - name: resource-definition
   entrypoint: main
   serviceAccountName: kfp-operator-argo
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
   templates:
   - name: main
     outputs:
@@ -54,6 +58,10 @@ spec:
     - name: resource-definition
   entrypoint: main
   serviceAccountName: kfp-operator-argo
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
   templates:
   - name: main
     outputs:
