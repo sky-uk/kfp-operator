@@ -28,12 +28,12 @@ data:
         serviceContainerName: provider-service
         servicePort: {{ .Values.provider.servicePort }}
         metricsPort: {{ .Values.provider.metricsPort }}
-        labels: {{- if .Values.provider.labels }}{{- toYaml .Values.provider.labels | nindent 10 }}{{ else }} {}{{ end }}
+        labels: {{- with .Values.provider.labels }}{{- . | toYaml | nindent 10 }}{{ else }} {}{{ end }}
         podTemplateSpec:
           metadata:
-            labels: {{- if .Values.provider.podTemplateLabels }}{{- toYaml .Values.provider.podTemplateLabels | nindent 16 }}{{ else }} {}{{ end }}
+            labels: {{- with .Values.provider.podTemplateLabels }}{{- . | toYaml | nindent 16 }}{{ else }} {}{{ end }}
           spec:
-            volumes: {{- if .Values.provider.volumes }}{{- toYaml .Values.provider.volumes | nindent 12 }}{{ else }} []{{ end }}
+            volumes: {{- with .Values.provider.volumes }}{{- . | toYaml | nindent 12 }}{{ else }} []{{ end }}
             securityContext:
               runAsNonRoot: true
             containers:
@@ -45,7 +45,7 @@ data:
               - containerPort: {{ .Values.provider.metricsPort }}
                 name: metrics
                 protocol: TCP
-              volumeMounts: {{- if .Values.provider.volumeMounts }}{{- toYaml .Values.provider.volumeMounts | nindent 14 }}{{ else }} []{{ end }}
+              volumeMounts: {{- with .Values.provider.volumeMounts }}{{- . | toYaml | nindent 14 }}{{ else }} []{{ end }}
               securityContext:
                 allowPrivilegeEscalation: false
               resources:
@@ -61,4 +61,4 @@ data:
                 value: '{{ .Values.provider.servicePort }}'
               - name: METRICS_PORT
                 value: '{{ .Values.provider.metricsPort }}'
-              {{- if .Values.provider.env }}{{- $.Values.provider.env | toYaml | nindent 14 }}{{ end }}
+              {{- with .Values.provider.env }}{{- . | toYaml | nindent 14 }}{{ end }}
