@@ -53,14 +53,14 @@ spec:
               name: manager-config
               subPath: controller_manager_config.yaml
           ports:
-          - name: mcp
-            containerPort: 8000
-            protocol: TCP
         {{- if .Values.manager.multiversion.enabled }}
           - name: webhook-server
             containerPort: {{ .Values.manager.webhookServicePort }}
             protocol: TCP
         {{ end }}
+          - name: mcp
+            containerPort: 8000
+            protocol: TCP
           - name: runcomp-feed
             containerPort: {{ .Values.manager.runcompletionWebhook.servicePort }}
             protocol: TCP
