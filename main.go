@@ -27,7 +27,6 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
 	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/internal/metrics"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	runtimeMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 
