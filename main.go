@@ -279,7 +279,7 @@ func main() {
 	}
 
 	// Start MCP server
-	mcpServer := mcp.NewMCPServer(mgr.GetCache())
+	mcpServer := mcpa.NewMCPServer(mgr.GetCache())
 	go func() {
 		if err := mcpServer.Start(); err != nil {
 			setupLog.Error(err, "problem starting MCP server")
