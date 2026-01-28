@@ -23,9 +23,11 @@ import (
 	"os"
 
 	"github.com/samber/lo"
+	"github.com/sky-uk/kfp-operator/controllers/mcp"
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
 	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/internal/metrics"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	runtimeMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 
@@ -249,13 +251,22 @@ func main() {
 	}
 	go func() {
 		http.HandleFunc("/events", rcf.HandleEvent(ctx))
-
-		http.ListenAndServe(fmt.Sprintf(":%d", ctrlConfig.Spec.RunCompletionFeed.Port), nil)
+		err := http.ListenAndServe(fmt.Sprintf(":%d", ctrlConfig.Spec.RunCompletionFeed.Port), nil)
 		if err != nil {
 			setupLog.Error(err, "problem starting run completion feed")
 			os.Exit(1)
 		}
 	}()
+
+	mcpServer := mcp.MCPServer{
+		Cache: mgr.GetCache(),
+	}
+	runnable := mcp.Runnable{Server: &mcpServer}
+	err = runnable.Start(ctx)
+
+	if err != nil {
+		setupLog.Error(err, "problem starting mcp server")
+	}
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctx); err != nil {
