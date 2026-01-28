@@ -112,9 +112,16 @@ func (s *MCPServer) mcpVerifyHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	// Decode the incoming JSON-RPC request to get the ID
+	var req JSONRPCRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
 	resp := JSONRPCResponse{
 		JSONRPC: "2.0",
-		ID:      "VERIFY_TOOL_SERVER",
+		ID:      req.ID, // use the ID from the request
 		Result: MCPConfig{
 			ProtocolVersion: "0.1",
 			Streamable:      true,
