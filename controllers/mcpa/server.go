@@ -146,8 +146,7 @@ func (s *MCPServer) tools() []ToolHandle {
 							Annotations: nil,
 						},
 					},
-					StructuredContent: true,
-					IsError:           false,
+					IsError: false,
 				}, nil
 			},
 		},
