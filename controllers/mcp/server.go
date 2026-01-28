@@ -49,7 +49,7 @@ func NewMCPServer(c cache.Cache) *MCPServer {
 // OpenAI MCP JSON structures
 type JSONRPCResponse struct {
 	JSONRPC string    `json:"jsonrpc"`
-	ID      string    `json:"id"`
+	ID      any       `json:"id"`
 	Result  any       `json:"result,omitempty"`
 	Error   *RPCError `json:"error,omitempty"`
 }
