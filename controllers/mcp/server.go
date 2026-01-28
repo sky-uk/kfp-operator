@@ -8,8 +8,11 @@ import (
 	"github.com/go-logr/logr"
 	v1beta1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+
+	"github.com/gorilla/websocket"
 )
 
+// Runnable starts the MCP server in a goroutine
 type Runnable struct {
 	Server *MCPServer
 }
@@ -25,14 +28,40 @@ func (r *Runnable) Start(ctx context.Context) error {
 	return nil
 }
 
+// MCPServer represents the WebSocket MCP server
 type MCPServer struct {
-	Cache cache.Cache
+	Cache    cache.Cache
+	upgrader websocket.Upgrader
+}
+
+// NewMCPServer constructs a server
+func NewMCPServer(c cache.Cache) *MCPServer {
+	return &MCPServer{
+		Cache: c,
+		upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool { return true }, // adjust in prod
+		},
+	}
+}
+
+// JSON-RPC 2.0 structures
+type JSONRPCRequest struct {
+	JSONRPC string          `json:"jsonrpc"`
+	ID      string          `json:"id"`
+	Method  string          `json:"method"`
+	Params  json.RawMessage `json:"params,omitempty"`
 }
 
 type JSONRPCResponse struct {
-	JSONRPC string `json:"jsonrpc"`
-	ID      string `json:"id"`
-	Result  any    `json:"result"`
+	JSONRPC string    `json:"jsonrpc"`
+	ID      string    `json:"id"`
+	Result  any       `json:"result,omitempty"`
+	Error   *RPCError `json:"error,omitempty"`
+}
+
+type RPCError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }
 
 type MCPConfig struct {
@@ -50,94 +79,109 @@ type MCPResource struct {
 	Namespaced bool   `json:"namespaced"`
 }
 
+// Start runs the WebSocket MCP server
 func (s *MCPServer) Start() error {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/mcp", s.mcpHandler)
-	mux.HandleFunc("/mcp/resources", s.mcpResourcesHandler)
-	mux.HandleFunc("/mcp/resources/pipelines", s.listPipelines)
+	mux.HandleFunc("/mcp", s.mcpWebSocketHandler)
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
+	})
 
 	return http.ListenAndServe(":8000", mux)
 }
 
-func (s *MCPServer) mcpHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	marshal, err := json.Marshal(
-		JSONRPCResponse{
-			JSONRPC: "2.0",
-			ID:      "VERIFY_TOOL_SERVER",
-			Result: MCPConfig{
-				Name:    "KFP-Operator MCP Server",
-				Version: "0.0.1",
-				Capabilities: map[string]bool{
-					"resources": true,
-					"tools":     true,
-					"streaming": false,
-				},
-				Streamable: false,
-			},
-		})
+// WebSocket handler for OpenWebUI MCP
+func (s *MCPServer) mcpWebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		http.Error(w, "Failed to upgrade connection", http.StatusInternalServerError)
 		return
 	}
-	_, err = w.Write(marshal)
-	if err != nil {
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
-	}
-}
+	defer conn.Close()
 
-func (s *MCPServer) mcpResourcesHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	marshalled, err := json.Marshal(JSONRPCResponse{
+	// Initial handshake with capabilities
+	initial := JSONRPCResponse{
 		JSONRPC: "2.0",
-		ID:      "LIST_RESOURCES",
-		Result: []MCPResource{
-			{
-				Kind:       "Pipeline",
-				Plural:     "Pipelines",
-				Group:      "pipelines.kubeflow.org",
-				Version:    "v1beta1",
-				Namespaced: true,
+		ID:      "VERIFY_TOOL_SERVER",
+		Result: MCPConfig{
+			Name:    "KFP-Operator MCP Server",
+			Version: "0.0.1",
+			Capabilities: map[string]bool{
+				"resources": true,
+				"tools":     true,
+				"streaming": true,
 			},
+			Streamable: true,
 		},
-	})
-	if err != nil {
-		http.Error(w, "Failed to marshal resources", http.StatusInternalServerError)
+	}
+	if err := conn.WriteJSON(initial); err != nil {
 		return
 	}
-	_, err = w.Write(marshalled)
-	if err != nil {
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
+
+	// Handle incoming JSON-RPC requests
+	for {
+		var req JSONRPCRequest
+		if err := conn.ReadJSON(&req); err != nil {
+			break // client disconnected
+		}
+
+		switch req.Method {
+		case "LIST_RESOURCES":
+			s.sendResources(conn, req.ID)
+		case "LIST_PIPELINES":
+			s.sendPipelines(conn, req.ID, r.Context())
+		default:
+			conn.WriteJSON(JSONRPCResponse{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error: &RPCError{
+					Code:    -32601,
+					Message: "Method not found",
+				},
+			})
+		}
 	}
 }
 
-func (s *MCPServer) listPipelines(w http.ResponseWriter, r *http.Request) {
+// Send MCP resources
+func (s *MCPServer) sendResources(conn *websocket.Conn, id string) {
+	res := []MCPResource{
+		{
+			Kind:       "Pipeline",
+			Plural:     "Pipelines",
+			Group:      "pipelines.kubeflow.org",
+			Version:    "v1beta1",
+			Namespaced: true,
+		},
+	}
+	resp := JSONRPCResponse{
+		JSONRPC: "2.0",
+		ID:      id,
+		Result:  res,
+	}
+	conn.WriteJSON(resp)
+}
+
+// Send pipelines from cache
+func (s *MCPServer) sendPipelines(conn *websocket.Conn, id string, ctx context.Context) {
 	pipelineList := &v1beta1.PipelineList{}
-	err := s.Cache.List(r.Context(), pipelineList)
-	if err != nil {
-		http.Error(w, "Failed to list pipelines", http.StatusInternalServerError)
-		return
-	}
-
-	body, err := json.Marshal(
-		JSONRPCResponse{
+	if err := s.Cache.List(ctx, pipelineList); err != nil {
+		conn.WriteJSON(JSONRPCResponse{
 			JSONRPC: "2.0",
-			ID:      "LIST_PIPELINES",
-			Result:  pipelineList.Items,
+			ID:      id,
+			Error: &RPCError{
+				Code:    -32000,
+				Message: "Failed to list pipelines",
+			},
 		})
-	if err != nil {
-		http.Error(w, "Failed to marshal pipelines", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(body)
-	if err != nil {
-		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-		return
+	resp := JSONRPCResponse{
+		JSONRPC: "2.0",
+		ID:      id,
+		Result:  pipelineList.Items,
 	}
+	conn.WriteJSON(resp)
 }

@@ -19,6 +19,7 @@ require (
 	github.com/go-resty/resty/v2 v2.17.1
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gax-go/v2 v2.16.0
+	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
 	github.com/hashicorp/go-bexpr v0.1.15
 	github.com/jarcoal/httpmock v1.4.1
