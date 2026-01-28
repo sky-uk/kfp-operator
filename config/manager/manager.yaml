@@ -51,12 +51,11 @@ spec:
             cpu: 100m
             memory: 200Mi
         ports:
-        - name: runcomp-feed
-          containerPort: 8082
-          protocol: TCP
         - name: mcp
           containerPort: 8000
           protocol: TCP
-
+        - name: runcomp-feed
+          containerPort: 8082
+          protocol: TCP
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
