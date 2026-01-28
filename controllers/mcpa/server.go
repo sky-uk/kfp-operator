@@ -113,7 +113,7 @@ func (s *MCPServer) resourceDefinitions() []ResourceHandle {
 						{
 							URI:      "kfp://pipelines",
 							MIMEType: "application/json",
-							Blob:     b,
+							Text:     string(b),
 						},
 					},
 				}, nil
