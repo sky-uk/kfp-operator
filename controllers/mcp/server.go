@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-logr/logr"
 	v1beta1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 )
@@ -15,6 +16,7 @@ type Runnable struct {
 
 func (r *Runnable) Start(ctx context.Context) error {
 	go func() {
+		logr.FromContextOrDiscard(ctx).Info("MCP Server started")
 		if err := r.Server.Start(); err != nil {
 			panic(err)
 		}
