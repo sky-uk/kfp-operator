@@ -193,7 +193,7 @@ func (s *MCPServer) mcpWebSocketHandler(w http.ResponseWriter, r *http.Request) 
 // JSON-RPC request struct
 type JSONRPCRequest struct {
 	JSONRPC string          `json:"jsonrpc"`
-	ID      string          `json:"id"`
+	ID      any             `json:"id"`
 	Method  string          `json:"method"`
 	Params  json.RawMessage `json:"params,omitempty"`
 }
