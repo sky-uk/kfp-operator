@@ -17,10 +17,13 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/controllers/mcp"
@@ -257,19 +260,36 @@ func main() {
 		}
 	}()
 
-	mcpServer := mcp.MCPServer{
-		Cache: mgr.GetCache(),
-	}
-	runnable := mcp.Runnable{Server: &mcpServer}
-	err = runnable.Start(ctx)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
-	if err != nil {
-		setupLog.Error(err, "problem starting mcp server")
-	}
+	// Start the manager in a goroutine (non-blocking)
+	go func() {
+		setupLog.Info("starting manager")
+		if err := mgr.Start(ctx); err != nil {
+			setupLog.Error(err, "problem starting manager")
+			os.Exit(1)
+		}
+	}()
 
-	setupLog.Info("starting manager")
-	if err := mgr.Start(ctx); err != nil {
-		setupLog.Error(err, "problem starting manager")
+	// Wait for cache sync before starting MCP server
+	if ok := mgr.GetCache().WaitForCacheSync(ctx); !ok {
+		setupLog.Error(nil, "cache failed to sync")
 		os.Exit(1)
 	}
+
+	// Start MCP server
+	mcpServer := mcp.MCPServer{Cache: mgr.GetCache()}
+	go func() {
+		if err := mcpServer.Start(); err != nil {
+			setupLog.Error(err, "problem starting MCP server")
+			os.Exit(1)
+		}
+	}()
+
+	setupLog.Info("all components running, waiting for shutdown signal")
+	// Block until context is cancelled (Ctrl+C or SIGTERM)
+	<-ctx.Done()
+
+	setupLog.Info("shutdown signal received, exiting")
 }
