@@ -80,6 +80,12 @@ func (s *MCPServer) Start() error {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
+	mux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./controllers/mcpa/static/openapi.json")
+	})
+	mux.HandleFunc("/openai.json", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./controllers/mcpa/static/openai.json")
+	})
 
 	return http.ListenAndServe(":8000", mux)
 }
