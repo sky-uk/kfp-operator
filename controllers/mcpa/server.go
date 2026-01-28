@@ -80,13 +80,6 @@ func (s *MCPServer) Start() error {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
-	mux.HandleFunc("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./controllers/mcpa/static/openapi.json")
-	})
-	mux.HandleFunc("/openai.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./controllers/mcpa/static/openai.json")
-	})
-
 	return http.ListenAndServe(":8000", mux)
 }
 
@@ -106,6 +99,71 @@ type ToolHandle struct {
 
 func (s *MCPServer) ListPipelines(ctx context.Context) ([]byte, error) {
 	list := &v1beta1.PipelineList{}
+	if err := s.Cache.List(ctx, list); err != nil {
+		return nil, err
+	}
+
+	b, err := json.Marshal(list)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (s *MCPServer) ListProviders(ctx context.Context) ([]byte, error) {
+	list := &v1beta1.ProviderList{}
+	if err := s.Cache.List(ctx, list); err != nil {
+		return nil, err
+	}
+
+	b, err := json.Marshal(list)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (s *MCPServer) ListExperiments(ctx context.Context) ([]byte, error) {
+	list := &v1beta1.ExperimentList{}
+	if err := s.Cache.List(ctx, list); err != nil {
+		return nil, err
+	}
+
+	b, err := json.Marshal(list)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (s *MCPServer) ListRunSchedules(ctx context.Context) ([]byte, error) {
+	list := &v1beta1.RunScheduleList{}
+	if err := s.Cache.List(ctx, list); err != nil {
+		return nil, err
+	}
+
+	b, err := json.Marshal(list)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (s *MCPServer) ListRunConfigurations(ctx context.Context) ([]byte, error) {
+	list := &v1beta1.RunConfigurationList{}
+	if err := s.Cache.List(ctx, list); err != nil {
+		return nil, err
+	}
+
+	b, err := json.Marshal(list)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (s *MCPServer) ListRuns(ctx context.Context) ([]byte, error) {
+	list := &v1beta1.RunList{}
 	if err := s.Cache.List(ctx, list); err != nil {
 		return nil, err
 	}
@@ -147,6 +205,146 @@ func (s *MCPServer) tools() []ToolHandle {
 				}, nil
 			},
 		},
+		{
+			t: mcp.Tool{
+				Description: "List Providers managed by the KFP Operator",
+				Name:        "list_providers",
+				Title:       "List Providers",
+				InputSchema: map[string]interface{}{
+					"type": "object",
+				},
+			},
+			h: func(ctx context.Context, _ *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+				providersJson, err := s.ListProviders(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.CallToolResult{
+					Meta: nil,
+					Content: []mcp.Content{
+						&mcp.TextContent{
+							Text:        string(providersJson),
+							Meta:        nil,
+							Annotations: nil,
+						},
+					},
+					IsError: false,
+				}, nil
+			},
+		},
+		{
+			t: mcp.Tool{
+				Description: "List Experiments managed by the KFP Operator",
+				Name:        "list_experiments",
+				Title:       "List Experiments",
+				InputSchema: map[string]interface{}{
+					"type": "object",
+				},
+			},
+			h: func(ctx context.Context, _ *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+				experimentsJson, err := s.ListExperiments(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.CallToolResult{
+					Meta: nil,
+					Content: []mcp.Content{
+						&mcp.TextContent{
+							Text:        string(experimentsJson),
+							Meta:        nil,
+							Annotations: nil,
+						},
+					},
+					IsError: false,
+				}, nil
+			},
+		},
+		{
+			t: mcp.Tool{
+				Description: "List RunSchedules managed by the KFP Operator",
+				Name:        "list_runschedules",
+				Title:       "List RunSchedules",
+				InputSchema: map[string]interface{}{
+					"type": "object",
+				},
+			},
+			h: func(ctx context.Context, _ *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+				runSchedulesJson, err := s.ListRunSchedules(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.CallToolResult{
+					Meta: nil,
+					Content: []mcp.Content{
+						&mcp.TextContent{
+							Text:        string(runSchedulesJson),
+							Meta:        nil,
+							Annotations: nil,
+						},
+					},
+					IsError: false,
+				}, nil
+			},
+		},
+		{
+			t: mcp.Tool{
+				Description: "List RunConfigurations managed by the KFP Operator",
+				Name:        "list_runconfigurations",
+				Title:       "List RunConfigurations",
+				InputSchema: map[string]interface{}{
+					"type": "object",
+				},
+			},
+			h: func(ctx context.Context, _ *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+				runConfigurationsJson, err := s.ListRunConfigurations(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.CallToolResult{
+					Meta: nil,
+					Content: []mcp.Content{
+						&mcp.TextContent{
+							Text:        string(runConfigurationsJson),
+							Meta:        nil,
+							Annotations: nil,
+						},
+					},
+					IsError: false,
+				}, nil
+			},
+		},
+		{
+			t: mcp.Tool{
+				Description: "List Runs managed by the KFP Operator",
+				Name:        "list_runs",
+				Title:       "List Runs",
+				InputSchema: map[string]interface{}{
+					"type": "object",
+				},
+			},
+			h: func(ctx context.Context, _ *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+				runsJson, err := s.ListRuns(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.CallToolResult{
+					Meta: nil,
+					Content: []mcp.Content{
+						&mcp.TextContent{
+							Text:        string(runsJson),
+							Meta:        nil,
+							Annotations: nil,
+						},
+					},
+					IsError: false,
+				}, nil
+			},
+		},
 	}
 }
 
@@ -171,6 +369,126 @@ func (s *MCPServer) resourceDefinitions() []ResourceHandle {
 							URI:      "kfp://pipelines",
 							MIMEType: "application/json",
 							Text:     string(pipelinesJson),
+						},
+					},
+				}, nil
+			},
+		},
+		{
+			r: mcp.Resource{
+				URI:         "kfp://providers",
+				Name:        "providers",
+				Description: "Providers managed by the KFP Operator",
+			},
+
+			h: func(ctx context.Context, _ *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+				providersJson, err := s.ListProviders(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.ReadResourceResult{
+					Contents: []*mcp.ResourceContents{
+						{
+							URI:      "kfp://providers",
+							MIMEType: "application/json",
+							Text:     string(providersJson),
+						},
+					},
+				}, nil
+			},
+		},
+		{
+			r: mcp.Resource{
+				URI:         "kfp://experiments",
+				Name:        "experiments",
+				Description: "Experiments managed by the KFP Operator",
+			},
+
+			h: func(ctx context.Context, _ *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+				experimentsJson, err := s.ListExperiments(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.ReadResourceResult{
+					Contents: []*mcp.ResourceContents{
+						{
+							URI:      "kfp://experiments",
+							MIMEType: "application/json",
+							Text:     string(experimentsJson),
+						},
+					},
+				}, nil
+			},
+		},
+		{
+			r: mcp.Resource{
+				URI:         "kfp://runschedules",
+				Name:        "runschedules",
+				Description: "RunSchedules managed by the KFP Operator",
+			},
+
+			h: func(ctx context.Context, _ *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+				runSchedulesJson, err := s.ListRunSchedules(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.ReadResourceResult{
+					Contents: []*mcp.ResourceContents{
+						{
+							URI:      "kfp://runschedules",
+							MIMEType: "application/json",
+							Text:     string(runSchedulesJson),
+						},
+					},
+				}, nil
+			},
+		},
+		{
+			r: mcp.Resource{
+				URI:         "kfp://runconfigurations",
+				Name:        "runconfigurations",
+				Description: "RunConfigurations managed by the KFP Operator",
+			},
+
+			h: func(ctx context.Context, _ *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+				runConfigurationsJson, err := s.ListRunConfigurations(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.ReadResourceResult{
+					Contents: []*mcp.ResourceContents{
+						{
+							URI:      "kfp://runconfigurations",
+							MIMEType: "application/json",
+							Text:     string(runConfigurationsJson),
+						},
+					},
+				}, nil
+			},
+		},
+		{
+			r: mcp.Resource{
+				URI:         "kfp://runs",
+				Name:        "runs",
+				Description: "Runs managed by the KFP Operator",
+			},
+
+			h: func(ctx context.Context, _ *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+				runsJson, err := s.ListRuns(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.ReadResourceResult{
+					Contents: []*mcp.ResourceContents{
+						{
+							URI:      "kfp://runs",
+							MIMEType: "application/json",
+							Text:     string(runsJson),
 						},
 					},
 				}, nil
