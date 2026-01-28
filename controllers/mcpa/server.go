@@ -118,6 +118,13 @@ func (s *MCPServer) tools() []ToolHandle {
 				Description: "List Kubeflow Pipelines managed by the KFP Operator",
 				Name:        "list_pipelines",
 				Title:       "List Pipelines",
+				InputSchema: map[string]interface{}{},
+				OutputSchema: map[string]interface{}{
+					"type": "array", // array of items
+					"items": map[string]interface{}{
+						"type": "object", // each item is an object
+					},
+				},
 			},
 			h: func(ctx context.Context, _ *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 				pipelinesJson, err := s.ListPipelines(ctx)
