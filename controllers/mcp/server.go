@@ -6,7 +6,9 @@ import (
 	"net/http"
 
 	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
 	v1beta1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"go.uber.org/zap"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 
 	"github.com/gorilla/websocket"
@@ -105,19 +107,29 @@ func (s *MCPServer) Start() error {
 
 // POST /mcp for OpenWebUI verification
 func (s *MCPServer) mcpVerifyHandler(w http.ResponseWriter, r *http.Request) {
+
+	rawLogger, _ := zap.NewProduction()
+	log := zapr.NewLogger(rawLogger).WithName("mcpVerifyHandler")
+
+	log.Info("Received MCP verification request")
+
+	// Decode the incoming JSON-RPC request to get the ID
+	var req JSONRPCRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Error(err, "Failed to decode MCP verification request")
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	log.Info("received MCP verification request", "req", req)
+
 	if r.Method != http.MethodPost {
+		log.Info("Invalid HTTP method for MCP verification")
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-
-	// Decode the incoming JSON-RPC request to get the ID
-	var req JSONRPCRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-		return
-	}
 
 	resp := JSONRPCResponse{
 		JSONRPC: "2.0",
