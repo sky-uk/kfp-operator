@@ -119,13 +119,10 @@ func (s *MCPServer) tools() []ToolHandle {
 				Name:        "list_pipelines",
 				Title:       "List Pipelines",
 				InputSchema: map[string]interface{}{
-					"type": "object", // no input parameters
+					"type": "object",
 				},
 				OutputSchema: map[string]interface{}{
-					"type": "array", // array of items
-					"items": map[string]interface{}{
-						"type": "object", // each item is an object
-					},
+					"type": "object",
 				},
 			},
 			h: func(ctx context.Context, _ *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
