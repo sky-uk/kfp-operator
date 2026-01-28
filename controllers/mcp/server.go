@@ -53,8 +53,8 @@ func (s *MCPServer) Start() error {
 }
 
 func (s *MCPServer) mcpHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	marshal, err := json.Marshal(MCPConfig{
 		Name:    "KFP-Operator MCP Server",
 		Version: "0.0.1",
@@ -75,8 +75,8 @@ func (s *MCPServer) mcpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *MCPServer) mcpResourcesHandler(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	marshalled, err := json.Marshal([]MCPResource{
 		{
 			Kind:       "Pipeline",
