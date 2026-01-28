@@ -118,7 +118,9 @@ func (s *MCPServer) tools() []ToolHandle {
 				Description: "List Kubeflow Pipelines managed by the KFP Operator",
 				Name:        "list_pipelines",
 				Title:       "List Pipelines",
-				InputSchema: map[string]interface{}{},
+				InputSchema: map[string]interface{}{
+					"type": "object", // no input parameters
+				},
 				OutputSchema: map[string]interface{}{
 					"type": "array", // array of items
 					"items": map[string]interface{}{
