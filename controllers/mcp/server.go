@@ -199,7 +199,7 @@ type JSONRPCRequest struct {
 }
 
 // Send MCP resources over WebSocket
-func (s *MCPServer) sendResources(conn *websocket.Conn, id string) {
+func (s *MCPServer) sendResources(conn *websocket.Conn, id any) {
 	res := []MCPResource{
 		{
 			Kind:       "Pipeline",
@@ -218,7 +218,7 @@ func (s *MCPServer) sendResources(conn *websocket.Conn, id string) {
 }
 
 // Send pipelines from cache over WebSocket
-func (s *MCPServer) sendPipelines(conn *websocket.Conn, id string, ctx context.Context) {
+func (s *MCPServer) sendPipelines(conn *websocket.Conn, id any, ctx context.Context) {
 	pipelineList := &v1beta1.PipelineList{}
 	if err := s.Cache.List(ctx, pipelineList); err != nil {
 		conn.WriteJSON(JSONRPCResponse{
