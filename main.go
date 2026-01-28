@@ -26,7 +26,7 @@ import (
 	"syscall"
 
 	"github.com/samber/lo"
-	"github.com/sky-uk/kfp-operator/controllers/mcp"
+	"github.com/sky-uk/kfp-operator/controllers/mcpa"
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
 	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/internal/metrics"
