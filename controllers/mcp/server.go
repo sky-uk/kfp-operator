@@ -33,6 +33,7 @@ type MCPConfig struct {
 	Name         string          `json:"name"`
 	Version      string          `json:"version"`
 	Capabilities map[string]bool `json:"capabilities"`
+	Streamable   bool            `json:"streamable"`
 }
 
 type MCPResource struct {
@@ -63,6 +64,7 @@ func (s *MCPServer) mcpHandler(w http.ResponseWriter, r *http.Request) {
 			"tools":     true,
 			"streaming": false,
 		},
+		Streamable: false,
 	})
 	if err != nil {
 		return
