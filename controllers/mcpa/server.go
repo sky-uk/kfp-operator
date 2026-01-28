@@ -65,6 +65,10 @@ func (s *MCPServer) Start() error {
 		server.AddResource(&resource.r, resource.h)
 	}
 
+	for _, tool := range s.tools() {
+		server.AddTool(&tool.t, tool.h)
+	}
+
 	// Create HTTP handler for the MCP server
 	handler := mcp.NewStreamableHTTPHandler(func(r *http.Request) *mcp.Server {
 		return server
@@ -89,6 +93,55 @@ type ResourceHandle struct {
 	h mcp.ResourceHandler
 }
 
+type ToolHandle struct {
+	t mcp.Tool
+	h mcp.ToolHandler
+}
+
+func (s *MCPServer) ListPipelines(ctx context.Context) ([]byte, error) {
+	list := &v1beta1.PipelineList{}
+	if err := s.Cache.List(ctx, list); err != nil {
+		return nil, err
+	}
+
+	b, err := json.Marshal(list)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
+func (s *MCPServer) tools() []ToolHandle {
+	return []ToolHandle{
+		{
+			t: mcp.Tool{
+				Description: "List Kubeflow Pipelines managed by the KFP Operator",
+				Name:        "list_pipelines",
+				Title:       "List Pipelines",
+			},
+			h: func(ctx context.Context, _ *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+				pipelinesJson, err := s.ListPipelines(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.CallToolResult{
+					Meta: nil,
+					Content: []mcp.Content{
+						&mcp.TextContent{
+							Text:        string(pipelinesJson),
+							Meta:        nil,
+							Annotations: nil,
+						},
+					},
+					StructuredContent: true,
+					IsError:           false,
+				}, nil
+			},
+		},
+	}
+}
+
 func (s *MCPServer) resourceDefinitions() []ResourceHandle {
 	return []ResourceHandle{
 		{
@@ -99,21 +152,17 @@ func (s *MCPServer) resourceDefinitions() []ResourceHandle {
 			},
 
 			h: func(ctx context.Context, _ *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
-				list := &v1beta1.PipelineList{}
-				if err := s.Cache.List(ctx, list); err != nil {
-					return nil, err
-				}
-
-				b, err := json.Marshal(list)
+				pipelinesJson, err := s.ListPipelines(ctx)
 				if err != nil {
 					return nil, err
 				}
+
 				return &mcp.ReadResourceResult{
 					Contents: []*mcp.ResourceContents{
 						{
 							URI:      "kfp://pipelines",
 							MIMEType: "application/json",
-							Text:     string(b),
+							Text:     string(pipelinesJson),
 						},
 					},
 				}, nil
