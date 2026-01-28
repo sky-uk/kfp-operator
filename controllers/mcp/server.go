@@ -64,11 +64,23 @@ type RPCError struct {
 	Message string `json:"message"`
 }
 
+// OpenAI MCP structures
 type MCPConfig struct {
-	Name         string          `json:"name"`
-	Version      string          `json:"version"`
-	Capabilities map[string]bool `json:"capabilities"`
-	Streamable   bool            `json:"streamable"`
+	Name            string       `json:"name"`
+	Version         string       `json:"version"`
+	Streamable      bool         `json:"streamable"`
+	ProtocolVersion string       `json:"protocolVersion"`
+	Capabilities    Capabilities `json:"capabilities"`
+	ServerInfo      ServerInfo   `json:"serverInfo"`
+}
+
+type Capabilities struct {
+	Resources map[string]any `json:"resources"`
+	Tools     map[string]any `json:"tools"`
+}
+
+type ServerInfo struct {
+	Description string `json:"description"`
 }
 
 type MCPResource struct {
@@ -91,7 +103,7 @@ func (s *MCPServer) Start() error {
 	return http.ListenAndServe(":8000", mux)
 }
 
-// WebSocket handler for OpenWebUI MCP
+// WebSocket handler for MCP
 func (s *MCPServer) mcpWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -100,21 +112,27 @@ func (s *MCPServer) mcpWebSocketHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	defer conn.Close()
 
-	// Initial handshake with capabilities
+	// Initial handshake with OpenAI MCP spec
 	initial := JSONRPCResponse{
 		JSONRPC: "2.0",
 		ID:      "VERIFY_TOOL_SERVER",
 		Result: MCPConfig{
-			Name:    "KFP-Operator MCP Server",
-			Version: "0.0.1",
-			Capabilities: map[string]bool{
-				"resources": true,
-				"tools":     true,
-				"streaming": true,
+			Name:            "KFP-Operator MCP Server",
+			Version:         "0.0.1",
+			Streamable:      true,
+			ProtocolVersion: "0.1",
+			Capabilities: Capabilities{
+				Resources: map[string]any{
+					"pipelines": map[string]any{"kind": "Pipeline"},
+				},
+				Tools: map[string]any{},
 			},
-			Streamable: true,
+			ServerInfo: ServerInfo{
+				Description: "KFP Operator MCP server compliant with OpenAI spec",
+			},
 		},
 	}
+
 	if err := conn.WriteJSON(initial); err != nil {
 		return
 	}
@@ -155,12 +173,11 @@ func (s *MCPServer) sendResources(conn *websocket.Conn, id string) {
 			Namespaced: true,
 		},
 	}
-	resp := JSONRPCResponse{
+	conn.WriteJSON(JSONRPCResponse{
 		JSONRPC: "2.0",
 		ID:      id,
 		Result:  res,
-	}
-	conn.WriteJSON(resp)
+	})
 }
 
 // Send pipelines from cache
@@ -178,10 +195,9 @@ func (s *MCPServer) sendPipelines(conn *websocket.Conn, id string, ctx context.C
 		return
 	}
 
-	resp := JSONRPCResponse{
+	conn.WriteJSON(JSONRPCResponse{
 		JSONRPC: "2.0",
 		ID:      id,
 		Result:  pipelineList.Items,
-	}
-	conn.WriteJSON(resp)
+	})
 }
