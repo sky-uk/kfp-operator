@@ -29,6 +29,12 @@ type MCPServer struct {
 	Cache cache.Cache
 }
 
+type JSONRPCResponse struct {
+	JSONRPC string `json:"jsonrpc"`
+	ID      string `json:"id"`
+	Result  any    `json:"result"`
+}
+
 type MCPConfig struct {
 	Name         string          `json:"name"`
 	Version      string          `json:"version"`
@@ -56,16 +62,21 @@ func (s *MCPServer) Start() error {
 func (s *MCPServer) mcpHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	marshal, err := json.Marshal(MCPConfig{
-		Name:    "KFP-Operator MCP Server",
-		Version: "0.0.1",
-		Capabilities: map[string]bool{
-			"resources": true,
-			"tools":     true,
-			"streaming": false,
-		},
-		Streamable: false,
-	})
+	marshal, err := json.Marshal(
+		JSONRPCResponse{
+			JSONRPC: "2.0",
+			ID:      "VERIFY_TOOL_SERVER",
+			Result: MCPConfig{
+				Name:    "KFP-Operator MCP Server",
+				Version: "0.0.1",
+				Capabilities: map[string]bool{
+					"resources": true,
+					"tools":     true,
+					"streaming": false,
+				},
+				Streamable: false,
+			},
+		})
 	if err != nil {
 		return
 	}
@@ -79,13 +90,17 @@ func (s *MCPServer) mcpHandler(w http.ResponseWriter, r *http.Request) {
 func (s *MCPServer) mcpResourcesHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	marshalled, err := json.Marshal([]MCPResource{
-		{
-			Kind:       "Pipeline",
-			Plural:     "Pipelines",
-			Group:      "pipelines.kubeflow.org",
-			Version:    "v1beta1",
-			Namespaced: true,
+	marshalled, err := json.Marshal(JSONRPCResponse{
+		JSONRPC: "2.0",
+		ID:      "LIST_RESOURCES",
+		Result: []MCPResource{
+			{
+				Kind:       "Pipeline",
+				Plural:     "Pipelines",
+				Group:      "pipelines.kubeflow.org",
+				Version:    "v1beta1",
+				Namespaced: true,
+			},
 		},
 	})
 	if err != nil {
@@ -107,7 +122,12 @@ func (s *MCPServer) listPipelines(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := json.Marshal(pipelineList.Items)
+	body, err := json.Marshal(
+		JSONRPCResponse{
+			JSONRPC: "2.0",
+			ID:      "LIST_PIPELINES",
+			Result:  pipelineList.Items,
+		})
 	if err != nil {
 		http.Error(w, "Failed to marshal pipelines", http.StatusInternalServerError)
 		return
