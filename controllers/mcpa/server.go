@@ -127,9 +127,6 @@ func (s *MCPServer) tools() []ToolHandle {
 				InputSchema: map[string]interface{}{
 					"type": "object",
 				},
-				OutputSchema: map[string]interface{}{
-					"type": "object",
-				},
 			},
 			h: func(ctx context.Context, _ *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 				pipelinesJson, err := s.ListPipelines(ctx)
