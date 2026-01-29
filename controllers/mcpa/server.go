@@ -426,7 +426,8 @@ func (s *MCPServer) tools() []ToolHandle {
 					"properties": map[string]interface{}{
 						"component": map[string]interface{}{
 							"type":        "string",
-							"description": "Operator component name (controller, webhook)",
+							"description": "Operator component name (controller, webhook, eventbus, provider, run-completion-event-trigger)",
+							"enum":        []string{"controller", "webhook", "eventbus", "provider", "run-completion-event-trigger"},
 						},
 						"tailLines": map[string]interface{}{
 							"type":        "integer",
