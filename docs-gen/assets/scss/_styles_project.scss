@@ -522,65 +522,6 @@ a {
     }
 }
 
-// Modern Table Styling
-.table {
-    border-collapse: separate;
-    border-spacing: 0;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    background-color: white;
-
-    th {
-        background-color: $gray-50;
-        font-weight: 600;
-        color: $gray-700;
-        border-bottom: 2px solid $gray-200;
-        padding: 0.75rem 1rem;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-    }
-
-    td {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid $gray-100;
-        color: $gray-600;
-    }
-
-    tbody tr {
-        transition: background-color 0.2s ease-in-out;
-
-        // Striped rows for better readability
-        &:nth-child(even) {
-            background-color: $gray-50;
-        }
-
-        &:nth-child(odd) {
-            background-color: white;
-        }
-
-        &:hover {
-            background-color: $gray-100 !important;
-        }
-
-        &:last-child td {
-            border-bottom: none;
-        }
-    }
-
-    // Table striped variant
-    &.table-striped {
-        tbody tr:nth-child(even) {
-            background-color: $gray-50;
-        }
-
-        tbody tr:nth-child(odd) {
-            background-color: white;
-        }
-    }
-}
-
 // Modern Form Styling
 .form-control {
     border: 1px solid #d1d5db;
