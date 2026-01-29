@@ -11,6 +11,12 @@ import (
 	"github.com/go-logr/logr"
 
 	mcp "github.com/modelcontextprotocol/go-sdk/mcp"
+	"io"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 //
@@ -173,6 +179,71 @@ func (s *MCPServer) ListRuns(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
+}
+
+func (s *MCPServer) getOperatorLogs(
+	ctx context.Context,
+	namespace string,
+	labelSelector string,
+	container string,
+	tailLines int64,
+) (string, error) {
+
+	cfg, err := rest.InClusterConfig()
+	if err != nil {
+		return "", err
+	}
+
+	clientset, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		return "", err
+	}
+
+	pods, err := clientset.CoreV1().
+		Pods(namespace).
+		List(ctx, metav1.ListOptions{
+			LabelSelector: labelSelector,
+		})
+	if err != nil {
+		return "", err
+	}
+
+	if len(pods.Items) == 0 {
+		return "no matching pods found", nil
+	}
+
+	var logs string
+
+	for _, pod := range pods.Items {
+		opts := &corev1.PodLogOptions{
+			Container: container,
+			TailLines: &tailLines,
+		}
+
+		req := clientset.CoreV1().
+			Pods(namespace).
+			GetLogs(pod.Name, opts)
+
+		stream, err := req.Stream(ctx)
+		if err != nil {
+			continue
+		}
+
+		buf, err := io.ReadAll(stream)
+		stream.Close()
+		if err != nil {
+			continue
+		}
+
+		logs += "=== pod: " + pod.Name + " ===\n"
+		logs += string(buf) + "\n"
+	}
+
+	if logs == "" {
+		return "logs unavailable", nil
+	}
+
+	return logs, nil
 }
 
 func (s *MCPServer) tools() []ToolHandle {
@@ -339,6 +410,99 @@ func (s *MCPServer) tools() []ToolHandle {
 							Text:        string(runsJson),
 							Meta:        nil,
 							Annotations: nil,
+						},
+					},
+					IsError: false,
+				}, nil
+			},
+		},
+		{
+			t: mcp.Tool{
+				Name:        "get_operator_logs",
+				Title:       "Get Operator Logs",
+				Description: "Fetch logs from operator-managed components",
+				InputSchema: map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"component": map[string]interface{}{
+							"type":        "string",
+							"description": "Operator component name (controller, webhook)",
+						},
+						"tailLines": map[string]interface{}{
+							"type":        "integer",
+							"default":     200,
+							"description": "Number of log lines to return",
+						},
+					},
+					"required": []string{"component"},
+				},
+			},
+			h: func(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+				// Parse arguments from the raw JSON
+				var args struct {
+					Component string `json:"component"`
+					TailLines int64  `json:"tailLines"`
+				}
+				args.TailLines = 200 // default value
+
+				if err := json.Unmarshal(req.Params.Arguments, &args); err != nil {
+					return &mcp.CallToolResult{
+						IsError: true,
+						Content: []mcp.Content{
+							&mcp.TextContent{Text: "failed to parse arguments: " + err.Error()},
+						},
+					}, nil
+				}
+
+				component := args.Component
+				tailLines := args.TailLines
+
+				// 🔒 operator-owned mapping (NO arbitrary pod access)
+				var labelSelector string
+				var container string
+
+				switch component {
+				case "controller":
+					labelSelector = "control-plane=controller-manager"
+					container = "manager"
+				case "webhook":
+					labelSelector = "control-plane=controller-manager"
+					container = "manager"
+				case "eventbus":
+					labelSelector = "app=kfp-operator-events"
+					container = "stan"
+				case "provider":
+					labelSelector = "app=provider-vai"
+					container = "provider-service"
+				case "run-completion-event-trigger":
+					labelSelector = "app=run-completion-event-trigger"
+					container = "run-completion-event-trigger"
+				default:
+					return &mcp.CallToolResult{
+						IsError: true,
+						Content: []mcp.Content{
+							&mcp.TextContent{
+								Text: "unknown component: " + component,
+							},
+						},
+					}, nil
+				}
+
+				logs, err := s.getOperatorLogs(
+					ctx,
+					"kfp-system", // adjust if needed
+					labelSelector,
+					container,
+					tailLines,
+				)
+				if err != nil {
+					return nil, err
+				}
+
+				return &mcp.CallToolResult{
+					Content: []mcp.Content{
+						&mcp.TextContent{
+							Text: logs,
 						},
 					},
 					IsError: false,
