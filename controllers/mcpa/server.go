@@ -429,6 +429,11 @@ func (s *MCPServer) tools() []ToolHandle {
 							"description": "Operator component name (controller, webhook, eventbus, provider, run-completion-event-trigger)",
 							"enum":        []string{"controller", "webhook", "eventbus", "provider", "run-completion-event-trigger"},
 						},
+						"namespace": map[string]interface{}{
+							"type":        "string",
+							"default":     "kfp-system",
+							"description": "Kubernetes namespace where the component is running",
+						},
 						"tailLines": map[string]interface{}{
 							"type":        "integer",
 							"default":     200,
@@ -442,9 +447,11 @@ func (s *MCPServer) tools() []ToolHandle {
 				// Parse arguments from the raw JSON
 				var args struct {
 					Component string `json:"component"`
+					Namespace string `json:"namespace"`
 					TailLines int64  `json:"tailLines"`
 				}
-				args.TailLines = 200 // default value
+				args.Namespace = "kfp-system" // default value
+				args.TailLines = 200          // default value
 
 				if err := json.Unmarshal(req.Params.Arguments, &args); err != nil {
 					return &mcp.CallToolResult{
@@ -456,6 +463,7 @@ func (s *MCPServer) tools() []ToolHandle {
 				}
 
 				component := args.Component
+				namespace := args.Namespace
 				tailLines := args.TailLines
 
 				// 🔒 operator-owned mapping (NO arbitrary pod access)
@@ -491,7 +499,7 @@ func (s *MCPServer) tools() []ToolHandle {
 
 				logs, err := s.getOperatorLogs(
 					ctx,
-					"kfp-system", // adjust if needed
+					namespace,
 					labelSelector,
 					container,
 					tailLines,
