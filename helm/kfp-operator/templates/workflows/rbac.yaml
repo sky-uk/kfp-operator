@@ -5,8 +5,8 @@ kind: ServiceAccount
 metadata:
   name: {{ .Values.manager.argo.serviceAccount.name }}
   namespace: {{ include "kfp-operator.argoNamespace" . }}
-{{- if .Values.manager.argo.serviceAccount.metadata }}
-  {{ .Values.manager.argo.serviceAccount.metadata | toYaml | nindent 2 }}
+{{- with .Values.manager.argo.serviceAccount.metadata }}
+  {{ . | toYaml | nindent 2 }}
 {{- end }}
 {{- end }}
 ---

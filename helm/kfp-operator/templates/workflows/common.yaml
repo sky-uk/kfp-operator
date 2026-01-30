@@ -146,9 +146,9 @@ spec:
     - name: resource-id
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
-  {{- if .Values.manager.argo.securityContext }}
+  {{- with .Values.manager.argo.securityContext }}
   securityContext:
-    {{- .Values.manager.argo.securityContext | toYaml | nindent 4 }}
+    {{- . | toYaml | nindent 4 }}
   {{- end }}
   templates:
   - name: main
