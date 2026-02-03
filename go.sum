@@ -4,8 +4,8 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.123.0 h1:2NAUJwPR47q+E35uaJeYoNhuNEM9kM8SjgRgdeOJUSE=
 cloud.google.com/go v0.123.0/go.mod h1:xBoMV08QcqUGuPW65Qfm1o9Y4zKZBpGS+7bImXLTAZU=
-cloud.google.com/go/aiplatform v1.113.0 h1:XCLZ5/LcQzF/hMn5wO19751IspRjG+c/S4FWJRLkhMg=
-cloud.google.com/go/aiplatform v1.113.0/go.mod h1:B8fcWtC2vSadapIQqweJrTATJe/odNDjk2uIA5kmXog=
+cloud.google.com/go/aiplatform v1.114.0 h1:TCrSLci+NFEAx0PZMv8btGe5j68RivArmDJbBLIc/3o=
+cloud.google.com/go/aiplatform v1.114.0/go.mod h1:W5yMrpIuHG/CSK8iF7XnwIfCJu6dcLRQ0cTqGR5vwwE=
 cloud.google.com/go/auth v0.18.1 h1:IwTEx92GFUo2pJ6Qea0EU3zYvKnTAeRCODxfA/G5UWs=
 cloud.google.com/go/auth v0.18.1/go.mod h1:GfTYoS9G3CWpRA3Va9doKN9mjPGRS+v41jmZAhBzbrA=
 cloud.google.com/go/auth/oauth2adapt v0.2.8 h1:keo8NaayQZ6wimpNSmW5OPc283g65QNIiLpZnkHRbnc=
