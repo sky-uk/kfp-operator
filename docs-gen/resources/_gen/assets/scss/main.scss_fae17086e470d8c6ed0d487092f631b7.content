@@ -23303,41 +23303,6 @@ a {
     .alert.alert-info .alert-heading, .alert.pageinfo-info .alert-heading {
       color: #053f59; }
 
-.table, .td-table:not(.td-initial), .td-box table:not(.td-initial), .td-content table:not(.td-initial) {
-  border-collapse: separate;
-  border-spacing: 0;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  background-color: white; }
-  .table th, .td-table:not(.td-initial) th, .td-box table:not(.td-initial) th, .td-content table:not(.td-initial) th {
-    background-color: #f9fafb;
-    font-weight: 600;
-    color: #374151;
-    border-bottom: 2px solid #e5e7eb;
-    padding: 0.75rem 1rem;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em; }
-  .table td, .td-table:not(.td-initial) td, .td-box table:not(.td-initial) td, .td-content table:not(.td-initial) td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #f3f4f6;
-    color: #6c757d; }
-  .table tbody tr, .td-table:not(.td-initial) tbody tr, .td-box table:not(.td-initial) tbody tr, .td-content table:not(.td-initial) tbody tr {
-    transition: background-color 0.2s ease-in-out; }
-    .table tbody tr:nth-child(even), .td-table:not(.td-initial) tbody tr:nth-child(even), .td-box table:not(.td-initial) tbody tr:nth-child(even), .td-content table:not(.td-initial) tbody tr:nth-child(even) {
-      background-color: #f9fafb; }
-    .table tbody tr:nth-child(odd), .td-table:not(.td-initial) tbody tr:nth-child(odd), .td-box table:not(.td-initial) tbody tr:nth-child(odd), .td-content table:not(.td-initial) tbody tr:nth-child(odd) {
-      background-color: white; }
-    .table tbody tr:hover, .td-table:not(.td-initial) tbody tr:hover, .td-box table:not(.td-initial) tbody tr:hover, .td-content table:not(.td-initial) tbody tr:hover {
-      background-color: #f3f4f6 !important; }
-    .table tbody tr:last-child td, .td-table:not(.td-initial) tbody tr:last-child td, .td-box table:not(.td-initial) tbody tr:last-child td, .td-content table:not(.td-initial) tbody tr:last-child td {
-      border-bottom: none; }
-  .table.table-striped tbody tr:nth-child(even), .td-table:not(.td-initial) tbody tr:nth-child(even), .td-box table:not(.td-initial) tbody tr:nth-child(even), .td-content table:not(.td-initial) tbody tr:nth-child(even) {
-    background-color: #f9fafb; }
-  .table.table-striped tbody tr:nth-child(odd), .td-table:not(.td-initial) tbody tr:nth-child(odd), .td-box table:not(.td-initial) tbody tr:nth-child(odd), .td-content table:not(.td-initial) tbody tr:nth-child(odd) {
-    background-color: white; }
-
 .form-control {
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
