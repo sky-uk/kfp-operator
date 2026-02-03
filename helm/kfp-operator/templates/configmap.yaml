@@ -61,4 +61,4 @@ data:
                 value: '{{ .Values.provider.servicePort }}'
               - name: METRICS_PORT
                 value: '{{ .Values.provider.metricsPort }}'
-              {{- if .Values.provider.env }}{{- $.Values.provider.env | toYaml | nindent 14 }}{{ end }}
+              {{- with .Values.provider.env }}{{- . | toYaml | nindent 14 }}{{ end }}
