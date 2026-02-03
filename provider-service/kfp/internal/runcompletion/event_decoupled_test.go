@@ -6,15 +6,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
-	"io"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"net/http"
-	"path/filepath"
-	"time"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-resty/resty/v2"
@@ -60,6 +62,10 @@ const (
 
 var _ = BeforeSuite(func() {
 	ctx := context.Background()
+
+	// This is required because envtest doesn't fully support WatchList semantics in K8s 1.35.
+	// See: https://github.com/kubernetes/kubernetes/issues/135895
+	os.Setenv("KUBE_FEATURE_WatchListClient", "false")
 
 	testEnv := &envtest.Environment{
 		DownloadBinaryAssets: true,
