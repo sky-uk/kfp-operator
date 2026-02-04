@@ -87,7 +87,7 @@ test: fmt vet unit-test decoupled-test functional-test
 	trap 'echo "Cleaning up integration environment..."; $(MAKE) integration-test-down' EXIT; \
 	$(MAKE) integration-test-up; \
 	$(MAKE) integration-test
-	$(MAKE) -C argo/kfp-compiler integration-test
+	$(MAKE) -C compilers/tfx integration-test
 	$(MAKE) -C provider-service integration-test
 
 
