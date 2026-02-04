@@ -82,9 +82,14 @@ unit-test: manifests generate ## Run unit tests
 functional-test: ## Run functional tests
 	$(MAKE) -C triggers/run-completion-event-trigger functional-test
 
-test: fmt vet unit-test decoupled-test functional-test ## Run all tests
+test: fmt vet ## Run all tests
+	$(MAKE) integration-test-up
+	#	$(MAKE) -C argo/kfp-compiler integration-test
+	@trap 'echo "Test failed, running cleanup..."; $(MAKE) integration-test-down; exit 1' ERR; \
+	$(MAKE) integration-test
 	# TODO: after integration tests can run on CI, run provider-service as part
 	# of integration-test
+	$(MAKE) unit-test decoupled-test functional-test
 	$(MAKE) -C provider-service integration-test
 
 test-compilers: ## Run all tests for compilers
