@@ -5,7 +5,6 @@ import (
 )
 
 func (rs *RunSchedule) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(rs).
+	return ctrl.NewWebhookManagedBy(mgr, rs).
 		Complete()
 }

@@ -6,17 +6,14 @@ import (
 
 	"github.com/samber/lo"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 func NewPipelineValidatorWebhook(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(&Pipeline{}).
+	return ctrl.NewWebhookManagedBy(mgr, &Pipeline{}).
 		WithValidator(
 			&PipelineValidator{
 				reader: mgr.GetClient(),
@@ -32,44 +29,32 @@ type PipelineValidator struct {
 	reader client.Reader
 }
 
-var _ webhook.CustomValidator = &PipelineValidator{}
-
 func (p *PipelineValidator) ValidateCreate(
 	ctx context.Context,
-	obj runtime.Object,
+	obj *Pipeline,
 ) (admission.Warnings, error) {
 	return p.validate(ctx, obj)
 }
 
 func (p *PipelineValidator) ValidateUpdate(
 	ctx context.Context,
-	_, newObj runtime.Object,
+	_ *Pipeline,
+	newObj *Pipeline,
 ) (admission.Warnings, error) {
 	return p.validate(ctx, newObj)
 }
 
 func (p *PipelineValidator) ValidateDelete(
 	_ context.Context,
-	_ runtime.Object,
+	_ *Pipeline,
 ) (admission.Warnings, error) {
 	return nil, nil
 }
 
 func (p *PipelineValidator) validate(
 	ctx context.Context,
-	obj runtime.Object,
+	pipeline *Pipeline,
 ) (admission.Warnings, error) {
-	pipeline, ok := obj.(*Pipeline)
-
-	if !ok {
-		return nil, apierrors.NewBadRequest(
-			fmt.Sprintf(
-				"Got kind=%v; expected kind=%v",
-				obj.GetObjectKind().GroupVersionKind().GroupKind(),
-				GroupVersion.WithKind(Pipeline{}.GetKind()).GroupKind(),
-			),
-		)
-	}
 
 	provider := Provider{}
 	if err := p.reader.Get(

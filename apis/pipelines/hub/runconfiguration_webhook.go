@@ -2,20 +2,16 @@ package v1beta1
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/samber/lo"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 func NewRunConfigurationValidatorWebhook(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(&RunConfiguration{}).
+	return ctrl.NewWebhookManagedBy(mgr, &RunConfiguration{}).
 		WithValidator(&RunConfigurationValidator{}).
 		Complete()
 }
@@ -24,8 +20,6 @@ func NewRunConfigurationValidatorWebhook(mgr ctrl.Manager) error {
 // +kubebuilder:object:generate=false
 
 type RunConfigurationValidator struct{}
-
-var _ webhook.CustomValidator = &RunConfigurationValidator{}
 
 func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) {
 	duplicateSchedules := lo.FindDuplicates(rc.Spec.Triggers.Schedules)
@@ -68,43 +62,22 @@ func (rc *RunConfiguration) validate() (admission.Warnings, error) {
 
 func (*RunConfigurationValidator) ValidateCreate(
 	ctx context.Context,
-	obj runtime.Object,
+	rc *RunConfiguration,
 ) (admission.Warnings, error) {
-	rc, ok := obj.(*RunConfiguration)
-
-	if !ok {
-		return nil, apierrors.NewBadRequest(
-			fmt.Sprintf(
-				"Got kind=%v; expected kind=%v",
-				obj.GetObjectKind().GroupVersionKind().GroupKind(),
-				GroupVersion.WithKind((&RunConfiguration{}).GetKind()).GroupKind(),
-			),
-		)
-	}
 	return rc.validate()
 }
 
 func (*RunConfigurationValidator) ValidateUpdate(
 	ctx context.Context,
-	_, newObj runtime.Object,
+	_ *RunConfiguration,
+	rc *RunConfiguration,
 ) (admission.Warnings, error) {
-	rc, ok := newObj.(*RunConfiguration)
-
-	if !ok {
-		return nil, apierrors.NewBadRequest(
-			fmt.Sprintf(
-				"Got kind=%v; expected kind=%v",
-				newObj.GetObjectKind().GroupVersionKind().GroupKind(),
-				GroupVersion.WithKind((&RunConfiguration{}).GetKind()).GroupKind(),
-			),
-		)
-	}
 	return rc.validate()
 }
 
 func (*RunConfigurationValidator) ValidateDelete(
 	_ context.Context,
-	_ runtime.Object,
+	_ *RunConfiguration,
 ) (admission.Warnings, error) {
 	return nil, nil
 }

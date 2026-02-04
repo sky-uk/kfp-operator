@@ -2,20 +2,16 @@ package v1beta1
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 func NewRunValidatorWebhook(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(&Run{}).
+	return ctrl.NewWebhookManagedBy(mgr, &Run{}).
 		WithValidator(&RunValidator{}).
 		Complete()
 }
@@ -25,24 +21,10 @@ func NewRunValidatorWebhook(mgr ctrl.Manager) error {
 
 type RunValidator struct{}
 
-var _ webhook.CustomValidator = &RunValidator{}
-
 func (*RunValidator) ValidateCreate(
 	ctx context.Context,
-	obj runtime.Object,
+	r *Run,
 ) (admission.Warnings, error) {
-	r, ok := obj.(*Run)
-
-	if !ok {
-		return nil, apierrors.NewBadRequest(
-			fmt.Sprintf(
-				"Got kind=%v; expected kind=%v",
-				obj.GetObjectKind().GroupVersionKind().GroupKind(),
-				GroupVersion.WithKind((&Run{}).GetKind()).GroupKind(),
-			),
-		)
-	}
-
 	for i, p := range r.Spec.Parameters {
 		if p.ValueFrom != nil && p.Value != "" {
 			return nil, apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
@@ -60,32 +42,9 @@ func (*RunValidator) ValidateCreate(
 
 func (*RunValidator) ValidateUpdate(
 	ctx context.Context,
-	oldObj, newObj runtime.Object,
+	oldRun *Run,
+	newRun *Run,
 ) (admission.Warnings, error) {
-	oldRun, ok := oldObj.(*Run)
-
-	if !ok {
-		return nil, apierrors.NewBadRequest(
-			fmt.Sprintf(
-				"Got kind=%v; expected kind=%v",
-				oldObj.GetObjectKind().GroupVersionKind().GroupKind(),
-				GroupVersion.WithKind((&Run{}).GetKind()).GroupKind(),
-			),
-		)
-	}
-
-	newRun, ok := newObj.(*Run)
-
-	if !ok {
-		return nil, apierrors.NewBadRequest(
-			fmt.Sprintf(
-				"Got kind=%v; expected kind=%v",
-				newObj.GetObjectKind().GroupVersionKind().GroupKind(),
-				GroupVersion.WithKind((&Run{}).GetKind()).GroupKind(),
-			),
-		)
-	}
-
 	if !reflect.DeepEqual(newRun.Spec, oldRun.Spec) {
 		return nil, apierrors.NewInvalid(newRun.GroupVersionKind().GroupKind(),
 			newRun.Name, field.ErrorList{field.Forbidden(field.NewPath("spec"), "immutable")})
@@ -95,7 +54,7 @@ func (*RunValidator) ValidateUpdate(
 
 func (*RunValidator) ValidateDelete(
 	_ context.Context,
-	_ runtime.Object,
+	_ *Run,
 ) (admission.Warnings, error) {
 	return nil, nil
 }

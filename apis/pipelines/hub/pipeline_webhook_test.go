@@ -166,15 +166,5 @@ var _ = Describe("PipelineValidator Webhook", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
-
-		When("the runtime object is not a pipeline", func() {
-			It("should return a StatusError", func() {
-				warnings, err := validator.validate(ctx, &Run{})
-				Expect(warnings).To(BeNil())
-				var statusErr *apierrors.StatusError
-				Expect(errors.As(err, &statusErr)).To(BeTrue())
-				Expect(statusErr.Status().Reason).To(Equal(metav1.StatusReasonBadRequest))
-			})
-		})
 	})
 })

@@ -5,7 +5,6 @@ import (
 )
 
 func (e *Experiment) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(e).
+	return ctrl.NewWebhookManagedBy(mgr, e).
 		Complete()
 }
