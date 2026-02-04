@@ -4,7 +4,7 @@ triggering: master-and-prs
 
 defaultNodes:
   cdBuild: xl-asdf
-  prBuild: l-asdf
+  prBuild: xl-asdf
 
 modules:
   root:
