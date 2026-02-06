@@ -1,7 +1,6 @@
-// Modern Typography Stack
-// Using system fonts for better performance and native feel
-$font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
-$font-family-monospace: "JetBrains Mono", "SF Mono", Monaco, Inconsolata, "Roboto Mono", "Droid Sans Mono", "Liberation Mono", Menlo, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace !default;
+// Typography Stack - Using system fonts for better performance and native feel
+$font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$font-family-monospace: "SF Mono", Monaco, Inconsolata, "Roboto Mono", "Droid Sans Mono", "Liberation Mono", Menlo, Consolas, "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace !default;
 
 // Modern Color Palette
 // Primary colors - Professional blue palette
