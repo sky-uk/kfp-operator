@@ -101,7 +101,6 @@ func main() {
 			setupLog.Error(err, "unable to parse the config file", "path", configFile, "content", string(bytes))
 			os.Exit(1)
 		}
-		options.Controller = ctrlConfig.Controller.ToController()
 		options.LeaderElection = ctrlConfig.Manager.LeaderElection
 		options.LeaderElectionID = ctrlConfig.Manager.LeaderElectionID
 	}

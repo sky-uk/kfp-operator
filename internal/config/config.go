@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"sigs.k8s.io/controller-runtime/pkg/config"
 )
 
 func K8sClientConfig() (k8sConfig *rest.Config, err error) {
@@ -27,22 +25,13 @@ func K8sClientConfig() (k8sConfig *rest.Config, err error) {
 }
 
 type OperatorConfig struct {
-	Manager    ManagerConfig     `yaml:"manager"`
-	Controller ControllerWrapper `yaml:"controller"`
-	Spec       ConfigSpec        `yaml:"spec"`
+	Manager ManagerConfig `yaml:"manager"`
+	Spec    ConfigSpec    `yaml:"spec"`
 }
 
 type ManagerConfig struct {
 	LeaderElection   bool   `yaml:"leaderElection"`
 	LeaderElectionID string `yaml:"leaderElectionId"`
-}
-
-type ControllerWrapper struct {
-	GroupKindConcurrency    map[string]int `yaml:"groupKindConcurrency,omitempty"`
-	MaxConcurrentReconciles int            `yaml:"maxConcurrentReconciles,omitempty"`
-	CacheSyncTimeout        time.Duration  `yaml:"cacheSyncTimeout,omitempty"`
-	RecoverPanic            *bool          `yaml:"recoverPanic,omitempty"`
-	NeedLeaderElection      *bool          `yaml:"needLeaderElection,omitempty"`
 }
 
 type ConfigSpec struct {
@@ -79,14 +68,4 @@ type Endpoint struct {
 
 func (e Endpoint) URL() string {
 	return fmt.Sprintf("%s:%d%s", e.Host, e.Port, e.Path)
-}
-
-func (cw *ControllerWrapper) ToController() config.Controller {
-	return config.Controller{
-		GroupKindConcurrency:    cw.GroupKindConcurrency,
-		MaxConcurrentReconciles: cw.MaxConcurrentReconciles,
-		CacheSyncTimeout:        cw.CacheSyncTimeout,
-		RecoverPanic:            cw.RecoverPanic,
-		NeedLeaderElection:      cw.NeedLeaderElection,
-	}
 }

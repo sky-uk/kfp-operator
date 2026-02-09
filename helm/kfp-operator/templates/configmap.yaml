@@ -8,18 +8,6 @@ data:
     manager:
       leaderElection: false
       leaderElectionId: kfp-operator-lock
-    controller:
-      health:
-        healthProbeBindAddress: :8081
-      metrics:
-        bindAddress: :8080
-      {{- if .Values.manager.multiversion.enabled }}
-      webhook:
-        port: {{ .Values.manager.webhookServicePort }}
-      {{- end }}
-      leaderElection:
-        leaderElect: true
-        resourceName: kfp-operator-lock
     spec:
       {{- include "kfp-operator.configuration" . | nindent 6 }}
       defaultTfxImage: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-tfx-compiler:{{ .Chart.AppVersion }}
