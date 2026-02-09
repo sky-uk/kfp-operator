@@ -102,6 +102,8 @@ func main() {
 			os.Exit(1)
 		}
 		options.Controller = ctrlConfig.Controller.ToController()
+		options.LeaderElection = ctrlConfig.Manager.LeaderElection
+		options.LeaderElectionID = ctrlConfig.Manager.LeaderElectionID
 	}
 
 	// TODO: This is temporary whilst have conversion from v1alpha5/6 to v1beta1, this is to be removed once v1alpha6 is removed.

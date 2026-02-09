@@ -5,6 +5,9 @@ metadata:
   namespace: {{ .Values.namespace.name }}
 data:
   controller_manager_config.yaml: |
+    manager:
+      leaderElection: false
+      leaderElectionId: kfp-operator-lock
     controller:
       health:
         healthProbeBindAddress: :8081
