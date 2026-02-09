@@ -30,6 +30,9 @@ manager:
       cpu: 100m
       memory: 200Mi
   replicas: 1
+  leaderElection:
+    enabled: true
+    id: "kfp-operator-lock"
   configuration: {}
   argo:
     serviceAccount:

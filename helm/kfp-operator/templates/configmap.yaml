@@ -6,8 +6,8 @@ metadata:
 data:
   controller_manager_config.yaml: |
     manager:
-      leaderElection: false
-      leaderElectionId: kfp-operator-lock
+      leaderElection: {{ .Values.manager.leaderElection.enabled }}
+      leaderElectionId: {{ .Values.manager.leaderElection.id }}
     spec:
       {{- include "kfp-operator.configuration" . | nindent 6 }}
       defaultTfxImage: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-tfx-compiler:{{ .Chart.AppVersion }}
