@@ -1,4 +1,4 @@
-{{- if and .Values.manager.rbac.create .Values.manager.leaderElection.enabled -}}
+{{- if .Values.manager.leaderElection.enabled -}}
 # permissions to do leader election.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
