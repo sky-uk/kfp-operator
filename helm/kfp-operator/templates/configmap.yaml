@@ -5,9 +5,10 @@ metadata:
   namespace: {{ .Values.namespace.name }}
 data:
   controller_manager_config.yaml: |
-    manager:
-      leaderElection: {{ .Values.manager.leaderElection.enabled }}
-      leaderElectionId: {{ .Values.manager.leaderElection.id }}
+    system:
+      leaderElection:
+        enabled: {{ .Values.manager.leaderElection.enabled }}
+        id: {{ .Values.manager.leaderElection.id }}
     spec:
       {{- include "kfp-operator.configuration" . | nindent 6 }}
       defaultTfxImage: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-tfx-compiler:{{ .Chart.AppVersion }}

@@ -25,13 +25,17 @@ func K8sClientConfig() (k8sConfig *rest.Config, err error) {
 }
 
 type OperatorConfig struct {
-	Manager ManagerConfig `yaml:"manager"`
-	Spec    ConfigSpec    `yaml:"spec"`
+	System SystemConfig `yaml:"system"`
+	Spec   ConfigSpec   `yaml:"spec"`
 }
 
-type ManagerConfig struct {
-	LeaderElection   bool   `yaml:"leaderElection"`
-	LeaderElectionID string `yaml:"leaderElectionId"`
+type SystemConfig struct {
+	LeaderElection LeaderElectionConfig `yaml:"leaderElection"`
+}
+
+type LeaderElectionConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Id      string `yaml:"id"`
 }
 
 type ConfigSpec struct {

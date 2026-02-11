@@ -9,15 +9,21 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 
 | Parameter name | Description                                                     |
 |----------------|-----------------------------------------------------------------|
-| `manager`      | Controller runtime options                                      |
+| `system`       | Controller runtime system settings                              |
 | `spec`         | Operator configuration settings for pipeline mangement behavior |
 
-## Manager
+## System
 
-| Parameter name     | Description                         | Example             |
-|-------------------------|--------------------------------|---------------------|
-| `leaderElection`   | Toggle leader election              | `true`              |
-| `leaderElectionId` | Leader election Lease resource name | `kfp-operator-lock` |
+| Parameter name   | Description              |
+|------------------|--------------------------|
+| `leaderElection` | Leader election settings |
+
+## LeaderElection
+
+| Parameter name | Description                         | Example             |
+|----------------|-------------------------------------|---------------------|
+| `enabled`      | Toggle leader election              | `true`              |
+| `id`           | Leader election Lease resource name | `kfp-operator-lock` |
 
 ## Spec
 

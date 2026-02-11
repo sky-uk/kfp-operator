@@ -1,6 +1,7 @@
-manager:
-  leaderElection: true
-  leaderElectionId: kfp-operator-lock
+system:
+  leaderElection:
+    enabled: true
+    id: kfp-operator-lock
 spec:
   multiversion: true
   workflowNamespace: kfp-operator-system

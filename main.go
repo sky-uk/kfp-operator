@@ -101,8 +101,8 @@ func main() {
 			setupLog.Error(err, "unable to parse the config file", "path", configFile, "content", string(bytes))
 			os.Exit(1)
 		}
-		options.LeaderElection = ctrlConfig.Manager.LeaderElection
-		options.LeaderElectionID = ctrlConfig.Manager.LeaderElectionID
+		options.LeaderElection = ctrlConfig.System.LeaderElection.Enabled
+		options.LeaderElectionID = ctrlConfig.System.LeaderElection.Id
 	}
 
 	// TODO: This is temporary whilst have conversion from v1alpha5/6 to v1beta1, this is to be removed once v1alpha6 is removed.
