@@ -7,6 +7,20 @@ weight: 1
 
 The Kubeflow Pipelines operator can be configured with the following parameters:
 
+| Parameter name | Description                                                     |
+|----------------|-----------------------------------------------------------------|
+| `manager`      | Controller runtime options                                      |
+| `spec`         | Operator configuration settings for pipeline mangement behavior |
+
+## Manager
+
+| Parameter name     | Description                         | Example             |
+|-------------------------|--------------------------------|---------------------|
+| `leaderElection`   | Toggle leader election              | `true`              |
+| `leaderElectionId` | Leader election Lease resource name | `kfp-operator-lock` |
+
+## Spec
+
 | Parameter name          | Description                                                                                                                                                                                                   | Example                            |
 |-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
 | `defaultExperiment`     | Default Experiment name to be used for creating pipeline runs                                                                                                                                                 | `Default`                          |
