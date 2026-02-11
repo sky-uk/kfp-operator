@@ -62,6 +62,6 @@ func RandomRunCompletionEventData() common.RunCompletionEventData {
 		RunId:                 common.RandomString(),
 		ServingModelArtifacts: apis.RandomNonEmptyList(common.RandomArtifact),
 		PipelineComponents:    apis.RandomNonEmptyList(randomPipelineComponent),
-		Provider:              common.RandomString(),
+		Provider:              common.NamespacedName{},
 	}
 }

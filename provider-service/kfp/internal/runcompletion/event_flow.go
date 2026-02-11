@@ -140,6 +140,11 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		return nil, err
 	}
 
+	provider := common.NamespacedName{
+		Name:      ef.ProviderConfig.Name,
+		Namespace: ef.ProviderConfig.Namespace,
+	}
+
 	return &common.RunCompletionEventData{
 		Status:                status,
 		PipelineName:          resourceReferences.PipelineName,
@@ -148,7 +153,7 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		RunId:                 runId,
 		ServingModelArtifacts: modelArtifacts,
 		PipelineComponents:    pipelineComponents,
-		Provider:              ef.ProviderConfig.Name,
+		Provider:              provider,
 		RunStartTime:          resourceReferences.CreatedAt,
 		RunEndTime:            resourceReferences.FinishedAt,
 	}, nil

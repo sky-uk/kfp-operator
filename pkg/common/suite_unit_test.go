@@ -148,17 +148,21 @@ var _ = Context("RunCompletionEvent.String", func() {
 		RunId:                 "RunId",
 		ServingModelArtifacts: artList,
 		Artifacts:             artList,
-		Provider:              "Provider",
+		Provider: NamespacedName{
+			"ProviderName",
+			"ProviderNameNamespace",
+		},
 	}
 
 	It("returns a string representation including all fields", func() {
 		Expect(fmt.Sprintf("%+v", fixedEvent)).To(
 			Equal(
-				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
+				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} " +
+					"RunConfigurationName:&{Name:RunConfigurationNameName " +
 					"Namespace:RunConfigurationNameNamespace} RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Provider:Provider}",
+					"Provider:{Name:ProviderName Namespace:ProviderNameNamespace}}",
 			),
 		)
 	})
@@ -169,11 +173,12 @@ var _ = Context("RunCompletionEvent.String", func() {
 
 		Expect(fmt.Sprintf("%+v", missingRunConfigName)).To(
 			Equal(
-				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:<nil> " +
+				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} " +
+					"RunConfigurationName:<nil> " +
 					"RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Provider:Provider}",
+					"Provider:{Name:ProviderName Namespace:ProviderNameNamespace}}",
 			),
 		)
 	})
@@ -182,13 +187,16 @@ var _ = Context("RunCompletionEvent.String", func() {
 		missingRunName := fixedEvent
 		missingRunName.RunName = nil
 
+		fmt.Printf("%+v", missingRunName)
+
 		Expect(fmt.Sprintf("%+v", missingRunName)).To(
 			Equal(
-				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
+				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} " +
+					"RunConfigurationName:&{Name:RunConfigurationNameName " +
 					"Namespace:RunConfigurationNameNamespace} RunName:<nil> RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Provider:Provider}",
+					"Provider:{Name:ProviderName Namespace:ProviderNameNamespace}}",
 			),
 		)
 	})

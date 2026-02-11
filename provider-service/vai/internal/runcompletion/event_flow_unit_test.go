@@ -135,7 +135,10 @@ var _ = Context("VaiEventingServer", func() {
 					Location: "gs://some/where",
 				},
 			},
-			Provider: eventingFlow.ProviderConfig.Name,
+			Provider: common.NamespacedName{
+				Name:      eventingFlow.ProviderConfig.Name,
+				Namespace: eventingFlow.ProviderConfig.Namespace,
+			},
 			PipelineComponents: []common.PipelineComponent{
 				{
 					Name: "my-task-name",
@@ -567,9 +570,12 @@ var _ = Context("VaiEventingServer", func() {
 					RunId:                 runId,
 					ServingModelArtifacts: []common.Artifact{},
 					PipelineComponents:    []common.PipelineComponent{},
-					Provider:              eventingFlow.ProviderConfig.Name,
-					RunStartTime:          &timeNow,
-					RunEndTime:            &timeNow,
+					Provider: common.NamespacedName{
+						Name:      eventingFlow.ProviderConfig.Name,
+						Namespace: eventingFlow.ProviderConfig.Namespace,
+					},
+					RunStartTime: &timeNow,
+					RunEndTime:   &timeNow,
 				}
 
 				Eventually(outChan).Should(Receive(WithTransform(func(msg StreamMessage[*common.RunCompletionEventData]) interface{} {

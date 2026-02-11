@@ -244,6 +244,11 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		runEndTime = &endTime
 	}
 
+	provider := common.NamespacedName{
+		Name:      vef.ProviderConfig.Name,
+		Namespace: vef.ProviderConfig.Namespace,
+	}
+
 	return &common.RunCompletionEventData{
 		Status:                runCompletionStatus,
 		PipelineName:          pipelineName,
@@ -252,7 +257,7 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		RunId:                 runId,
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 		PipelineComponents:    artifactsFilterData(job),
-		Provider:              vef.ProviderConfig.Name,
+		Provider:              provider,
 		RunStartTime:          runStartTime,
 		RunEndTime:            runEndTime,
 	}, nil

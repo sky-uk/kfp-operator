@@ -6,6 +6,7 @@ import (
 
 type VAIProviderConfig struct {
 	Name                string     `yaml:"name"`
+	Namespace           string     `yaml:"namespace"`
 	PipelineRootStorage string     `yaml:"pipelineRootStorage"`
 	Parameters          Parameters `yaml:"parameters"`
 }

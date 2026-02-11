@@ -159,7 +159,8 @@ var _ = Context("Eventing Flow", func() {
 		Expect(event.ServingModelArtifacts).To(Equal(artifacts))
 		Expect(*event.RunConfigurationName).To(Equal(resourceReferences.RunConfigurationName))
 		Expect(*event.RunName).To(Equal(resourceReferences.RunName))
-		Expect(event.Provider).To(Equal(eventingServer.ProviderConfig.Name))
+		Expect(event.Provider.Name).To(Equal(eventingServer.ProviderConfig.Name))
+		Expect(event.Provider.Namespace).To(Equal(eventingServer.ProviderConfig.Namespace))
 		Expect(err).NotTo(HaveOccurred())
 	},
 		Entry("workflow succeeded", argo.WorkflowSucceeded),

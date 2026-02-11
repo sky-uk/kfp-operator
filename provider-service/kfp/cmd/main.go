@@ -56,6 +56,7 @@ func main() {
 	kfpProviderConfig, err := baseConfig.LoadConfig(
 		kfpConfig.Config{
 			Name:                serviceConfig.ProviderName,
+			Namespace:           serviceConfig.Pod.Namespace,
 			PipelineRootStorage: serviceConfig.PipelineRootStorage,
 		},
 	)

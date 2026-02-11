@@ -81,7 +81,16 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 
 	if runConfigurationName == "" && runName == "" {
 		return nil, fmt.Errorf(
-			"Both runConfigurationName and runName are empty for the run completion event with runId: %s, pipelineName: %v",
+			"both runConfigurationName and runName are empty for the run completion event with runId: %s, pipelineName: %v",
+			event.RunId,
+			event.PipelineName,
+		)
+	}
+
+	provider, err := event.Provider.String()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"unable to parse provider namespace name as a string for runId: %s, pipelineName: %v",
 			event.RunId,
 			event.PipelineName,
 		)
@@ -99,7 +108,7 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 
 	runCompletionEvent := pb.RunCompletionEvent{
 		PipelineName:          pipelineName,
-		Provider:              event.Provider,
+		Provider:              provider,
 		RunConfigurationName:  runConfigurationName,
 		RunId:                 event.RunId,
 		RunName:               runName,
