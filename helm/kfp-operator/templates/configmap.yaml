@@ -5,18 +5,10 @@ metadata:
   namespace: {{ .Values.namespace.name }}
 data:
   controller_manager_config.yaml: |
-    controller:
-      health:
-        healthProbeBindAddress: :8081
-      metrics:
-        bindAddress: :8080
-      {{- if .Values.manager.multiversion.enabled }}
-      webhook:
-        port: {{ .Values.manager.webhookServicePort }}
-      {{- end }}
+    system:
       leaderElection:
-        leaderElect: true
-        resourceName: kfp-operator-lock
+        enabled: {{ .Values.manager.leaderElection.enabled }}
+        id: {{ .Values.manager.leaderElection.id }}
     spec:
       {{- include "kfp-operator.configuration" . | nindent 6 }}
       defaultTfxImage: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-tfx-compiler:{{ .Chart.AppVersion }}

@@ -1,4 +1,4 @@
-{{- if .Values.manager.rbac.create -}}
+{{- if .Values.manager.leaderElection.enabled -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:

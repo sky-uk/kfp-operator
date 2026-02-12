@@ -1,13 +1,7 @@
-controller:
-  health:
-    healthProbeBindAddress: :8081
-  metrics:
-    bindAddress: :8080
-  webhook:
-    port: 9443
+system:
   leaderElection:
-    leaderElect: true
-    resourceName: kfp-operator-lock
+    enabled: true
+    id: kfp-operator-lock
 spec:
   multiversion: true
   workflowNamespace: kfp-operator-system

@@ -1,13 +1,7 @@
-controller:
-  health:
-    healthProbeBindAddress: :8081
-  metrics:
-    bindAddress: :8080
-  webhook:
-    port: 9443
+system:
   leaderElection:
-    leaderElect: true
-    resourceName: kfp-operator-lock
+    enabled: true
+    id: kfp-operator-lock
 spec:
   multiversion: true
   workflowNamespace: kfp-operator-system
@@ -20,44 +14,44 @@ spec:
     serviceContainerName: provider-service
     servicePort: 8080
     metricsPort: 8081
-    labels: 
+    labels:
       a: label
       another: label
     podTemplateSpec:
       metadata:
-        labels: 
+        labels:
           a: label
       spec:
         volumes: []
         securityContext:
           runAsNonRoot: true
         containers:
-          - name: provider-service
-            ports:
-              - containerPort: 8080
-                name: http
-                protocol: TCP
-              - containerPort: 8081
-                name: metrics
-                protocol: TCP
-            volumeMounts: []
-            securityContext:
-              allowPrivilegeEscalation: false
-            resources:
-              limits:
-                cpu: 500m
-                memory: 256Mi
-              requests:
-                cpu: 250m
-                memory: 128Mi
-            env:
-              - name: POD_NAMESPACE
-                valueFrom:
-                  fieldRef:
-                    fieldPath: metadata.namespace
-              - name: OPERATORWEBHOOK
-                value: http://kfp-operator-runcompletion-webhook-service.kfp-operator-system:80/events
-              - name: SERVER_PORT
-                value: '8080'
-              - name: METRICS_PORT
-                value: '8081'
+        - name: provider-service
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 8081
+            name: metrics
+            protocol: TCP
+          volumeMounts: []
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 250m
+              memory: 128Mi
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: OPERATORWEBHOOK
+            value: http://kfp-operator-runcompletion-webhook-service.kfp-operator-system:80/events
+          - name: SERVER_PORT
+            value: '8080'
+          - name: METRICS_PORT
+            value: '8081'
