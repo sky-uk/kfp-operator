@@ -150,7 +150,7 @@ var _ = Context("RunCompletionEvent.String", func() {
 		Artifacts:             artList,
 		Provider: NamespacedName{
 			"ProviderName",
-			"ProviderNameNamespace",
+			"ProviderNamespace",
 		},
 	}
 
@@ -162,7 +162,7 @@ var _ = Context("RunCompletionEvent.String", func() {
 					"Namespace:RunConfigurationNameNamespace} RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Provider:{Name:ProviderName Namespace:ProviderNameNamespace}}",
+					"Provider:{Name:ProviderName Namespace:ProviderNamespace}}",
 			),
 		)
 	})
@@ -178,7 +178,7 @@ var _ = Context("RunCompletionEvent.String", func() {
 					"RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Provider:{Name:ProviderName Namespace:ProviderNameNamespace}}",
+					"Provider:{Name:ProviderName Namespace:ProviderNamespace}}",
 			),
 		)
 	})
@@ -196,7 +196,7 @@ var _ = Context("RunCompletionEvent.String", func() {
 					"Namespace:RunConfigurationNameNamespace} RunName:<nil> RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Provider:{Name:ProviderName Namespace:ProviderNameNamespace}}",
+					"Provider:{Name:ProviderName Namespace:ProviderNamespace}}",
 			),
 		)
 	})
