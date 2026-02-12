@@ -10,7 +10,6 @@ import (
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
@@ -34,7 +33,6 @@ type VAIProvider struct {
 func NewVAIProvider(
 	ctx context.Context,
 	config *config.VAIProviderConfig,
-	namespace string,
 ) (*VAIProvider, error) {
 	fh, err := NewGcsFileHandler(ctx, config.Parameters.GcsEndpoint)
 	if err != nil {
@@ -66,7 +64,7 @@ func NewVAIProvider(
 			serviceAccount:      config.Parameters.VaiJobServiceAccount,
 			pipelineRootStorage: config.PipelineRootStorage,
 			pipelineBucket:      config.Parameters.PipelineBucket,
-			labelGen:            label.DefaultLabelGen{ProviderName: common.NamespacedName{Name: config.Name, Namespace: namespace}},
+			labelGen:            label.DefaultLabelGen{ProviderName: config.ProviderName},
 		},
 		jobEnricher: NewDefaultJobEnricher(),
 	}, nil

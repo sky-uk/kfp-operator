@@ -59,7 +59,7 @@ var _ = Context("VaiEventingServer", func() {
 		errChan = make(chan error)
 		eventingFlow = EventFlow{
 			ProviderConfig: config.VAIProviderConfig{
-				Name: common.RandomString(),
+				ProviderName: common.RandomNamespacedName(),
 			},
 			PipelineJobClient: mockPipelineJobClient,
 			in:                inChan,
@@ -135,10 +135,7 @@ var _ = Context("VaiEventingServer", func() {
 					Location: "gs://some/where",
 				},
 			},
-			Provider: common.NamespacedName{
-				Name:      eventingFlow.ProviderConfig.Name,
-				Namespace: eventingFlow.ProviderConfig.Namespace,
-			},
+			Provider: eventingFlow.ProviderConfig.ProviderName,
 			PipelineComponents: []common.PipelineComponent{
 				{
 					Name: "my-task-name",
@@ -570,12 +567,9 @@ var _ = Context("VaiEventingServer", func() {
 					RunId:                 runId,
 					ServingModelArtifacts: []common.Artifact{},
 					PipelineComponents:    []common.PipelineComponent{},
-					Provider: common.NamespacedName{
-						Name:      eventingFlow.ProviderConfig.Name,
-						Namespace: eventingFlow.ProviderConfig.Namespace,
-					},
-					RunStartTime: &timeNow,
-					RunEndTime:   &timeNow,
+					Provider:              eventingFlow.ProviderConfig.ProviderName,
+					RunStartTime:          &timeNow,
+					RunEndTime:            &timeNow,
 				}
 
 				Eventually(outChan).Should(Receive(WithTransform(func(msg StreamMessage[*common.RunCompletionEventData]) interface{} {
