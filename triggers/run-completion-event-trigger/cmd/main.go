@@ -86,25 +86,21 @@ func main() {
 
 	var waitGroup sync.WaitGroup
 
-	waitGroup.Add(1)
-	go func() {
-		defer waitGroup.Done()
+	waitGroup.Go(func() {
 		logger.Info("Starting gRPC server", "addr", config.ServerConfig.ToAddr())
 		if err := grpcServer.Serve(lis); err != nil {
 			logger.Error(err, "gRPC server exited unexpectedly")
 			cancel()
 		}
-	}()
+	})
 
-	waitGroup.Add(1)
-	go func() {
-		defer waitGroup.Done()
+	waitGroup.Go(func() {
 		logger.Info("Starting metrics server", "addr", metricsSrv.Addr)
 		if err := metricsSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error(err, "Metrics server exited unexpectedly")
 			cancel()
 		}
-	}()
+	})
 
 	<-ctx.Done()
 	logger.Info("Context cancelled, shutting down servers...")
