@@ -187,8 +187,6 @@ var _ = Context("RunCompletionEvent.String", func() {
 		missingRunName := fixedEvent
 		missingRunName.RunName = nil
 
-		fmt.Printf("%+v", missingRunName)
-
 		Expect(fmt.Sprintf("%+v", missingRunName)).To(
 			Equal(
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} " +
