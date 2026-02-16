@@ -23,5 +23,6 @@ endif
 
 docker-build: GOOS=linux
 docker-build: GOARCH=amd64
+docker-build: DOCKER_BUILDKIT=1
 docker-build: build ## Build container image
 	docker build ${DOCKER_BUILD_EXTRA_PARAMS} --platform ${GOOS}/${GOARCH} -t ${IMG} -t ${IMG}:${VERSION} -f Dockerfile .
