@@ -101,7 +101,7 @@ func (ws *WorkflowSource) start(ctx context.Context, namespace string) error {
 	sharedInformer := informer.Informer()
 
 	handlerFuncs := cache.ResourceEventHandlerFuncs{}
-	handlerFuncs.UpdateFunc = func(oldObj, newObj interface{}) {
+	handlerFuncs.UpdateFunc = func(oldObj, newObj any) {
 		wf := newObj.(*unstructured.Unstructured)
 
 		select {

@@ -40,8 +40,8 @@ func (sre RunCompletionEvent) String() string {
 }
 
 type ComponentArtifactInstance struct {
-	Uri      string                 `json:"uri"`
-	Metadata map[string]interface{} `json:"metadata"`
+	Uri      string         `json:"uri"`
+	Metadata map[string]any `json:"metadata"`
 }
 
 type ComponentArtifact struct {

@@ -31,7 +31,7 @@ type RunScheduleDefinition struct {
 	Schedule             pipelineshub.Schedule         `json:"schedule" yaml:"schedule"`
 	Parameters           map[string]string             `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Artifacts            []pipelineshub.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
-	TriggerIndicator     triggers.Indicator            `json:"triggerIndicator,omitempty" yaml:"labels,omitempty"`
+	TriggerIndicator     triggers.Indicator            `json:"triggerIndicator" yaml:"labels,omitempty"`
 }
 
 type RunDefinition struct {

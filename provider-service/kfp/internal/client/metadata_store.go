@@ -178,11 +178,11 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 	return pcs, nil
 }
 
-func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]interface{} {
-	out := map[string]interface{}{}
+func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]any {
+	out := map[string]any{}
 
 	for k, v := range in {
-		switch interface{}(v.GetValue()).(type) {
+		switch any(v.GetValue()).(type) {
 		case *ml_metadata.Value_IntValue:
 			out[k] = v.GetIntValue()
 		case *ml_metadata.Value_StringValue:
