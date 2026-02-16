@@ -31,11 +31,11 @@ type RunCompletionEvent struct {
 	RunEndTime            *time.Time      `json:"runEndTime,omitempty"`
 	ServingModelArtifacts []Artifact      `json:"servingModelArtifacts"`
 	Artifacts             []Artifact      `json:"artifacts"`
-	Provider              string          `json:"provider"`
+	Provider              NamespacedName  `json:"provider"`
 }
 
 func (sre RunCompletionEvent) String() string {
-	return fmt.Sprintf("{Status:%s PipelineName:%+v RunConfigurationName:%+v RunName:%+v RunId:%s ServingModelArtifacts:%+v Artifacts:%+v Provider:%s}",
+	return fmt.Sprintf("{Status:%s PipelineName:%+v RunConfigurationName:%+v RunName:%+v RunId:%s ServingModelArtifacts:%+v Artifacts:%+v Provider:%+v}",
 		sre.Status, sre.PipelineName, sre.RunConfigurationName, sre.RunName, sre.RunId, sre.ServingModelArtifacts, sre.Artifacts, sre.Provider)
 }
 
@@ -65,7 +65,7 @@ type RunCompletionEventData struct {
 	RunEndTime            *time.Time          `json:"runEndTime,omitempty"`
 	ServingModelArtifacts []Artifact          `json:"servingModelArtifacts"`
 	PipelineComponents    []PipelineComponent `json:"pipelineComponents"`
-	Provider              string              `json:"provider"`
+	Provider              NamespacedName      `json:"provider"`
 }
 
 func (rced RunCompletionEventData) ToRunCompletionEvent() RunCompletionEvent {

@@ -252,7 +252,7 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		RunId:                 runId,
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 		PipelineComponents:    artifactsFilterData(job),
-		Provider:              vef.ProviderConfig.Name,
+		Provider:              vef.ProviderConfig.ProviderName,
 		RunStartTime:          runStartTime,
 		RunEndTime:            runEndTime,
 	}, nil

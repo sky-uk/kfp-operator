@@ -102,7 +102,7 @@ var _ = Context("RunCompletionEventToProto", func() {
 			RunId:                 "some-runid",
 			ServingModelArtifacts: artifacts,
 			Artifacts:             artifacts,
-			Provider:              "some-provider",
+			Provider:              namespacedName,
 			RunStartTime:          &timeNow,
 			RunEndTime:            &timeNow,
 		}
@@ -127,7 +127,7 @@ var _ = Context("RunCompletionEventToProto", func() {
 				RunId:                 "some-runid",
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
-				Provider:              "some-provider",
+				Provider:              "namespace/name",
 				RunStartTime:          timestamppb.New(timeNow),
 				RunEndTime:            timestamppb.New(timeNow),
 			}
@@ -170,7 +170,7 @@ var _ = Context("RunCompletionEventToProto", func() {
 				RunId:                 "some-runid",
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
-				Provider:              "some-provider",
+				Provider:              "namespace/name",
 				RunStartTime:          timestamppb.New(timeNow),
 				RunEndTime:            timestamppb.New(timeNow),
 			}
@@ -198,7 +198,7 @@ var _ = Context("RunCompletionEventToProto", func() {
 				RunId:                 "some-runid",
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
-				Provider:              "some-provider",
+				Provider:              "namespace/name",
 				RunStartTime:          timestamppb.New(timeNow),
 				RunEndTime:            timestamppb.New(timeNow),
 			}

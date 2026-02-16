@@ -43,10 +43,8 @@ var (
 	eventFlow         streams.Flow[pkg.StreamMessage[*unstructured.Unstructured], pkg.StreamMessage[*common.RunCompletionEventData], error]
 	eventData         common.RunCompletionEventData
 	numberOfEvents    int
-)
-
-var (
-	argoWorkflowsGvr = schema.GroupVersionResource{
+	provider          = common.NamespacedName{Name: "kfp", Namespace: "namespace"}
+	argoWorkflowsGvr  = schema.GroupVersionResource{
 		Group:    workflow.Group,
 		Version:  workflow.Version,
 		Resource: workflow.WorkflowPlural,
@@ -55,7 +53,6 @@ var (
 
 const (
 	defaultNamespace             = "default"
-	providerName                 = "kfp"
 	webhookUrl                   = "/operator-webhook"
 	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
 )
@@ -88,7 +85,8 @@ var _ = BeforeSuite(func() {
 	Expect(err).ToNot(HaveOccurred())
 
 	config := &config.Config{
-		Name: providerName,
+		Name:      provider.Name,
+		Namespace: provider.Namespace,
 	}
 
 	eventSource, err = sources.NewWorkflowSource(context.Background(), defaultNamespace, pkg.K8sClient{Client: k8sClient})
@@ -160,7 +158,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunName:               resourceReferences.RunName.NonEmptyPtr(),
 					RunId:                 runId,
 					ServingModelArtifacts: servingModelArtifacts,
-					Provider:              providerName,
+					Provider:              provider,
 					RunStartTime:          &mocks.StaticTime,
 					RunEndTime:            &mocks.StaticTime,
 				}
@@ -193,7 +191,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunId:                runId,
 					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
 					RunName:              resourceReferences.RunName.NonEmptyPtr(),
-					Provider:             providerName,
+					Provider:             provider,
 					RunStartTime:         &mocks.StaticTime,
 					RunEndTime:           &mocks.StaticTime,
 				}
@@ -226,7 +224,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunId:                runId,
 					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
 					RunName:              resourceReferences.RunName.NonEmptyPtr(),
-					Provider:             providerName,
+					Provider:             provider,
 					RunStartTime:         &mocks.StaticTime,
 					RunEndTime:           &mocks.StaticTime,
 				}

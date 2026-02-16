@@ -56,12 +56,12 @@ func RandomRunCompletionEventData() common.RunCompletionEventData {
 
 	return common.RunCompletionEventData{
 		Status:                common.RunCompletionStatuses.Succeeded,
-		PipelineName:          common.NamespacedName{},
+		PipelineName:          common.RandomNamespacedName(),
 		RunConfigurationName:  &runConfigurationName,
 		RunName:               &runName,
 		RunId:                 common.RandomString(),
 		ServingModelArtifacts: apis.RandomNonEmptyList(common.RandomArtifact),
 		PipelineComponents:    apis.RandomNonEmptyList(randomPipelineComponent),
-		Provider:              common.RandomString(),
+		Provider:              common.RandomNamespacedName(),
 	}
 }

@@ -34,7 +34,7 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 
 			protoRunCompletionEvent := pb.RunCompletionEvent{
 				PipelineName:          "namespace/some-pipeline",
-				Provider:              "some-provider",
+				Provider:              "namespace/some-provider",
 				RunConfigurationName:  "namespace/some-run-configuration-name",
 				RunId:                 "some-run-id",
 				RunName:               "namespace/some-run-name",
@@ -68,9 +68,12 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 				RunId:                 "some-run-id",
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
-				Provider:              "some-provider",
-				RunStartTime:          &timeNow,
-				RunEndTime:            &timeNow,
+				Provider: common.NamespacedName{
+					Namespace: "namespace",
+					Name:      "some-provider",
+				},
+				RunStartTime: &timeNow,
+				RunEndTime:   &timeNow,
 			}
 
 			Expect(ProtoRunCompletionToCommon(&protoRunCompletionEvent)).To(Equal(expectedCommonRunCompletionEvent))

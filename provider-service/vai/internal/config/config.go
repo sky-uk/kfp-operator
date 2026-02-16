@@ -2,12 +2,14 @@ package config
 
 import (
 	"fmt"
+
+	"github.com/sky-uk/kfp-operator/pkg/common"
 )
 
 type VAIProviderConfig struct {
-	Name                string     `yaml:"name"`
-	PipelineRootStorage string     `yaml:"pipelineRootStorage"`
-	Parameters          Parameters `yaml:"parameters"`
+	ProviderName        common.NamespacedName `yaml:"providerName"`
+	PipelineRootStorage string                `yaml:"pipelineRootStorage"`
+	Parameters          Parameters            `yaml:"parameters"`
 }
 
 type Parameters struct {

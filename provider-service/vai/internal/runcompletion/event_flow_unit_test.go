@@ -59,7 +59,7 @@ var _ = Context("VaiEventingServer", func() {
 		errChan = make(chan error)
 		eventingFlow = EventFlow{
 			ProviderConfig: config.VAIProviderConfig{
-				Name: common.RandomString(),
+				ProviderName: common.RandomNamespacedName(),
 			},
 			PipelineJobClient: mockPipelineJobClient,
 			in:                inChan,
@@ -135,7 +135,7 @@ var _ = Context("VaiEventingServer", func() {
 					Location: "gs://some/where",
 				},
 			},
-			Provider: eventingFlow.ProviderConfig.Name,
+			Provider: eventingFlow.ProviderConfig.ProviderName,
 			PipelineComponents: []common.PipelineComponent{
 				{
 					Name: "my-task-name",
@@ -567,7 +567,7 @@ var _ = Context("VaiEventingServer", func() {
 					RunId:                 runId,
 					ServingModelArtifacts: []common.Artifact{},
 					PipelineComponents:    []common.PipelineComponent{},
-					Provider:              eventingFlow.ProviderConfig.Name,
+					Provider:              eventingFlow.ProviderConfig.ProviderName,
 					RunStartTime:          &timeNow,
 					RunEndTime:            &timeNow,
 				}

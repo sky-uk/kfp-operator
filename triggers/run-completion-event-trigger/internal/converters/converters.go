@@ -23,6 +23,11 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 		return common.RunCompletionEvent{}, err
 	}
 
+	provider, err := common.NamespacedNameFromString(protoRunCompletion.Provider)
+	if err != nil {
+		return common.RunCompletionEvent{}, err
+	}
+
 	var startTime *time.Time
 	if protoRunCompletion.RunStartTime != nil {
 		st := protoRunCompletion.RunStartTime.AsTime()
@@ -43,7 +48,7 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 		RunId:                 protoRunCompletion.RunId,
 		ServingModelArtifacts: protoToArtifacts(protoRunCompletion.ServingModelArtifacts),
 		Artifacts:             protoToArtifacts(protoRunCompletion.Artifacts),
-		Provider:              protoRunCompletion.Provider,
+		Provider:              provider,
 		RunStartTime:          startTime,
 		RunEndTime:            endTime,
 	}, nil

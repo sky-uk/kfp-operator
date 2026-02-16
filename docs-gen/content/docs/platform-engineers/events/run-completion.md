@@ -22,13 +22,13 @@ The specification of the events follows [CloudEvents](https://github.com/cloudev
 {
   "id": "{{ UNIQUE_MESSAGE_ID }}",
   "specversion": "1.0",
-  "source": "{{ PROVIDER_NAME }}",
+  "source": "{{ EVENT_SOURCE_NAME }}",
   "type": "org.kubeflow.pipelines.run-completion",
   "datacontenttype": "application/json",
   "data": {
-    "provider": "{{ PROVIDER_NAME }}",
+    "provider": "{{ PROVIDER_NAMESPACE }}/{{ PROVIDER_NAME }}",
     "status": "succeeded|failed",
-    "pipelineName": "{{ PIPELINE_NAME }}",
+    "pipelineName": "{{ PIPELINE_NAMESPACE }}/{{ PIPELINE_NAME }}",
     "servingModelArtifacts": [
       {
         "name": "{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
