@@ -13,7 +13,7 @@ ARG WHEEL_VERSION
 
 COPY dist/compiler-${WHEEL_VERSION}-*.whl /
 
-RUN --mount=type=cache,target=/root/.cache/pip && \
+RUN --mount=type=cache,target=/root/.cache/pip \
     pip install /compiler-${WHEEL_VERSION}-*.whl --target=/compiler
 
 RUN rm /compiler-${WHEEL_VERSION}-*.whl
