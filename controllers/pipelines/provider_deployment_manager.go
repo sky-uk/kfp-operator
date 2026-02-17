@@ -12,6 +12,7 @@ import (
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/internal/config"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -143,9 +144,14 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 		return nil, fmt.Errorf("unable to populate service container: container with name %s not found on deployment", serviceContainerName)
 	}
 
+	namespacedName, err := common.NamespacedName{Name: provider.Name, Namespace: provider.Namespace}.String()
+	if err != nil {
+		return nil, err
+	}
+
 	envVars := []corev1.EnvVar{{
 		Name:  ProviderNameEnvVar,
-		Value: provider.Name,
+		Value: namespacedName,
 	}, {
 		Name:  PipelineRootStorageEnvVar,
 		Value: provider.Spec.PipelineRootStorage,

@@ -43,10 +43,6 @@ spec:
               cpu: 250m
               memory: 128Mi
           env:
-          - name: POD_NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
           - name: OPERATORWEBHOOK
             value: http://kfp-operator-runcompletion-webhook-service.kfp-operator-system:80/events
           - name: SERVER_PORT

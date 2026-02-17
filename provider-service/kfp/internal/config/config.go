@@ -1,15 +1,16 @@
 package config
 
+import "github.com/sky-uk/kfp-operator/pkg/common"
+
 type Config struct {
-	Name                string     `yaml:"name"`
-	Namespace           string     `yaml:"namespace"`
-	PipelineRootStorage string     `yaml:"pipelineRootStorage"`
-	Parameters          Parameters `yaml:"parameters"`
+	ProviderName        common.NamespacedName `mapstructure:"providerName" yaml:"providerName"`
+	PipelineRootStorage string                `mapstructure:"pipelineRootStorage" yaml:"pipelineRootStorage"`
+	Parameters          Parameters            `mapstructure:"parameters" yaml:"parameters"`
 }
 
 type Parameters struct {
-	KfpNamespace             string `yaml:"kfpNamespace,omitempty"`
-	RestKfpApiUrl            string `yaml:"restKfpApiUrl,omitempty"`
-	GrpcMetadataStoreAddress string `yaml:"grpcMetadataStoreAddress,omitempty"`
-	GrpcKfpApiAddress        string `yaml:"grpcKfpApiAddress,omitempty"`
+	KfpNamespace             string `mapstructure:"kfpNamespace" yaml:"kfpNamespace,omitempty"`
+	RestKfpApiUrl            string `mapstructure:"restKfpApiUrl" yaml:"restKfpApiUrl,omitempty"`
+	GrpcMetadataStoreAddress string `mapstructure:"grpcMetadataStoreAddress" yaml:"grpcMetadataStoreAddress,omitempty"`
+	GrpcKfpApiAddress        string `mapstructure:"grpcKfpApiAddress" yaml:"grpcKfpApiAddress,omitempty"`
 }

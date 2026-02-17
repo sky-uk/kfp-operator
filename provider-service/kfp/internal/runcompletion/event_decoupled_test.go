@@ -85,8 +85,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).ToNot(HaveOccurred())
 
 	config := &config.Config{
-		Name:      provider.Name,
-		Namespace: provider.Namespace,
+		ProviderName: provider,
 	}
 
 	eventSource, err = sources.NewWorkflowSource(context.Background(), defaultNamespace, pkg.K8sClient{Client: k8sClient})
