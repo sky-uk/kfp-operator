@@ -1061,21 +1061,19 @@ select:focus {
     }
 
     // Dark mode tables - Override Bootstrap CSS custom properties
-    .table {
+    .table,
+    .td-table:not(.td-initial),
+    .td-content table:not(.td-initial),
+    .td-box table:not(.td-initial) {
         // Override Bootstrap's CSS custom properties for dark mode
-        --bs-table-bg: #{$gray-800};
+        --bs-table-bg: #{$gray-900};
         --bs-table-striped-bg: #{$gray-700};
         --bs-table-striped-color: #{$gray-300};
-        --bs-table-active-bg: #{$gray-600};
-        --bs-table-active-color: #{$gray-100};
-        --bs-table-hover-bg: #{$gray-600};
-        --bs-table-hover-color: #{$gray-100};
         --bs-table-color: #{$gray-300};
         --bs-table-border-color: #{$gray-700};
 
         color: $gray-300;
-        background-color: $gray-800;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+        background-color: $gray-900;
 
         th {
             background-color: $gray-700;
@@ -1089,30 +1087,28 @@ select:focus {
         }
 
         tbody tr {
-            // Dark mode striped rows with proper contrast
-            &:nth-child(even) {
-                background-color: $gray-700 !important;
+            // Just 2 colors: page background and stripe color (mirror light mode)
+            &:nth-child(odd) > td {
+                background-color: $gray-900;
+                box-shadow: inset 0 0 0 9999px $gray-900 !important;
             }
 
-            &:nth-child(odd) {
-                background-color: $gray-800 !important;
-            }
-
-            &:hover {
-                background-color: $gray-600 !important;
+            &:nth-child(even) > td {
+                background-color: $gray-700;
+                box-shadow: inset 0 0 0 9999px $gray-700 !important;
             }
         }
 
-        // Dark mode table striped variant - force override Bootstrap
+        // Dark mode table striped variant
         &.table-striped {
             --bs-table-striped-bg: #{$gray-700};
 
-            tbody tr:nth-child(even) {
-                background-color: $gray-700 !important;
-            }
-
             tbody tr:nth-child(odd) {
                 background-color: $gray-800 !important;
+            }
+
+            tbody tr:nth-child(even) {
+                background-color: $gray-700 !important;
             }
         }
 
