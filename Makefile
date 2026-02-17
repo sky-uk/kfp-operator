@@ -233,6 +233,33 @@ publish-all: docker-push docker-push-compilers docker-push-triggers docker-push-
 
 ##@ CI
 
-prBuild: test-all package-all git-status-check ## Run all tests and build all packages
+# Detect changed files and run only relevant tests/builds
+prBuild: git-status-check ## Run tests and builds for changed files only
+	@echo "Detecting changed files..."
+	@CHANGED_FILES=$$(git diff --name-only $${BASE_BRANCH:-origin/main}...HEAD 2>/dev/null || git diff --name-only HEAD~1...HEAD 2>/dev/null || echo "all"); \
+	if [ "$$CHANGED_FILES" = "all" ]; then \
+		echo "Unable to detect changes, running full build..."; \
+		$(MAKE) test-all package-all; \
+	else \
+		echo "Changed files:"; echo "$$CHANGED_FILES"; \
+		HAS_MAKEFILE=$$(echo "$$CHANGED_FILES" | grep -E 'Makefile|\.mk$$' || true); \
+		HAS_GO=$$(echo "$$CHANGED_FILES" | grep -E '\.go$$|\.mod$$|\.sum$$|^apis/|^controllers/|^internal/|^pkg/|^cmd/|^provider-service/|^triggers/|^main\.go' || true); \
+		HAS_PYTHON=$$(echo "$$CHANGED_FILES" | grep -E '^compilers/|^docs-gen/' || true); \
+		if [ -n "$$HAS_GO" ] && [ -n "$$HAS_PYTHON" || [ -n "$$HAS_MAKEFILE" ]]; then \
+			echo "Both Go and Python files or makefile changed, running full build..."; \
+			$(MAKE) test-all package-all; \
+		elif [ -n "$$HAS_GO" ]; then \
+			echo "Only Go files changed, running Go tests and builds..."; \
+			$(MAKE) test helm-test-operator docker-build docker-build-triggers docker-build-providers helm-package website; \
+		elif [ -n "$$HAS_PYTHON" ]; then \
+			echo "Only Python files changed, running Python tests and builds..."; \
+			$(MAKE) test-compilers docker-build-compilers website; \
+		else \
+			echo "No Go or Python source files changed, running minimal checks..."; \
+			$(MAKE) fmt vet; \
+		fi; \
+	fi
 
-cdBuild: prBuild publish-all docker-push-quickstart ## Run all tests, build all packages and publish them
+
+
+cdBuild: git-status-check test-all package-all publish-all docker-push-quickstart ## Run all tests, build all packages and publish them
