@@ -2,7 +2,7 @@ include ../../help.mk
 
 ##@ Build
 
-lock: ## Update uv.lock
+lock: ## Update uv.lock after changing pyproject.toml
 	uv lock
 
 build: ## Build
