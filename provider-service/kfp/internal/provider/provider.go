@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -24,7 +23,7 @@ type KfpProvider struct {
 	labelService          LabelService
 }
 
-func NewKfpProvider(config *config.Config, namespace string) (*KfpProvider, error) {
+func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 	pipelineUploadService, err := NewPipelineUploadService(
 		config.Parameters.RestKfpApiUrl,
 	)
@@ -46,10 +45,7 @@ func NewKfpProvider(config *config.Config, namespace string) (*KfpProvider, erro
 	}
 
 	labelGenerator := label.DefaultLabelGen{
-		ProviderName: common.NamespacedName{
-			Name:      config.Name,
-			Namespace: namespace,
-		},
+		ProviderName: config.ProviderName,
 	}
 
 	runService, err := NewRunService(conn, labelGenerator)

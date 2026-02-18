@@ -54,17 +54,14 @@ func main() {
 	logger.Info(fmt.Sprintf("loaded base config: %+v", serviceConfig))
 
 	vaiProviderConfig, err := baseConfig.LoadConfig(vaiConfig.VAIProviderConfig{
-		ProviderName: common.NamespacedName{
-			Name:      serviceConfig.ProviderName,
-			Namespace: serviceConfig.Pod.Namespace,
-		},
+		ProviderName:        serviceConfig.ProviderName,
 		PipelineRootStorage: serviceConfig.PipelineRootStorage,
 	})
 	if err != nil {
-		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
+		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName)
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
+	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", serviceConfig.ProviderName)
 
 	g, ctx := errgroup.WithContext(ctx)
 

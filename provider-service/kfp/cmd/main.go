@@ -55,22 +55,21 @@ func main() {
 
 	kfpProviderConfig, err := baseConfig.LoadConfig(
 		kfpConfig.Config{
-			Name:                serviceConfig.ProviderName,
-			Namespace:           serviceConfig.Pod.Namespace,
+			ProviderName:        serviceConfig.ProviderName,
 			PipelineRootStorage: serviceConfig.PipelineRootStorage,
 		},
 	)
 	if err != nil {
-		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
+		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName)
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
+	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", serviceConfig.ProviderName)
 
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(
 		func() error {
-			provider, err := kfp.NewKfpProvider(kfpProviderConfig, serviceConfig.Pod.Namespace)
+			provider, err := kfp.NewKfpProvider(kfpProviderConfig)
 			if err != nil {
 				return fmt.Errorf("failed to create provider: %w", err)
 			}

@@ -6,20 +6,17 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-viper/mapstructure/v2"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	ProviderName        string        `mapstructure:"providerName"`
-	PipelineRootStorage string        `mapstructure:"pipelineRootStorage"`
-	OperatorWebhook     string        `mapstructure:"operatorWebhook"`
-	Pod                 Pod           `mapstructure:"pod"`
-	Server              Server        `mapstructure:"server"`
-	Metrics             MetricsConfig `mapstructure:"metrics"`
-}
-
-type Pod struct {
-	Namespace string `mapstructure:"namespace"`
+	ProviderName        common.NamespacedName `mapstructure:"providerName"`
+	PipelineRootStorage string                `mapstructure:"pipelineRootStorage"`
+	OperatorWebhook     string                `mapstructure:"operatorWebhook"`
+	Server              Server                `mapstructure:"server"`
+	Metrics             MetricsConfig         `mapstructure:"metrics"`
 }
 
 type Server struct {
@@ -47,7 +44,7 @@ func LoadConfig[T any](initConfig T) (*T, error) {
 	}
 
 	var config T
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := viper.Unmarshal(&config, viper.DecodeHook(mapstructure.TextUnmarshallerHookFunc())); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config %w", err)
 	}
 

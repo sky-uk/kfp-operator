@@ -3,7 +3,6 @@
 package config
 
 import (
-	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -28,18 +27,6 @@ var _ = Context("load", func() {
 			config, err := LoadConfig(defaultConfig)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(config).To(Equal(&defaultConfig))
-		})
-	})
-
-	When("given a pod namespace environment variable", func() {
-		It("correctly overrides config value", func() {
-			err := os.Setenv("POD_NAMESPACE", "kfp-operator-system")
-			Expect(err).NotTo(HaveOccurred())
-			expected := defaultConfig
-			expected.Pod.Namespace = "kfp-operator-system"
-			config, err := LoadConfig(defaultConfig)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(config).To(Equal(&expected))
 		})
 	})
 })

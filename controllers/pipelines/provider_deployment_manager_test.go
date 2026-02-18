@@ -12,6 +12,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/internal/config"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -189,6 +190,9 @@ var _ = Context("Provider Deployment Manager", func() {
 
 			providerSuffixedName := fmt.Sprintf("provider-%s", provider.Name)
 
+			providerNamespacedName, err := common.NamespacedName{Namespace: provider.Namespace, Name: provider.Name}.String()
+			Expect(err).ToNot(HaveOccurred())
+
 			Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(Equal([]corev1.EnvVar{
 				{
 					Name:  "PARAMETERS_KEY1",
@@ -204,7 +208,7 @@ var _ = Context("Provider Deployment Manager", func() {
 				},
 				{
 					Name:  ProviderNameEnvVar,
-					Value: provider.Name,
+					Value: providerNamespacedName,
 				},
 			}))
 			Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(Equal(provider.Spec.ServiceImage))

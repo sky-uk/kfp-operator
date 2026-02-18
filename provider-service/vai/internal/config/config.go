@@ -7,19 +7,19 @@ import (
 )
 
 type VAIProviderConfig struct {
-	ProviderName        common.NamespacedName `yaml:"providerName"`
-	PipelineRootStorage string                `yaml:"pipelineRootStorage"`
-	Parameters          Parameters            `yaml:"parameters"`
+	ProviderName        common.NamespacedName `mapstructure:"providerName" yaml:"providerName"`
+	PipelineRootStorage string                `mapstructure:"pipelineRootStorage" yaml:"pipelineRootStorage"`
+	Parameters          Parameters            `mapstructure:"parameters" yaml:"parameters"`
 }
 
 type Parameters struct {
-	VaiProject                            string `yaml:"vaiProject"`
-	VaiLocation                           string `yaml:"vaiLocation"`
-	VaiJobServiceAccount                  string `yaml:"vaiJobServiceAccount"`
-	GcsEndpoint                           string `yaml:"gcsEndpoint"`
-	PipelineBucket                        string `yaml:"pipelineBucket"`
-	EventsourcePipelineEventsSubscription string `yaml:"eventsourcePipelineEventsSubscription"`
-	MaxConcurrentRunCount                 int64  `yaml:"maxConcurrentRunCount"`
+	VaiProject                            string `mapstructure:"vaiProject" yaml:"vaiProject"`
+	VaiLocation                           string `mapstructure:"vaiLocation" yaml:"vaiLocation"`
+	VaiJobServiceAccount                  string `mapstructure:"vaiJobServiceAccount" yaml:"vaiJobServiceAccount"`
+	GcsEndpoint                           string `mapstructure:"gcsEndpoint" yaml:"gcsEndpoint"`
+	PipelineBucket                        string `mapstructure:"pipelineBucket" yaml:"pipelineBucket"`
+	EventsourcePipelineEventsSubscription string `mapstructure:"eventsourcePipelineEventsSubscription" yaml:"eventsourcePipelineEventsSubscription"`
+	MaxConcurrentRunCount                 int64  `mapstructure:"maxConcurrentRunCount" yaml:"maxConcurrentRunCount"`
 }
 
 func (vaipc VAIProviderConfig) VaiEndpoint() string {

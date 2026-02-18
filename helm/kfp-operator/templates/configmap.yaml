@@ -43,10 +43,6 @@ data:
               resources:
                 {{- $.Values.provider.resources | toYaml | nindent 16 }}
               env:
-              - name: POD_NAMESPACE
-                valueFrom:
-                  fieldRef:
-                    fieldPath: metadata.namespace
               - name: OPERATORWEBHOOK
                 value: http://{{ include "kfp-operator.fullname" . }}-runcompletion-webhook-service.{{ .Values.namespace.name }}:80/events
               - name: SERVER_PORT
