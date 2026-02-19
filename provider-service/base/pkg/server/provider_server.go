@@ -16,6 +16,8 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
 func readinessHandler(w http.ResponseWriter, _ *http.Request) {
@@ -145,8 +147,13 @@ func newHandlerFunc(
 	method string,
 ) http.HandlerFunc {
 	return otelhttp.NewHandler(
-		otelhttp.WithRouteTag("resource/"+resource.Type(), handler),
+		handler,
 		"http-"+method+"-resource-"+resource.Type(),
+		otelhttp.WithMetricAttributesFn(func(r *http.Request) []attribute.KeyValue {
+			return []attribute.KeyValue{
+				semconv.HTTPRoute("resource/" + resource.Type()),
+			}
+		}),
 	).ServeHTTP
 }
 
