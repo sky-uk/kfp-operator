@@ -24,7 +24,7 @@ COPY dist/compiler-${WHEEL_VERSION}-*.whl /
 ENV UV_PROJECT_ENVIRONMENT=/compiler
 RUN uv sync --locked --no-install-project --no-dev --python 3.10
 
-RUN pip install --no-deps /compiler-${WHEEL_VERSION}-*.whl --target=/compiler && \
+RUN uv pip install --no-deps /compiler-${WHEEL_VERSION}-*.whl --target=/compiler && \
     rm /compiler-${WHEEL_VERSION}-*.whl
 
 FROM alpine:3.22.0
