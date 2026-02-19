@@ -34,7 +34,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/thanhpk/randstr v1.0.6
 	github.com/tidwall/sjson v1.2.5
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.64.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.65.0
 	go.opentelemetry.io/otel v1.40.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.62.0
 	go.opentelemetry.io/otel/metric v1.40.0
