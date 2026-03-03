@@ -90,28 +90,24 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 
 	When("the Run Completion Event Trigger Service is called with a valid request", func() {
 		It("returns empty and NATS receives an event", func() {
-			artifacts := []*pb.Artifact{
-				{
-					Location: "gs://my-bucket/model-1",
-					Name:     "model-1",
-				},
-				{
-					Location: "gs://my-bucket/model-2",
-					Name:     "model-2",
-				},
-			}
-
-			emptyArtifacts := []*pb.Artifact{}
 
 			runCompletionEvent := &pb.RunCompletionEvent{
-				PipelineName:          "some-pipeline-name",
-				Provider:              "some-provider",
-				RunConfigurationName:  "some-run-configuration-name",
-				RunId:                 "some-run-id",
-				RunName:               "some-run-name",
-				Status:                pb.Status_SUCCEEDED,
-				ServingModelArtifacts: artifacts,
-				Artifacts:             emptyArtifacts,
+				PipelineName:         "some-pipeline-name",
+				Provider:             "some-provider",
+				RunConfigurationName: "some-run-configuration-name",
+				RunId:                "some-run-id",
+				RunName:              "some-run-name",
+				Status:               pb.Status_SUCCEEDED,
+				Artifacts: []*pb.Artifact{
+					{
+						Location: "gs://my-bucket/model-1",
+						Name:     "model-1",
+					},
+					{
+						Location: "gs://my-bucket/model-2",
+						Name:     "model-2",
+					},
+				},
 			}
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
