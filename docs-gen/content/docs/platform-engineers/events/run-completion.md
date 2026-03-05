@@ -29,12 +29,6 @@ The specification of the events follows [CloudEvents](https://github.com/cloudev
     "provider": "{{ PROVIDER_NAMESPACE }}/{{ PROVIDER_NAME }}",
     "status": "succeeded|failed",
     "pipelineName": "{{ PIPELINE_NAMESPACE }}/{{ PIPELINE_NAME }}",
-    "servingModelArtifacts": [
-      {
-        "name": "{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
-        "location": "gs://{{ PIPELINE_ROOT }}/Pusher/pushed_model/{{ MODEL_VERSION }}"
-      }
-    ],
     "artifacts": [
       {
         "name": "serving-model",
@@ -63,12 +57,6 @@ spec:
       subject: events
       url: nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222
 ```
-
-
-> **_NOTE:_** currently, the event includes both `servingModelArtifacts` and `artifacts`:
-> 
-> `servingModelArtifacts` contain a list of all artifacts of type Pushed Model for the pipeline run. This field is deprecated and `artifacts` should be used instead, 
-> which are resolved according to [Run Artifact Definition](../resources/run/#run-artifact-definition)
 
 A sensor for the pipeline `penguin-pipeline` could look as follows:
 
