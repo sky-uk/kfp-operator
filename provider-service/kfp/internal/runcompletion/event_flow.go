@@ -128,12 +128,6 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		return nil, err
 	}
 
-	modelArtifacts, err := ef.MetadataStore.GetServingModelArtifact(ctx, workflowName)
-	if err != nil {
-		ef.Logger.Error(err, "failed to retrieve serving model artifact")
-		return nil, err
-	}
-
 	pipelineComponents, err := ef.MetadataStore.GetArtifactsForRun(ctx, runId)
 	if err != nil {
 		ef.Logger.Error(err, "failed to retrieve pipeline components")
@@ -141,16 +135,15 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 	}
 
 	return &common.RunCompletionEventData{
-		Status:                status,
-		PipelineName:          resourceReferences.PipelineName,
-		RunConfigurationName:  resourceReferences.RunConfigurationName.NonEmptyPtr(),
-		RunName:               resourceReferences.RunName.NonEmptyPtr(),
-		RunId:                 runId,
-		ServingModelArtifacts: modelArtifacts,
-		PipelineComponents:    pipelineComponents,
-		Provider:              ef.ProviderConfig.ProviderName,
-		RunStartTime:          resourceReferences.CreatedAt,
-		RunEndTime:            resourceReferences.FinishedAt,
+		Status:               status,
+		PipelineName:         resourceReferences.PipelineName,
+		RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
+		RunName:              resourceReferences.RunName.NonEmptyPtr(),
+		RunId:                runId,
+		PipelineComponents:   pipelineComponents,
+		Provider:             ef.ProviderConfig.ProviderName,
+		RunStartTime:         resourceReferences.CreatedAt,
+		RunEndTime:           resourceReferences.FinishedAt,
 	}, nil
 }
 

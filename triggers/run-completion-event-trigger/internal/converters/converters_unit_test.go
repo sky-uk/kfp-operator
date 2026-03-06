@@ -22,35 +22,27 @@ func TestConvertersUnit(t *testing.T) {
 var _ = Context("ProtoRunCompletionToCommon", func() {
 	When("given a proto run completion event", func() {
 		It("returns the run completion event in the common struct", func() {
-			artifacts := []*pb.Artifact{
-				{
-					Location: "some-location",
-					Name:     "some-name",
-				},
-			}
-
 			timeNow := time.Now().UTC()
 			timestampNow := timestamppb.New(timeNow)
 
 			protoRunCompletionEvent := pb.RunCompletionEvent{
-				PipelineName:          "namespace/some-pipeline",
-				Provider:              "namespace/some-provider",
-				RunConfigurationName:  "namespace/some-run-configuration-name",
-				RunId:                 "some-run-id",
-				RunName:               "namespace/some-run-name",
-				ServingModelArtifacts: artifacts,
-				Artifacts:             artifacts,
-				Status:                pb.Status_SUCCEEDED,
-				RunStartTime:          timestampNow,
-				RunEndTime:            timestampNow,
+				PipelineName:         "namespace/some-pipeline",
+				Provider:             "namespace/some-provider",
+				RunConfigurationName: "namespace/some-run-configuration-name",
+				RunId:                "some-run-id",
+				RunName:              "namespace/some-run-name",
+				Artifacts: []*pb.Artifact{
+					{
+						Location: "some-location",
+						Name:     "some-name",
+					},
+				},
+
+				Status:       pb.Status_SUCCEEDED,
+				RunStartTime: timestampNow,
+				RunEndTime:   timestampNow,
 			}
 
-			expectedArtifacts := []common.Artifact{
-				{
-					Location: "some-location",
-					Name:     "some-name",
-				},
-			}
 			expectedCommonRunCompletionEvent := common.RunCompletionEvent{
 				Status: common.RunCompletionStatuses.Succeeded,
 				PipelineName: common.NamespacedName{
@@ -65,9 +57,13 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 					Namespace: "namespace",
 					Name:      "some-run-name",
 				},
-				RunId:                 "some-run-id",
-				ServingModelArtifacts: expectedArtifacts,
-				Artifacts:             expectedArtifacts,
+				RunId: "some-run-id",
+				Artifacts: []common.Artifact{
+					{
+						Location: "some-location",
+						Name:     "some-name",
+					},
+				},
 				Provider: common.NamespacedName{
 					Namespace: "namespace",
 					Name:      "some-provider",

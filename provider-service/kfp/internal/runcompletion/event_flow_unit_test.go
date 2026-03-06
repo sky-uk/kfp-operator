@@ -152,11 +152,9 @@ var _ = Context("Eventing Flow", func() {
 			},
 		}
 
-		artifacts := mockMetadataStore.ReturnArtifactForPipeline()
 		resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
 		event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 
-		Expect(event.ServingModelArtifacts).To(Equal(artifacts))
 		Expect(*event.RunConfigurationName).To(Equal(resourceReferences.RunConfigurationName))
 		Expect(*event.RunName).To(Equal(resourceReferences.RunName))
 		Expect(event.Provider.Name).To(Equal(eventingServer.ProviderConfig.ProviderName.Name))

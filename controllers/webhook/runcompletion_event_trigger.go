@@ -107,16 +107,15 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 	}
 
 	runCompletionEvent := pb.RunCompletionEvent{
-		PipelineName:          pipelineName,
-		Provider:              provider,
-		RunConfigurationName:  runConfigurationName,
-		RunId:                 event.RunId,
-		RunName:               runName,
-		ServingModelArtifacts: artifactToProto(event.ServingModelArtifacts),
-		Artifacts:             artifactToProto(event.Artifacts),
-		Status:                statusToProto(event.Status),
-		RunStartTime:          runStartTime,
-		RunEndTime:            runEndTime,
+		PipelineName:         pipelineName,
+		Provider:             provider,
+		RunConfigurationName: runConfigurationName,
+		RunId:                event.RunId,
+		RunName:              runName,
+		Artifacts:            artifactToProto(event.Artifacts),
+		Status:               statusToProto(event.Status),
+		RunStartTime:         runStartTime,
+		RunEndTime:           runEndTime,
 	}
 
 	return &runCompletionEvent, nil

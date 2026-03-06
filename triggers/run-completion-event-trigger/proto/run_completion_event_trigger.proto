@@ -19,7 +19,6 @@ message RunCompletionEvent {
   string run_name = 5;
   Status status = 6;
   repeated Artifact artifacts = 7;
-  repeated Artifact serving_model_artifacts = 8;
   google.protobuf.Timestamp run_start_time = 9;
   google.protobuf.Timestamp run_end_time = 10;
 }
