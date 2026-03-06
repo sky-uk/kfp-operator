@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	cloud.google.com/go/aiplatform v1.118.0
-	cloud.google.com/go/pubsub v1.50.1
+	cloud.google.com/go/pubsub/v2 v2.4.0
 	cloud.google.com/go/storage v1.60.0
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/argoproj/argo-workflows/v3 v3.7.3
@@ -62,7 +62,6 @@ require (
 	cloud.google.com/go/iam v1.5.3 // indirect
 	cloud.google.com/go/longrunning v0.8.0 // indirect
 	cloud.google.com/go/monitoring v1.24.3 // indirect
-	cloud.google.com/go/pubsub/v2 v2.4.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.30.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.55.0 // indirect
