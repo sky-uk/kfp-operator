@@ -45,7 +45,7 @@ func NewPubSubSource(
 		ctx,
 		&pubsubpb.GetSubscriptionRequest{Subscription: fullyQualifiedSub},
 	); err != nil {
-		return nil, fmt.Errorf("something went wrong while trying to fetch subscription %s, %s", subscription, err)
+		return nil, fmt.Errorf("failed to verify subscription %s exists %w", subscription, err)
 	}
 
 	pubSubSource := &PubSubSource{
