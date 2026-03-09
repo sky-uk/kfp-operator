@@ -295,20 +295,16 @@ func sendMessage(ctx context.Context, client *pubsub.Client, topicName string, d
 	publisher.Publish(ctx, msg)
 }
 
-func createTopicIfNotExists(ctx context.Context, client *pubsub.Client, topicName string) string {
+func createTopic(ctx context.Context, client *pubsub.Client, topicName string) string {
 	fqTopicName := fmt.Sprintf("projects/%s/topics/%s", pubsubProject, topicName)
 
-	_, err := client.TopicAdminClient.GetTopic(ctx, &pubsubpb.GetTopicRequest{
-		Topic: fqTopicName,
-	})
+	_, err := client.TopicAdminClient.CreateTopic(
+		ctx, &pubsubpb.Topic{Name: fqTopicName})
 
-	if err != nil && status.Code(err) == codes.NotFound {
-		_, err = client.TopicAdminClient.CreateTopic(
-			ctx, &pubsubpb.Topic{Name: fqTopicName},
-		)
+	if err != nil && status.Code(err) != codes.AlreadyExists {
+		Expect(err).ToNot(HaveOccurred())
 	}
 
-	Expect(err).ToNot(HaveOccurred())
 	return fqTopicName
 }
 
@@ -364,8 +360,8 @@ func createClientTopicSubscription(
 	client, err := pubsub.NewClient(ctx, pubsubProject)
 	Expect(err).ToNot(HaveOccurred())
 
-	topic := createTopicIfNotExists(ctx, client, topicName)
-	deadLetterTopic := createTopicIfNotExists(ctx, client, deadLetterTopicName)
+	topic := createTopic(ctx, client, topicName)
+	deadLetterTopic := createTopic(ctx, client, deadLetterTopicName)
 
 	subscription := createSubIfNotExists(
 		ctx, client, subscriptionName, topic,
