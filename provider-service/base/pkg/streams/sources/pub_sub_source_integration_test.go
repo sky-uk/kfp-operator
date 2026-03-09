@@ -44,8 +44,6 @@ var _ = Context("Pub sub source", Ordered, func() {
 
 	ctx, cancel := createContextWithLogger(logger)
 
-	appCtx, appCancel := createContextWithLogger(logger)
-
 	BeforeAll(func() {
 		err := os.Setenv("PUBSUB_EMULATOR_HOST", pubsubHost)
 		Expect(err).ToNot(HaveOccurred())
@@ -68,13 +66,11 @@ var _ = Context("Pub sub source", Ordered, func() {
 			}
 		}
 		cancel()
-		appCancel()
 	})
 
 	BeforeEach(func() {
 		cancel()
 		ctx, cancel = createContextWithLogger(logger)
-		appCtx, appCancel = createContextWithLogger(logger)
 	})
 
 	Describe("subscribing to a topic", func() {
@@ -203,7 +199,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 
 				client, topicName, _, deadletterSubName := createClientTopicSubscription(ctx, pipelineId, pipelineId)
 				defer client.Close()
-				source := createPubSubSource(appCtx, client, pipelineId)
+				source := createPubSubSource(ctx, client, pipelineId)
 
 				message := LogEntry{
 					Resource: Resource{
@@ -255,7 +251,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 
 				client, topicName, _, deadletterSubName := createClientTopicSubscription(ctx, pipelineId, pipelineId)
 				defer client.Close()
-				_ = createPubSubSource(appCtx, client, pipelineId)
+				_ = createPubSubSource(ctx, client, pipelineId)
 
 				message := LogEntry{
 					Resource: Resource{Labels: map[string]string{"": ""}},
