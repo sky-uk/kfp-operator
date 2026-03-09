@@ -73,7 +73,7 @@ func (pss *PubSubSource) subscribe(ctx context.Context, subscriber *pubsub.Subsc
 	pss.Logger.Info("subscribing to pubsub...")
 
 	err := subscriber.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-		pss.Logger.Info(fmt.Sprintf("message received from Pub/Sub with ID: %s", msg.ID))
+		pss.Logger.Info("message received from Pub/Sub", "id", msg.ID)
 
 		pipelineJobId, err := pss.extractPipelineJobId(msg)
 		if err != nil {
