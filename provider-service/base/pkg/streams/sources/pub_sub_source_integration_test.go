@@ -56,14 +56,15 @@ var _ = Context("Pub sub source", Ordered, func() {
 		if err == nil {
 			defer client.Close()
 			for _, topicName := range topicNames {
-				_ = client.TopicAdminClient.DeleteTopic(ctx, &pubsubpb.DeleteTopicRequest{
-					Topic: topicName,
-				})
+				_ = client.TopicAdminClient.DeleteTopic(
+					ctx,
+					&pubsubpb.DeleteTopicRequest{Topic: topicName},
+				)
 			}
 			for _, subName := range subscriptionNames {
-				_ = client.SubscriptionAdminClient.DeleteSubscription(ctx, &pubsubpb.DeleteSubscriptionRequest{
-					Subscription: subName,
-				})
+				_ = client.SubscriptionAdminClient.DeleteSubscription(
+					ctx, &pubsubpb.DeleteSubscriptionRequest{Subscription: subName},
+				)
 			}
 		}
 		cancel()
@@ -86,9 +87,9 @@ var _ = Context("Pub sub source", Ordered, func() {
 				source := createPubSubSource(ctx, client, pipelineId)
 
 				message := LogEntry{
-					Resource: Resource{Labels: map[string]string{
-						PipelineJobLabel: pipelineId,
-					}},
+					Resource: Resource{
+						Labels: map[string]string{PipelineJobLabel: pipelineId},
+					},
 				}
 
 				jsonMessage, err := json.Marshal(message)
@@ -306,9 +307,9 @@ func createTopicIfNotExists(ctx context.Context, client *pubsub.Client, topicNam
 	})
 
 	if err != nil && status.Code(err) == codes.NotFound {
-		_, err = client.TopicAdminClient.CreateTopic(ctx, &pubsubpb.Topic{
-			Name: fqTopicName,
-		})
+		_, err = client.TopicAdminClient.CreateTopic(
+			ctx, &pubsubpb.Topic{Name: fqTopicName},
+		)
 	}
 
 	Expect(err).ToNot(HaveOccurred())
@@ -357,7 +358,11 @@ func createSubIfNotExists(
 	return fqSubName
 }
 
-func createClientTopicSubscription(ctx context.Context, topicName string, subscriptionName string) (*pubsub.Client, string, string, string) {
+func createClientTopicSubscription(
+	ctx context.Context,
+	topicName string,
+	subscriptionName string,
+) (*pubsub.Client, string, string, string) {
 	deadLetterTopicName := fmt.Sprintf("deadletter_topic_%s", topicName)
 
 	client, err := pubsub.NewClient(ctx, pubsubProject)
@@ -381,7 +386,11 @@ func createClientTopicSubscription(ctx context.Context, topicName string, subscr
 	return client, topic, subscription, deadSubscription
 }
 
-func createPubSubSource(ctx context.Context, client *pubsub.Client, subscription string) *PubSubSource {
+func createPubSubSource(
+	ctx context.Context,
+	client *pubsub.Client,
+	subscription string,
+) *PubSubSource {
 	source, err := NewPubSubSource(ctx, pubsubProject, subscription, client)
 	Expect(err).ToNot(HaveOccurred())
 	return source
