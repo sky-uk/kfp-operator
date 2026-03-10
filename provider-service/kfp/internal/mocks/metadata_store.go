@@ -18,6 +18,10 @@ func (mms *MockMetadataStore) GetArtifactsForRun(_ context.Context, _ string) ([
 
 }
 
+func (mms *MockMetadataStore) SetResultComponents(components []common.PipelineComponent) {
+	mms.resultComponents = components
+}
+
 func (mms *MockMetadataStore) reset() {
 	mms.err = nil
 }
