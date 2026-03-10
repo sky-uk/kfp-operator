@@ -12,6 +12,9 @@ service RunCompletionEventTrigger {
 }
 
 message RunCompletionEvent {
+  reserved 8;
+  reserved "serving_model_artifacts";
+
   string pipeline_name = 1;
   string provider = 2;
   string run_configuration_name = 3;

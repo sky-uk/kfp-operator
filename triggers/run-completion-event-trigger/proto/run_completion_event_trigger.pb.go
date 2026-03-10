@@ -233,7 +233,7 @@ var File_triggers_run_completion_event_trigger_proto_run_completion_event_trigge
 
 const file_triggers_run_completion_event_trigger_proto_run_completion_event_trigger_proto_rawDesc = "" +
 	"\n" +
-	"Ntriggers/run-completion-event-trigger/proto/run_completion_event_trigger.proto\x12\x1crun_completion_event_trigger\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc1\x03\n" +
+	"Ntriggers/run-completion-event-trigger/proto/run_completion_event_trigger.proto\x12\x1crun_completion_event_trigger\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe0\x03\n" +
 	"\x12RunCompletionEvent\x12#\n" +
 	"\rpipeline_name\x18\x01 \x01(\tR\fpipelineName\x12\x1a\n" +
 	"\bprovider\x18\x02 \x01(\tR\bprovider\x124\n" +
@@ -245,7 +245,7 @@ const file_triggers_run_completion_event_trigger_proto_run_completion_event_trig
 	"\x0erun_start_time\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\frunStartTime\x12<\n" +
 	"\frun_end_time\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"runEndTime\":\n" +
+	"runEndTimeJ\x04\b\b\x10\tR\x17serving_model_artifacts\":\n" +
 	"\bArtifact\x12\x1a\n" +
 	"\blocation\x18\x01 \x01(\tR\blocation\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name*#\n" +
