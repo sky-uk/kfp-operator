@@ -1,15 +1,21 @@
+import os
 from kfp import dsl
 
-@dsl.component(base_image='python:3.9')
+DEFAULT_IMAGE = os.environ.get("KFP_PIPELINE_IMAGE", "python:3.9")
+
+
+@dsl.component(base_image=DEFAULT_IMAGE)
 def add(a: float, b: float) -> float:
     """Calculates sum of two arguments"""
     return a + b
 
-@dsl.component(base_image="python:3.9")
+
+@dsl.component(base_image=DEFAULT_IMAGE)
 def write_result(value: float, result: dsl.Output[dsl.Model]):
     """Writes the final result into an artifact file"""
     with open(result.path, "w") as f:
         f.write(str(value))
+
 
 @dsl.pipeline(
     name="Addition pipeline",

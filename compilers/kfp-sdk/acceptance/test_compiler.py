@@ -51,11 +51,8 @@ def test_compiler__compile(tmp_path):
 
         assert pipeline["schemaVersion"] == "2.1.0"
 
-        # Assert that all components use the image from pipeline config
         executors = pipeline["deploymentSpec"]["executors"]
-        expected_image = (
-            "python:3.9"  # This should match what's in acceptance/pipeline.yaml
-        )
+        expected_image = "foo:1.2.3"
 
         for executor_name, executor_spec in executors.items():
             actual_image = executor_spec["container"]["image"]
