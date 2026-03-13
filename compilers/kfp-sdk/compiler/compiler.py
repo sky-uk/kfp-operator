@@ -20,6 +20,8 @@ def compile(pipeline_config: str, output_file: str):
         pipeline_name = get_pipeline_name(pipeline_config_contents)
         sanitised_pipeline_name = sanitise_namespaced_pipeline_name(pipeline_name)
         pipeline_environment = pipeline_config_contents.get("env", [])
+        os.environ["KFP_PIPELINE_IMAGE"] = pipeline_config_contents["image"]
+
         click.secho(
             f"Compiling {sanitised_pipeline_name} pipeline: {pipeline_config_contents}",
             fg="green",
