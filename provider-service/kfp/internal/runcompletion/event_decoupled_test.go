@@ -145,21 +145,18 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 
 				runId := common.RandomString()
 
-				servingModelArtifacts := mockMetadataStore.ReturnArtifactForPipeline()
-
 				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedRced := common.RunCompletionEventData{
-					Status:                common.RunCompletionStatuses.Succeeded,
-					PipelineName:          resourceReferences.PipelineName,
-					RunConfigurationName:  resourceReferences.RunConfigurationName.NonEmptyPtr(),
-					RunName:               resourceReferences.RunName.NonEmptyPtr(),
-					RunId:                 runId,
-					ServingModelArtifacts: servingModelArtifacts,
-					Provider:              provider,
-					RunStartTime:          &mocks.StaticTime,
-					RunEndTime:            &mocks.StaticTime,
+					Status:               common.RunCompletionStatuses.Succeeded,
+					PipelineName:         resourceReferences.PipelineName,
+					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
+					RunName:              resourceReferences.RunName.NonEmptyPtr(),
+					RunId:                runId,
+					Provider:             provider,
+					RunStartTime:         &mocks.StaticTime,
+					RunEndTime:           &mocks.StaticTime,
 				}
 				Eventually(getEventData).Should(BeEquivalentTo(expectedRced))
 				Eventually(func(g Gomega) {

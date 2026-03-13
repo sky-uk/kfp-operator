@@ -19,11 +19,7 @@ import (
 )
 
 const (
-	PushedModelArtifactType        = "tfx.PushedModel"
-	ModelPushedMetadataProperty    = "pushed"
-	ModelPushedMetadataValue       = 1
-	ModelPushedDestinationProperty = "pushed_destination"
-	PipelineJobNotFinishedErr      = "expected pipeline job to have finished"
+	PipelineJobNotFinishedErr = "expected pipeline job to have finished"
 )
 
 type EventFlow struct {
@@ -152,45 +148,6 @@ func artifactsFilterData(job *aiplatformpb.PipelineJob) []common.PipelineCompone
 	return componentCompletions
 }
 
-func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifact {
-	servingModelArtifacts := []common.Artifact{}
-	for _, task := range job.GetJobDetail().GetTaskDetails() {
-		for name, output := range task.GetOutputs() {
-			for _, artifact := range output.GetArtifacts() {
-				if artifact.SchemaTitle != PushedModelArtifactType {
-					continue
-				}
-
-				properties := artifact.Metadata.AsMap()
-
-				pushedProperty, hasPushed := properties[ModelPushedMetadataProperty]
-				if !hasPushed {
-					continue
-				}
-
-				pushed, isFloat := pushedProperty.(float64)
-				if !isFloat || pushed != ModelPushedMetadataValue {
-					continue
-				}
-
-				pushedDestinationProperty, hasPushedDestination := properties[ModelPushedDestinationProperty]
-				if !hasPushedDestination {
-					continue
-				}
-
-				pushedDestination, isString := pushedDestinationProperty.(string)
-				if !isString {
-					continue
-				}
-
-				servingModelArtifacts = append(servingModelArtifacts, common.Artifact{Name: name, Location: pushedDestination})
-			}
-		}
-	}
-
-	return servingModelArtifacts
-}
-
 func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatformpb.PipelineJob, runId string) (*common.RunCompletionEventData, error) {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
@@ -245,15 +202,14 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 	}
 
 	return &common.RunCompletionEventData{
-		Status:                runCompletionStatus,
-		PipelineName:          pipelineName,
-		RunConfigurationName:  runConfigurationName.NonEmptyPtr(),
-		RunName:               runName.NonEmptyPtr(),
-		RunId:                 runId,
-		ServingModelArtifacts: modelServingArtifactsForJob(job),
-		PipelineComponents:    artifactsFilterData(job),
-		Provider:              vef.ProviderConfig.ProviderName,
-		RunStartTime:          runStartTime,
-		RunEndTime:            runEndTime,
+		Status:               runCompletionStatus,
+		PipelineName:         pipelineName,
+		RunConfigurationName: runConfigurationName.NonEmptyPtr(),
+		RunName:              runName.NonEmptyPtr(),
+		RunId:                runId,
+		PipelineComponents:   artifactsFilterData(job),
+		Provider:             vef.ProviderConfig.ProviderName,
+		RunStartTime:         runStartTime,
+		RunEndTime:           runEndTime,
 	}, nil
 }

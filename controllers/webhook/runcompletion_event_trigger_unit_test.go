@@ -95,16 +95,15 @@ var _ = Context("RunCompletionEventToProto", func() {
 
 	BeforeEach(func() {
 		rce = common.RunCompletionEvent{
-			Status:                common.RunCompletionStatuses.Succeeded,
-			PipelineName:          namespacedName,
-			RunConfigurationName:  &namespacedName,
-			RunName:               &namespacedName,
-			RunId:                 "some-runid",
-			ServingModelArtifacts: artifacts,
-			Artifacts:             artifacts,
-			Provider:              namespacedName,
-			RunStartTime:          &timeNow,
-			RunEndTime:            &timeNow,
+			Status:               common.RunCompletionStatuses.Succeeded,
+			PipelineName:         namespacedName,
+			RunConfigurationName: &namespacedName,
+			RunName:              &namespacedName,
+			RunId:                "some-runid",
+			Artifacts:            artifacts,
+			Provider:             namespacedName,
+			RunStartTime:         &timeNow,
+			RunEndTime:           &timeNow,
 		}
 	})
 
@@ -113,23 +112,21 @@ var _ = Context("RunCompletionEventToProto", func() {
 			protoRce, err := RunCompletionEventToProto(rce)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedArtifacts := []*pb.Artifact{
-				{
-					Name:     "some-artifact",
-					Location: "gs://some/where",
-				},
-			}
 			expectedResult := &pb.RunCompletionEvent{
-				Status:                pb.Status_SUCCEEDED,
-				PipelineName:          "namespace/name",
-				RunConfigurationName:  "namespace/name",
-				RunName:               "namespace/name",
-				RunId:                 "some-runid",
-				ServingModelArtifacts: expectedArtifacts,
-				Artifacts:             expectedArtifacts,
-				Provider:              "namespace/name",
-				RunStartTime:          timestamppb.New(timeNow),
-				RunEndTime:            timestamppb.New(timeNow),
+				Status:               pb.Status_SUCCEEDED,
+				PipelineName:         "namespace/name",
+				RunConfigurationName: "namespace/name",
+				RunName:              "namespace/name",
+				RunId:                "some-runid",
+				Artifacts: []*pb.Artifact{
+					{
+						Name:     "some-artifact",
+						Location: "gs://some/where",
+					},
+				},
+				Provider:     "namespace/name",
+				RunStartTime: timestamppb.New(timeNow),
+				RunEndTime:   timestamppb.New(timeNow),
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})
@@ -138,7 +135,6 @@ var _ = Context("RunCompletionEventToProto", func() {
 	When("There are no artifacts", func() {
 		It("returns empty slices", func() {
 			rce.Artifacts = []common.Artifact{}
-			rce.ServingModelArtifacts = []common.Artifact{}
 
 			protoRce, err := RunCompletionEventToProto(rce)
 			Expect(err).NotTo(HaveOccurred())
@@ -146,7 +142,6 @@ var _ = Context("RunCompletionEventToProto", func() {
 			emptySliceOfArtifacts := []*pb.Artifact{}
 
 			Expect(protoRce.Artifacts).To(Equal(emptySliceOfArtifacts))
-			Expect(protoRce.ServingModelArtifacts).To(Equal(emptySliceOfArtifacts))
 		})
 	})
 
@@ -156,23 +151,21 @@ var _ = Context("RunCompletionEventToProto", func() {
 			protoRce, err := RunCompletionEventToProto(rce)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedArtifacts := []*pb.Artifact{
-				{
-					Name:     "some-artifact",
-					Location: "gs://some/where",
-				},
-			}
 			expectedResult := &pb.RunCompletionEvent{
-				Status:                pb.Status_SUCCEEDED,
-				PipelineName:          "namespace/name",
-				RunConfigurationName:  "namespace/name",
-				RunName:               "",
-				RunId:                 "some-runid",
-				ServingModelArtifacts: expectedArtifacts,
-				Artifacts:             expectedArtifacts,
-				Provider:              "namespace/name",
-				RunStartTime:          timestamppb.New(timeNow),
-				RunEndTime:            timestamppb.New(timeNow),
+				Status:               pb.Status_SUCCEEDED,
+				PipelineName:         "namespace/name",
+				RunConfigurationName: "namespace/name",
+				RunName:              "",
+				RunId:                "some-runid",
+				Artifacts: []*pb.Artifact{
+					{
+						Name:     "some-artifact",
+						Location: "gs://some/where",
+					},
+				},
+				Provider:     "namespace/name",
+				RunStartTime: timestamppb.New(timeNow),
+				RunEndTime:   timestamppb.New(timeNow),
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})
@@ -184,23 +177,21 @@ var _ = Context("RunCompletionEventToProto", func() {
 			protoRce, err := RunCompletionEventToProto(rce)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedArtifacts := []*pb.Artifact{
-				{
-					Name:     "some-artifact",
-					Location: "gs://some/where",
-				},
-			}
 			expectedResult := &pb.RunCompletionEvent{
-				Status:                pb.Status_SUCCEEDED,
-				PipelineName:          "namespace/name",
-				RunConfigurationName:  "",
-				RunName:               "namespace/name",
-				RunId:                 "some-runid",
-				ServingModelArtifacts: expectedArtifacts,
-				Artifacts:             expectedArtifacts,
-				Provider:              "namespace/name",
-				RunStartTime:          timestamppb.New(timeNow),
-				RunEndTime:            timestamppb.New(timeNow),
+				Status:               pb.Status_SUCCEEDED,
+				PipelineName:         "namespace/name",
+				RunConfigurationName: "",
+				RunName:              "namespace/name",
+				RunId:                "some-runid",
+				Artifacts: []*pb.Artifact{
+					{
+						Name:     "some-artifact",
+						Location: "gs://some/where",
+					},
+				},
+				Provider:     "namespace/name",
+				RunStartTime: timestamppb.New(timeNow),
+				RunEndTime:   timestamppb.New(timeNow),
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})

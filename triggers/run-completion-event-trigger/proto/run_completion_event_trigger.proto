@@ -12,6 +12,9 @@ service RunCompletionEventTrigger {
 }
 
 message RunCompletionEvent {
+  reserved 8;
+  reserved "serving_model_artifacts";
+
   string pipeline_name = 1;
   string provider = 2;
   string run_configuration_name = 3;
@@ -19,7 +22,6 @@ message RunCompletionEvent {
   string run_name = 5;
   Status status = 6;
   repeated Artifact artifacts = 7;
-  repeated Artifact serving_model_artifacts = 8;
   google.protobuf.Timestamp run_start_time = 9;
   google.protobuf.Timestamp run_end_time = 10;
 }
