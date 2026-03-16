@@ -27,16 +27,15 @@ var _ = Context("ToRunCompletionEvent", func() {
 			result, err := ResourceArtifactsEventProcessor{filter: stubbedFilterFunc}.ToRunCompletionEvent(&runCompletionEventData, rc, nil)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(&common.RunCompletionEvent{
-				Status:                runCompletionEventData.Status,
-				PipelineName:          runCompletionEventData.PipelineName,
-				RunConfigurationName:  runCompletionEventData.RunConfigurationName,
-				RunName:               runCompletionEventData.RunName,
-				RunId:                 runCompletionEventData.RunId,
-				RunStartTime:          runCompletionEventData.RunStartTime,
-				RunEndTime:            runCompletionEventData.RunEndTime,
-				ServingModelArtifacts: runCompletionEventData.ServingModelArtifacts,
-				Artifacts:             expectedArtifacts,
-				Provider:              runCompletionEventData.Provider,
+				Status:               runCompletionEventData.Status,
+				PipelineName:         runCompletionEventData.PipelineName,
+				RunConfigurationName: runCompletionEventData.RunConfigurationName,
+				RunName:              runCompletionEventData.RunName,
+				RunId:                runCompletionEventData.RunId,
+				RunStartTime:         runCompletionEventData.RunStartTime,
+				RunEndTime:           runCompletionEventData.RunEndTime,
+				Artifacts:            expectedArtifacts,
+				Provider:             runCompletionEventData.Provider,
 			}))
 
 		})
@@ -59,16 +58,15 @@ var _ = Context("ToRunCompletionEvent", func() {
 			result, err := ResourceArtifactsEventProcessor{filter: stubbedFilterFunc}.ToRunCompletionEvent(&runCompletionEventData, nil, run)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(&common.RunCompletionEvent{
-				Status:                runCompletionEventData.Status,
-				PipelineName:          runCompletionEventData.PipelineName,
-				RunConfigurationName:  runCompletionEventData.RunConfigurationName,
-				RunName:               runCompletionEventData.RunName,
-				RunId:                 runCompletionEventData.RunId,
-				RunStartTime:          runCompletionEventData.RunStartTime,
-				RunEndTime:            runCompletionEventData.RunEndTime,
-				ServingModelArtifacts: runCompletionEventData.ServingModelArtifacts,
-				Artifacts:             expectedArtifacts,
-				Provider:              runCompletionEventData.Provider,
+				Status:               runCompletionEventData.Status,
+				PipelineName:         runCompletionEventData.PipelineName,
+				RunConfigurationName: runCompletionEventData.RunConfigurationName,
+				RunName:              runCompletionEventData.RunName,
+				RunId:                runCompletionEventData.RunId,
+				RunStartTime:         runCompletionEventData.RunStartTime,
+				RunEndTime:           runCompletionEventData.RunEndTime,
+				Artifacts:            expectedArtifacts,
+				Provider:             runCompletionEventData.Provider,
 			}))
 		})
 	})
@@ -95,16 +93,15 @@ var _ = Context("ToRunCompletionEvent", func() {
 			result, err := ResourceArtifactsEventProcessor{filter: stubbedFilterFunc}.ToRunCompletionEvent(&runCompletionEventData, rc, nil)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(&common.RunCompletionEvent{
-				Status:                runCompletionEventData.Status,
-				PipelineName:          runCompletionEventData.PipelineName,
-				RunConfigurationName:  runCompletionEventData.RunConfigurationName,
-				RunName:               runCompletionEventData.RunName,
-				RunId:                 runCompletionEventData.RunId,
-				RunStartTime:          runCompletionEventData.RunStartTime,
-				RunEndTime:            runCompletionEventData.RunEndTime,
-				ServingModelArtifacts: runCompletionEventData.ServingModelArtifacts,
-				Artifacts:             expectedArtifacts,
-				Provider:              runCompletionEventData.Provider,
+				Status:               runCompletionEventData.Status,
+				PipelineName:         runCompletionEventData.PipelineName,
+				RunConfigurationName: runCompletionEventData.RunConfigurationName,
+				RunName:              runCompletionEventData.RunName,
+				RunId:                runCompletionEventData.RunId,
+				RunStartTime:         runCompletionEventData.RunStartTime,
+				RunEndTime:           runCompletionEventData.RunEndTime,
+				Artifacts:            expectedArtifacts,
+				Provider:             runCompletionEventData.Provider,
 			}))
 
 		})

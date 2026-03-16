@@ -126,12 +126,6 @@ var _ = Context("NamespacedNameFromString", Serial, func() {
 })
 
 var _ = Context("RunCompletionEvent.String", func() {
-	artList := []Artifact{
-		{
-			Name:     "ArtifactName",
-			Location: "ArtifactLocation",
-		},
-	}
 	fixedEvent := RunCompletionEvent{
 		PipelineName: NamespacedName{
 			Name:      "PipelineNameName",
@@ -145,9 +139,13 @@ var _ = Context("RunCompletionEvent.String", func() {
 			Name:      "RunConfigurationNameName",
 			Namespace: "RunConfigurationNameNamespace",
 		},
-		RunId:                 "RunId",
-		ServingModelArtifacts: artList,
-		Artifacts:             artList,
+		RunId: "RunId",
+		Artifacts: []Artifact{
+			{
+				Name:     "ArtifactName",
+				Location: "ArtifactLocation",
+			},
+		},
 		Provider: NamespacedName{
 			"ProviderName",
 			"ProviderNamespace",
@@ -160,7 +158,6 @@ var _ = Context("RunCompletionEvent.String", func() {
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} " +
 					"RunConfigurationName:&{Name:RunConfigurationNameName " +
 					"Namespace:RunConfigurationNameNamespace} RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
-					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Provider:{Name:ProviderName Namespace:ProviderNamespace}}",
 			),
@@ -176,7 +173,6 @@ var _ = Context("RunCompletionEvent.String", func() {
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} " +
 					"RunConfigurationName:<nil> " +
 					"RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
-					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Provider:{Name:ProviderName Namespace:ProviderNamespace}}",
 			),
@@ -192,7 +188,6 @@ var _ = Context("RunCompletionEvent.String", func() {
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} " +
 					"RunConfigurationName:&{Name:RunConfigurationNameName " +
 					"Namespace:RunConfigurationNameNamespace} RunName:<nil> RunId:RunId " +
-					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Provider:{Name:ProviderName Namespace:ProviderNamespace}}",
 			),

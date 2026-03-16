@@ -143,6 +143,24 @@ var _ = Context("Eventing Flow", func() {
 		mockMetadataStore := mocks.MockMetadataStore{}
 		mockKfpApi := mocks.MockKfpApi{}
 
+		expectedComponents := []common.PipelineComponent{
+			{
+				Name: "test-component",
+				ComponentArtifacts: []common.ComponentArtifact{
+					{
+						Name: "test-artifact",
+						Artifacts: []common.ComponentArtifactInstance{
+							{
+								Uri:      "gs://test/artifact",
+								Metadata: map[string]any{"key": "value"},
+							},
+						},
+					},
+				},
+			},
+		}
+		mockMetadataStore.SetResultComponents(expectedComponents)
+
 		eventingServer := EventFlow{
 			Logger:        logr.Discard(),
 			MetadataStore: &mockMetadataStore,
@@ -152,15 +170,14 @@ var _ = Context("Eventing Flow", func() {
 			},
 		}
 
-		artifacts := mockMetadataStore.ReturnArtifactForPipeline()
 		resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
 		event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 
-		Expect(event.ServingModelArtifacts).To(Equal(artifacts))
 		Expect(*event.RunConfigurationName).To(Equal(resourceReferences.RunConfigurationName))
 		Expect(*event.RunName).To(Equal(resourceReferences.RunName))
 		Expect(event.Provider.Name).To(Equal(eventingServer.ProviderConfig.ProviderName.Name))
 		Expect(event.Provider.Namespace).To(Equal(eventingServer.ProviderConfig.ProviderName.Namespace))
+		Expect(event.PipelineComponents).To(Equal(expectedComponents))
 		Expect(err).NotTo(HaveOccurred())
 	},
 		Entry("workflow succeeded", argo.WorkflowSucceeded),

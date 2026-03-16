@@ -41,16 +41,15 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 	}
 
 	return common.RunCompletionEvent{
-		Status:                statusConverter(protoRunCompletion.Status),
-		PipelineName:          pipelineName,
-		RunConfigurationName:  &runConfigurationName,
-		RunName:               &runName,
-		RunId:                 protoRunCompletion.RunId,
-		ServingModelArtifacts: protoToArtifacts(protoRunCompletion.ServingModelArtifacts),
-		Artifacts:             protoToArtifacts(protoRunCompletion.Artifacts),
-		Provider:              provider,
-		RunStartTime:          startTime,
-		RunEndTime:            endTime,
+		Status:               statusConverter(protoRunCompletion.Status),
+		PipelineName:         pipelineName,
+		RunConfigurationName: &runConfigurationName,
+		RunName:              &runName,
+		RunId:                protoRunCompletion.RunId,
+		Artifacts:            protoToArtifacts(protoRunCompletion.Artifacts),
+		Provider:             provider,
+		RunStartTime:         startTime,
+		RunEndTime:           endTime,
 	}, nil
 }
 
