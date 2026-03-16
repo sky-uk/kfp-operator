@@ -1,4 +1,5 @@
 name: namespace/name
+image: foo:1.2.3
 framework:
   parameters:
     pipeline: getting_started.pipeline.add_pipeline
