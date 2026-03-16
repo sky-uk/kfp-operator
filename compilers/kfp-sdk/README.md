@@ -23,15 +23,25 @@ spec:
        pipeline: quickstart.pipeline_function
 ```
 
+### Environment Variables
+
+The compiler automatically injects the following environment variables during compilation:
+
+- `KFP_PIPELINE_IMAGE`: Set to the value of `spec.image` from the Pipeline resource. This can be used in pipeline code to dynamically set component base images.
+
 ### Sample KFP SDK pipeline
 
 > [!IMPORTANT]
 > Setting @dsl.pipeline `name` and `pipeline_root` is not currently supported and will be overwritten by the compiler.
 
 ```python
+import os
 from kfp import dsl
 
-@dsl.component
+# Use the image specified in the Pipeline resource
+DEFAULT_IMAGE = os.environ.get("KFP_PIPELINE_IMAGE", "python:3.9")
+
+@dsl.component(base_image=DEFAULT_IMAGE)
 def component():
     pass
 

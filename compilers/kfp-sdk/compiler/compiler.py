@@ -20,6 +20,10 @@ def compile(pipeline_config: str, output_file: str):
         pipeline_name = get_pipeline_name(pipeline_config_contents)
         sanitised_pipeline_name = sanitise_namespaced_pipeline_name(pipeline_name)
         pipeline_environment = pipeline_config_contents.get("env", [])
+        os.environ["KFP_PIPELINE_IMAGE"] = get_pipeline_image_name(
+            pipeline_config_contents
+        )
+
         click.secho(
             f"Compiling {sanitised_pipeline_name} pipeline: {pipeline_config_contents}",
             fg="green",
@@ -38,6 +42,15 @@ def get_pipeline_name(pipeline_config_contents: dict) -> str:
         return pipeline_config_contents["name"]
     else:
         raise KeyError("Missing required pipeline name in pipeline configuration.")
+
+
+def get_pipeline_image_name(pipeline_config_contents: dict) -> str:
+    if "image" in pipeline_config_contents:
+        return pipeline_config_contents["image"]
+    else:
+        raise KeyError(
+            "Missing required pipeline image name in pipeline configuration."
+        )
 
 
 def load_fn(pipeline_config_contents: dict, environment: list) -> Callable:
