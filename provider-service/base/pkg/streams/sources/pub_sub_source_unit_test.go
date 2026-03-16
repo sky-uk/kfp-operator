@@ -3,8 +3,9 @@
 package sources
 
 import (
-	"cloud.google.com/go/pubsub"
 	"fmt"
+
+	pubsub "cloud.google.com/go/pubsub/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

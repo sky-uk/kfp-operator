@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
+	pubsub "cloud.google.com/go/pubsub/v2"
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/internal/log"
@@ -102,7 +103,19 @@ func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig
 		panic(err)
 	}
 
-	source, err := sources.NewPubSubSource(ctx, providerConfig.Parameters.VaiProject, providerConfig.Parameters.EventsourcePipelineEventsSubscription)
+	pubsubClient, err := pubsub.NewClient(ctx, providerConfig.Parameters.VaiProject)
+	if err != nil {
+		logger.Error(err, "failed to create pubsub client", "project", providerConfig.Parameters.VaiProject)
+		panic(err)
+	}
+	defer pubsubClient.Close()
+
+	source, err := sources.NewPubSubSource(
+		ctx,
+		providerConfig.Parameters.VaiProject,
+		providerConfig.Parameters.EventsourcePipelineEventsSubscription,
+		pubsubClient,
+	)
 	if err != nil {
 		logger.Error(err, "failed to create VAI event data source")
 		panic(err)

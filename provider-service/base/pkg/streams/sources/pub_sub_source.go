@@ -5,16 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"cloud.google.com/go/pubsub"
+	pubsub "cloud.google.com/go/pubsub/v2"
+	"cloud.google.com/go/pubsub/v2/apiv1/pubsubpb"
 	"github.com/go-logr/logr"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 )
 
 type PubSubSource struct {
-	RunsSubscription *pubsub.Subscription
-	Logger           logr.Logger
-	out              chan StreamMessage[string]
-	errOut           chan error
+	Logger logr.Logger
+	out    chan StreamMessage[string]
+	errOut chan error
 }
 
 type Resource struct {
@@ -31,21 +31,21 @@ func (ps *PubSubSource) ErrorOut() <-chan error {
 	return ps.errOut
 }
 
-func NewPubSubSource(ctx context.Context, project string, subscription string) (*PubSubSource, error) {
+func NewPubSubSource(
+	ctx context.Context,
+	project string,
+	subscription string,
+	client *pubsub.Client,
+) (*PubSubSource, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 
-	pubSubClient, err := pubsub.NewClient(ctx, project)
-	if err != nil {
-		logger.Error(err, "failed to create pubsub client", "project", project)
-		return nil, err
-	}
+	fullyQualifiedSub := fmt.Sprintf("projects/%s/subscriptions/%s", project, subscription)
 
-	runsSubscription := pubSubClient.Subscription(subscription)
-	exists, err := runsSubscription.Exists(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("something went wrong while trying to fetch subscription %s, %s", subscription, err)
-	} else if !exists {
-		return nil, fmt.Errorf("subscription %s does not exist on topic", subscription)
+	if _, err := client.SubscriptionAdminClient.GetSubscription(
+		ctx,
+		&pubsubpb.GetSubscriptionRequest{Subscription: fullyQualifiedSub},
+	); err != nil {
+		return nil, fmt.Errorf("failed to verify subscription %s exists %w", subscription, err)
 	}
 
 	pubSubSource := &PubSubSource{
@@ -55,7 +55,7 @@ func NewPubSubSource(ctx context.Context, project string, subscription string) (
 	}
 
 	go func() {
-		if err := pubSubSource.subscribe(ctx, runsSubscription); err != nil {
+		if err := pubSubSource.subscribe(ctx, client.Subscriber(subscription)); err != nil {
 			logger.Error(err, "failed to subscribe", "subscription", subscription)
 			pubSubSource.errOut <- err
 			return
@@ -69,11 +69,11 @@ func (pss *PubSubSource) Out() <-chan StreamMessage[string] {
 	return pss.out
 }
 
-func (pss *PubSubSource) subscribe(ctx context.Context, runsSubscription *pubsub.Subscription) error {
+func (pss *PubSubSource) subscribe(ctx context.Context, subscriber *pubsub.Subscriber) error {
 	pss.Logger.Info("subscribing to pubsub...")
 
-	err := runsSubscription.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
-		pss.Logger.Info(fmt.Sprintf("message received from Pub/Sub with ID: %s", msg.ID))
+	err := subscriber.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+		pss.Logger.Info("message received from Pub/Sub", "id", msg.ID)
 
 		pipelineJobId, err := pss.extractPipelineJobId(msg)
 		if err != nil {
