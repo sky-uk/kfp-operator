@@ -229,7 +229,7 @@ docker-push-quickstart: ##  Build and push quickstart docker images
 
 package-all: docker-build docker-build-compilers docker-build-triggers docker-build-providers helm-package website ## Build all packages
 
-publish-all: docker-push docker-push-compilers docker-push-triggers docker-push-providers helm-publish ## Publish all packages
+publish-all: docker-push-providers
 
 ##@ CI
 
