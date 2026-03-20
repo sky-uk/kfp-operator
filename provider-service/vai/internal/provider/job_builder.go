@@ -161,7 +161,6 @@ func (jb DefaultJobBuilder) newPipelineJob(labels map[string]string, params map[
 		EncryptionSpec:       nil,
 		ServiceAccount:       jb.serviceAccount,
 		ReservedIpRanges:     nil,
-		PscInterfaceConfig:   ,
 		TemplateUri:          templateUri,
 		TemplateMetadata:     nil,
 		ScheduleName:         "",
