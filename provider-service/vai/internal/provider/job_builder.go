@@ -158,8 +158,22 @@ func (jb DefaultJobBuilder) newPipelineJob(labels map[string]string, params map[
 			Parameters:         params,
 			GcsOutputDirectory: fmt.Sprintf("%s/%s", jb.pipelineRootStorage, resourceName),
 		},
-		ServiceAccount: jb.serviceAccount,
-		TemplateUri:    templateUri,
+		EncryptionSpec:       nil,
+		ServiceAccount:       jb.serviceAccount,
+		ReservedIpRanges:     nil,
+		PscInterfaceConfig:   ,
+		TemplateUri:          templateUri,
+		TemplateMetadata:     nil,
+		ScheduleName:         "",
+		PreflightValidations: false,
+	}
+	if params["network"] != nil {
+		pipelineJob.Network = params["network"].GetStringValue()
+	}
+	if params["network_attachment"] != nil {
+		pipelineJob.PscInterfaceConfig = &aiplatformpb.PscInterfaceConfig{
+			NetworkAttachment: params["network_attachment"].GetStringValue(),
+		}
 	}
 	return pipelineJob
 }
