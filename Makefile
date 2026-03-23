@@ -42,6 +42,9 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+mod-tidy: ## Run go mod tidy against code.
+	go mod tidy
+
 git-status-check: ## Check if there are uncommitted or untracked files
 	@if [ -n "$$(git status -s)" ]; then echo "Uncommitted or untracked files: "; git status -s ; exit 1; fi
 
@@ -82,7 +85,7 @@ unit-test: manifests generate ## Run unit tests
 functional-test: ## Run functional tests
 	$(MAKE) -C triggers/run-completion-event-trigger functional-test
 
-test: fmt vet unit-test decoupled-test functional-test ## Run all tests
+test: fmt vet mod-tidy unit-test decoupled-test functional-test ## Run all tests
 	# TODO: after integration tests can run on CI, run provider-service as part
 	# of integration-test
 	$(MAKE) -C provider-service integration-test
