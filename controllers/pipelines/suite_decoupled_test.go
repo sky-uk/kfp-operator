@@ -47,6 +47,9 @@ const (
 
 var _ = BeforeSuite(func() {
 
+	SetDefaultEventuallyTimeout(5 * time.Second)
+	SetDefaultEventuallyPollingInterval(100 * time.Millisecond)
+
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
