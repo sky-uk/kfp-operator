@@ -6,11 +6,19 @@ build: clean install-npm-dependencies ## Build the site
 quickstart: ## Build quickstart docker image
 	$(MAKE) -C includes/master/quickstart docker-build
 
-docker-push-quickstart: ## Push quickstart docker images
+docker-push-quickstart-master:
 	$(MAKE) -C includes/master/quickstart docker-push
+
+docker-push-quickstart-base:
 	$(MAKE) -C includes/master/quickstart-with-dependencies/quickstart-base docker-push
+
+docker-push-quickstart-dependant:
 	$(MAKE) -C includes/master/quickstart-with-dependencies/quickstart-dependant docker-push
+
+docker-push-kfpsdk-quickstart:
 	$(MAKE) -C includes/master/kfpsdk-quickstart docker-push
+
+docker-push-quickstart: docker-push-quickstart-master docker-push-quickstart-base docker-push-quickstart-dependant docker-push-kfpsdk-quickstart ## Push quickstart docker images
 
 clean: ## Clean the site
 	find ../docs -mindepth 1 ! -name '.nojekyll' -delete

@@ -225,8 +225,10 @@ docker-push-providers: ## Publish provider docker images
 website: ## Build website
 	$(MAKE) -C docs-gen build
 
-docker-push-quickstart: ##  Build and push quickstart docker images
-	$(MAKE) -C docs-gen docker-push-quickstart
+docker-push-quickstart: ## Build and push quickstart docker images
+	while true; do echo "docker-push-quickstart in progress..." >&2; sleep 10; done & KEEPALIVE=$$!; \
+	$(MAKE) -j -C docs-gen docker-push-quickstart; \
+	kill $$KEEPALIVE
 
 ##@ Package
 
