@@ -4,6 +4,7 @@ include ../help.mk
 
 build: ## Build all providers
 	$(MAKE) -C vai build
+	$(MAKE) -C kfp build
 
 ##@ Development
 
@@ -26,13 +27,18 @@ test: ## Run all tests for all providers
 
 ##@ Containers
 
-docker-build: ## Build all provider docker images
+docker-build-vai:
 	$(MAKE) -C vai docker-build
+
+docker-build-kfp:
 	$(MAKE) -C kfp docker-build
 
+docker-build: docker-build-vai docker-build-kfp ## Build all provider docker images
 
-docker-push: ## Publish all provider docker images
+docker-push-vai:
 	$(MAKE) -C vai docker-push
+
+docker-push-kfp:
 	$(MAKE) -C kfp docker-push
 
-
+docker-push: docker-push-vai docker-push-kfp ## Publish all provider docker images
