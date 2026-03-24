@@ -230,11 +230,15 @@ docker-push-quickstart: ##  Build and push quickstart docker images
 
 ##@ Package
 
-package-all:
-	$(MAKE) -j docker-build docker-build-compilers docker-build-triggers docker-build-providers helm-package website ## Build all packages
+package-all: ## Build all packages
+	while true; do echo "package-all in progress..."; sleep 60; done & KEEPALIVE=$$!; \
+	$(MAKE) -j docker-build docker-build-compilers docker-build-triggers docker-build-providers helm-package website; \
+	kill $$KEEPALIVE
 
-publish-all:
-	$(MAKE) -j docker-push docker-push-compilers docker-push-triggers docker-push-providers helm-publish ## Publish all packages
+publish-all: ## Publish all packages
+	while true; do echo "publish-all in progress..."; sleep 60; done & KEEPALIVE=$$!; \
+	$(MAKE) -j docker-push docker-push-compilers docker-push-triggers docker-push-providers helm-publish; \
+	kill $$KEEPALIVE
 
 ##@ CI
 
