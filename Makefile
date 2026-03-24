@@ -226,21 +226,15 @@ website: ## Build website
 	$(MAKE) -C docs-gen build
 
 docker-push-quickstart: ## Build and push quickstart docker images
-	while true; do echo "docker-push-quickstart in progress..." >&2; sleep 10; done & KEEPALIVE=$$!; \
-	$(MAKE) -j -C docs-gen docker-push-quickstart; \
-	kill $$KEEPALIVE
+	$(MAKE) -j -C docs-gen docker-push-quickstart
 
 ##@ Package
 
 package-all: ## Build all packages
-	while true; do echo "package-all in progress..." >&2 ; sleep 10; done & KEEPALIVE=$$!; \
-	$(MAKE) -j docker-build docker-build-compilers docker-build-triggers docker-build-providers helm-package website; \
-	kill $$KEEPALIVE
+	$(MAKE) -j docker-build docker-build-compilers docker-build-triggers docker-build-providers helm-package website
 
 publish-all: ## Publish all packages
-	while true; do echo "publish-all in progress..." >&2 ; sleep 10; done & KEEPALIVE=$$!; \
-	$(MAKE) -j docker-push docker-push-compilers docker-push-triggers docker-push-providers helm-publish; \
-	kill $$KEEPALIVE
+	$(MAKE) -j docker-push docker-push-compilers docker-push-triggers docker-push-providers helm-publish
 
 ##@ CI
 
