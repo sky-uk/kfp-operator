@@ -230,11 +230,9 @@ docker-push-quickstart: ## Build and push quickstart docker images
 
 ##@ Package
 
-package-all: ## Build all packages
-	$(MAKE) -j docker-build docker-build-compilers docker-build-triggers docker-build-providers helm-package website
+package-all: docker-build docker-build-compilers docker-build-triggers docker-build-providers helm-package website ## Build all packages
 
-publish-all: ## Publish all packages
-	$(MAKE) -j docker-push docker-push-compilers docker-push-triggers docker-push-providers helm-publish
+publish-all: docker-push docker-push-compilers docker-push-triggers docker-push-providers helm-publish ## Publish all packages
 
 ##@ CI
 

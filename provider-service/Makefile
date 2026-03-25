@@ -27,18 +27,11 @@ test: ## Run all tests for all providers
 
 ##@ Containers
 
-docker-build-vai:
+docker-build: ## Build all provider docker images
 	$(MAKE) -C vai docker-build
-
-docker-build-kfp:
 	$(MAKE) -C kfp docker-build
 
-docker-build: docker-build-vai docker-build-kfp ## Build all provider docker images
 
-docker-push-vai:
+docker-push: ## Publish all provider docker images
 	$(MAKE) -C vai docker-push
-
-docker-push-kfp:
 	$(MAKE) -C kfp docker-push
-
-docker-push: docker-push-vai docker-push-kfp ## Publish all provider docker images
