@@ -33,8 +33,8 @@ WORKDIR /
 COPY --from=python39 /compiler compiler/py3.9
 COPY --from=python310 /compiler compiler/py3.10
 
-COPY --from=base-common resources/compile.sh compiler/compile.sh
-COPY --from=base-common resources/entrypoint.sh entrypoint.sh
+COPY --from=base-common compile.sh compiler/compile.sh
+COPY --from=base-common entrypoint.sh entrypoint.sh
 
 USER 65534:65534
 ENTRYPOINT ["/entrypoint.sh"]
