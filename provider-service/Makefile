@@ -4,6 +4,7 @@ include ../help.mk
 
 build: ## Build all providers
 	$(MAKE) -C vai build
+	$(MAKE) -C kfp build
 
 ##@ Development
 
@@ -34,5 +35,3 @@ docker-build: ## Build all provider docker images
 docker-push: ## Publish all provider docker images
 	$(MAKE) -C vai docker-push
 	$(MAKE) -C kfp docker-push
-
-

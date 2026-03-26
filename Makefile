@@ -225,7 +225,7 @@ docker-push-providers: ## Publish provider docker images
 website: ## Build website
 	$(MAKE) -C docs-gen build
 
-docker-push-quickstart: ##  Build and push quickstart docker images
+docker-push-quickstart: ## Build and push quickstart docker images
 	$(MAKE) -C docs-gen docker-push-quickstart
 
 ##@ Package

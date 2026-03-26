@@ -3,7 +3,7 @@ context: mlops
 triggering: master-and-prs
 
 defaultNodes:
-  cdBuild: l-asdf
+  cdBuild: xl-asdf
   prBuild: l-asdf
 
 modules:
