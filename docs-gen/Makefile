@@ -18,7 +18,8 @@ docker-push-quickstart-dependant:
 docker-push-kfpsdk-quickstart:
 	$(MAKE) -C includes/master/kfpsdk-quickstart docker-push
 
-docker-push-quickstart: docker-push-quickstart-standalone docker-push-quickstart-base docker-push-quickstart-dependant docker-push-kfpsdk-quickstart ## Push quickstart docker images
+docker-push-quickstart: ## Push quickstart docker images
+	$(MAKE) -j docker-push-quickstart-standalone docker-push-quickstart-base docker-push-quickstart-dependant docker-push-kfpsdk-quickstart
 
 clean: ## Clean the site
 	find ../docs -mindepth 1 ! -name '.nojekyll' -delete
