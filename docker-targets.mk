@@ -24,10 +24,8 @@ endif
 docker-build: GOOS=linux
 docker-build: GOARCH=amd64
 docker-build: build ## Build container image
-	docker buildx create --use --name kfp-builder --driver docker-container || docker buildx use kfp-builder
-	docker buildx build ${DOCKER_BUILD_EXTRA_PARAMS} \
+	DOCKER_BUILDKIT=1 docker build ${DOCKER_BUILD_EXTRA_PARAMS} \
 		--platform ${GOOS}/${GOARCH} \
-		--cache-from type=registry,ref=$(firstword $(CONTAINER_REPOSITORIES) $(OSS_CONTAINER_REGISTRY_HOSTS))/${IMG}:cache \
-		--cache-to   type=registry,ref=$(firstword $(CONTAINER_REPOSITORIES) $(OSS_CONTAINER_REGISTRY_HOSTS))/${IMG}:cache,mode=max \
-		--load \
+		--build-arg BUILDKIT_INLINE_CACHE=1 \
+		--cache-from $(firstword $(CONTAINER_REPOSITORIES) $(OSS_CONTAINER_REGISTRY_HOSTS))/${IMG}:${VERSION} \
 		-t ${IMG} -t ${IMG}:${VERSION} -f Dockerfile .
