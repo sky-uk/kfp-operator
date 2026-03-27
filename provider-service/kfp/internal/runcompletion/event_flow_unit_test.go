@@ -74,7 +74,7 @@ var _ = Context("Eventing Flow", func() {
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 
 			mockMetadataStore := mocks.MockMetadataStore{}
-			mockKfpApi := mocks.MockKfpApi2{}
+			mockKfpApi := mocks.MockKfpApi{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
@@ -96,7 +96,7 @@ var _ = Context("Eventing Flow", func() {
 			setPipelineNameInSpec(workflow, common.RandomString())
 
 			mockMetadataStore := mocks.MockMetadataStore{}
-			mockKfpApi := mocks.MockKfpApi2{}
+			mockKfpApi := mocks.MockKfpApi{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
@@ -122,7 +122,7 @@ var _ = Context("Eventing Flow", func() {
 			setPipelineNameInSpec(workflow, common.RandomString())
 
 			mockMetadataStore := mocks.MockMetadataStore{}
-			mockKfpApi := mocks.MockKfpApi2{}
+			mockKfpApi := mocks.MockKfpApi{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
@@ -148,7 +148,7 @@ var _ = Context("Eventing Flow", func() {
 		workflow.SetName(common.RandomString())
 
 		mockMetadataStore := mocks.MockMetadataStore{}
-		mockKfpApi := mocks.MockKfpApi2{}
+		mockKfpApi := mocks.MockKfpApi{}
 
 		expectedComponents := []common.PipelineComponent{
 			{

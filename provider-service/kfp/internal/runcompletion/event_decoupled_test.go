@@ -38,7 +38,7 @@ import (
 
 var (
 	mockMetadataStore mocks.MockMetadataStore
-	mockKfpApi        mocks.MockKfpApi2
+	mockKfpApi        mocks.MockKfpApi
 	k8sClient         dynamic.Interface
 	eventSource       *sources.WorkflowSource
 	webhookSink       *sinks.WebhookSink
@@ -81,7 +81,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	mockMetadataStore = mocks.MockMetadataStore{}
-	mockKfpApi = mocks.MockKfpApi2{}
+	mockKfpApi = mocks.MockKfpApi{}
 
 	eventSource, err = sources.NewWorkflowSource(ctx, defaultNamespace, pkg.K8sClient{Client: k8sClient})
 	Expect(err).ToNot(HaveOccurred())
@@ -102,7 +102,6 @@ var _ = BeforeEach(func() {
 	mockMetadataStore.Mock = mock.Mock{}
 	mockMetadataStore.On("GetArtifactsForRun", mock.Anything).Return(nil, nil)
 	mockKfpApi.Mock = mock.Mock{}
-	mockKfpApi.On("GetResourceReferences", mock.Anything).Return(resource.RandomReferences(), nil)
 })
 
 func WithTestContext(fun func(context.Context)) {
@@ -322,6 +321,7 @@ func triggerUpdate(ctx context.Context, name string) error {
 func expectedNumberOfEventsOccurred(ctx context.Context, expectedNumberOfEvents int) {
 	const Marker = "marker"
 
+	mockKfpApi.On("GetResourceReferences", Marker).Return(resource.RandomReferences(), nil)
 	_, err := createAndTriggerPhaseUpdate(ctx, "p-name", Marker, argo.WorkflowRunning, argo.WorkflowSucceeded)
 
 	Expect(err).ToNot(HaveOccurred())
