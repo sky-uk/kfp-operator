@@ -8,6 +8,8 @@ import (
 )
 
 func RandomReferences() References {
+	// Round is used to remove monotonic clock from time.Now() to ensure that
+	// the time is compatible with equality checks
 	staticTime := time.Now().UTC().Round(0)
 	return References{
 		RunConfigurationName: common.RandomNamespacedName(),
