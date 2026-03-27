@@ -15,7 +15,6 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"time"
 )
 
 var _ = Context("Eventing Flow", func() {
@@ -105,7 +104,7 @@ var _ = Context("Eventing Flow", func() {
 				KfpApi:        &mockKfpApi,
 			}
 
-			mockKfpApi.On("GetResourceReferences", runId).Return(randomResourceReferences(), nil)
+			mockKfpApi.On("GetResourceReferences", runId).Return(resource.RandomReferences(), nil)
 			expectedError := errors.New("an error occurred")
 			mockMetadataStore.On("GetArtifactsForRun", runId).Return(nil, expectedError)
 
@@ -168,7 +167,7 @@ var _ = Context("Eventing Flow", func() {
 			},
 		}
 		mockMetadataStore.On("GetArtifactsForRun", runId).Return(expectedComponents, nil)
-		resourceReferences := randomResourceReferences()
+		resourceReferences := resource.RandomReferences()
 		mockKfpApi.On("GetResourceReferences", runId).Return(resourceReferences, nil)
 
 		eventingServer := EventFlow{
@@ -232,15 +231,4 @@ func setWorkflowPhase(
 	}
 	labels[workflowPhaseLabel] = string(phase)
 	workflow.SetLabels(labels)
-}
-
-func randomResourceReferences() resource.References {
-	staticTime := time.Now().UTC().Round(0)
-	return resource.References{
-		RunConfigurationName: common.RandomNamespacedName(),
-		RunName:              common.RandomNamespacedName(),
-		PipelineName:         common.RandomNamespacedName(),
-		CreatedAt:            &staticTime,
-		FinishedAt:           &staticTime,
-	}
 }

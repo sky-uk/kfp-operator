@@ -14,6 +14,7 @@ import (
 
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"github.com/stretchr/testify/mock"
@@ -37,7 +38,7 @@ import (
 
 var (
 	mockMetadataStore mocks.MockMetadataStore
-	mockKfpApi        mocks.MockKfpApi
+	mockKfpApi        mocks.MockKfpApi2
 	k8sClient         dynamic.Interface
 	eventSource       *sources.WorkflowSource
 	webhookSink       *sinks.WebhookSink
@@ -80,7 +81,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	mockMetadataStore = mocks.MockMetadataStore{}
-	mockKfpApi = mocks.MockKfpApi{}
+	mockKfpApi = mocks.MockKfpApi2{}
 
 	eventSource, err = sources.NewWorkflowSource(ctx, defaultNamespace, pkg.K8sClient{Client: k8sClient})
 	Expect(err).ToNot(HaveOccurred())
@@ -100,7 +101,8 @@ var _ = BeforeEach(func() {
 	numberOfEvents = 0
 	mockMetadataStore.Mock = mock.Mock{}
 	mockMetadataStore.On("GetArtifactsForRun", mock.Anything).Return(nil, nil)
-	mockKfpApi.Reset()
+	mockKfpApi.Mock = mock.Mock{}
+	mockKfpApi.On("GetResourceReferences", mock.Anything).Return(resource.RandomReferences(), nil)
 })
 
 func WithTestContext(fun func(context.Context)) {
@@ -141,7 +143,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run succeeds and a model has been pushed", func() {
 		It("Triggers an event with serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
-				resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
+				resourceReferences := resource.RandomReferences()
+				mockKfpApi.On("GetResourceReferences", mock.Anything).Return(resourceReferences, nil)
 				pipelineName, err := resourceReferences.PipelineName.String()
 				Expect(err).ToNot(HaveOccurred())
 
@@ -157,8 +160,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunName:              resourceReferences.RunName.NonEmptyPtr(),
 					RunId:                runId,
 					Provider:             provider,
-					RunStartTime:         &mocks.StaticTime,
-					RunEndTime:           &mocks.StaticTime,
+					RunStartTime:         resourceReferences.CreatedAt,
+					RunEndTime:           resourceReferences.FinishedAt,
 				}
 				Eventually(getEventData).Should(BeEquivalentTo(expectedRced))
 				Eventually(func(g Gomega) {
@@ -174,7 +177,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run succeeds and no model has been pushed and no RunConfiguration is found", func() {
 		It("Triggers an event without a serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
-				resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
+				resourceReferences := resource.RandomReferences()
+				mockKfpApi.On("GetResourceReferences", mock.Anything).Return(resourceReferences, nil)
 				pipelineName, err := resourceReferences.PipelineName.String()
 				Expect(err).ToNot(HaveOccurred())
 
@@ -190,8 +194,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
 					RunName:              resourceReferences.RunName.NonEmptyPtr(),
 					Provider:             provider,
-					RunStartTime:         &mocks.StaticTime,
-					RunEndTime:           &mocks.StaticTime,
+					RunStartTime:         resourceReferences.CreatedAt,
+					RunEndTime:           resourceReferences.FinishedAt,
 				}
 
 				Eventually(getEventData).Should(BeEquivalentTo(expectedRced))
@@ -207,7 +211,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run fails", func() {
 		It("Triggers an event", func() {
 			WithTestContext(func(ctx context.Context) {
-				resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
+				resourceReferences := resource.RandomReferences()
+				mockKfpApi.On("GetResourceReferences", mock.Anything).Return(resourceReferences, nil)
 				pipelineName, err := resourceReferences.PipelineName.String()
 				Expect(err).ToNot(HaveOccurred())
 
@@ -223,8 +228,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
 					RunName:              resourceReferences.RunName.NonEmptyPtr(),
 					Provider:             provider,
-					RunStartTime:         &mocks.StaticTime,
-					RunEndTime:           &mocks.StaticTime,
+					RunStartTime:         resourceReferences.CreatedAt,
+					RunEndTime:           resourceReferences.FinishedAt,
 				}
 
 				Eventually(getEventData).Should(BeEquivalentTo(expectedRced))
