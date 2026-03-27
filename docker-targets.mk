@@ -21,7 +21,16 @@ define docker-push-to-registry
 endef
 endif
 
+ifeq ($(CI),true)
+DOCKER_CACHE_PARAMS = \
+	--build-arg BUILDKIT_INLINE_CACHE=1 \
+	--cache-from $(firstword $(CONTAINER_REPOSITORIES) $(OSS_CONTAINER_REGISTRY_HOSTS))/${IMG}:latest
+endif
+
 docker-build: GOOS=linux
 docker-build: GOARCH=amd64
 docker-build: build ## Build container image
-	docker build ${DOCKER_BUILD_EXTRA_PARAMS} --platform ${GOOS}/${GOARCH} -t ${IMG} -t ${IMG}:${VERSION} -f Dockerfile .
+	docker build ${DOCKER_BUILD_EXTRA_PARAMS} \
+		--platform ${GOOS}/${GOARCH} \
+		${DOCKER_CACHE_PARAMS} \
+		-t ${IMG} -t ${IMG}:${VERSION} -f Dockerfile .
