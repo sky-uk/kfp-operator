@@ -6,15 +6,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	common "github.com/sky-uk/kfp-operator/pkg/common"
-
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	common "github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"time"
 )
 
 var _ = Context("Eventing Flow", func() {
@@ -74,7 +75,7 @@ var _ = Context("Eventing Flow", func() {
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 
 			mockMetadataStore := mocks.MockMetadataStore{}
-			mockKfpApi := mocks.MockKfpApi{}
+			mockKfpApi := mocks.MockKfpApi2{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
@@ -90,11 +91,13 @@ var _ = Context("Eventing Flow", func() {
 		It("errors when the artifact store errors", func() {
 			workflow := &unstructured.Unstructured{}
 			workflow.SetName(common.RandomString())
+			runId := common.RandomString()
+			setWorkflowRunId(workflow, runId)
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 			setPipelineNameInSpec(workflow, common.RandomString())
 
 			mockMetadataStore := mocks.MockMetadataStore{}
-			mockKfpApi := mocks.MockKfpApi{}
+			mockKfpApi := mocks.MockKfpApi2{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
@@ -102,8 +105,9 @@ var _ = Context("Eventing Flow", func() {
 				KfpApi:        &mockKfpApi,
 			}
 
+			mockKfpApi.On("GetResourceReferences", runId).Return(randomResourceReferences(), nil)
 			expectedError := errors.New("an error occurred")
-			mockMetadataStore.On("GetArtifactsForRun", "").Return(nil, expectedError)
+			mockMetadataStore.On("GetArtifactsForRun", runId).Return(nil, expectedError)
 
 			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 			Expect(event).To(BeNil())
@@ -113,11 +117,13 @@ var _ = Context("Eventing Flow", func() {
 		It("errors when the KFP API errors", func() {
 			workflow := &unstructured.Unstructured{}
 			workflow.SetName(common.RandomString())
+			runId := common.RandomString()
+			setWorkflowRunId(workflow, runId)
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 			setPipelineNameInSpec(workflow, common.RandomString())
 
 			mockMetadataStore := mocks.MockMetadataStore{}
-			mockKfpApi := mocks.MockKfpApi{}
+			mockKfpApi := mocks.MockKfpApi2{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
@@ -126,7 +132,7 @@ var _ = Context("Eventing Flow", func() {
 			}
 
 			expectedError := errors.New("an error occurred")
-			mockKfpApi.Error(expectedError)
+			mockKfpApi.On("GetResourceReferences", runId).Return(nil, expectedError)
 
 			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 			Expect(event).To(BeNil())
@@ -136,12 +142,14 @@ var _ = Context("Eventing Flow", func() {
 
 	DescribeTable("eventForWorkflow", func(phase argo.WorkflowPhase) {
 		workflow := &unstructured.Unstructured{}
+		runId := common.RandomString()
+		setWorkflowRunId(workflow, runId)
 		setWorkflowPhase(workflow, phase)
 		setPipelineNameInSpec(workflow, common.RandomString())
 		workflow.SetName(common.RandomString())
 
 		mockMetadataStore := mocks.MockMetadataStore{}
-		mockKfpApi := mocks.MockKfpApi{}
+		mockKfpApi := mocks.MockKfpApi2{}
 
 		expectedComponents := []common.PipelineComponent{
 			{
@@ -159,7 +167,9 @@ var _ = Context("Eventing Flow", func() {
 				},
 			},
 		}
-		mockMetadataStore.On("GetArtifactsForRun", "").Return(expectedComponents, nil)
+		mockMetadataStore.On("GetArtifactsForRun", runId).Return(expectedComponents, nil)
+		resourceReferences := randomResourceReferences()
+		mockKfpApi.On("GetResourceReferences", runId).Return(resourceReferences, nil)
 
 		eventingServer := EventFlow{
 			Logger:        logr.Discard(),
@@ -170,7 +180,6 @@ var _ = Context("Eventing Flow", func() {
 			},
 		}
 
-		resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
 		event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 
 		Expect(*event.RunConfigurationName).To(Equal(resourceReferences.RunConfigurationName))
@@ -194,15 +203,44 @@ func setPipelineNameInSpec(workflow *unstructured.Unstructured, pipelineName str
 }
 
 func setWorkflowEntryPoint(workflow *unstructured.Unstructured, entrypoint string) {
-	workflow.Object = map[string]interface{}{
-		"spec": map[string]interface{}{
+	workflow.Object = map[string]any{
+		"spec": map[string]any{
 			"entrypoint": entrypoint,
 		},
 	}
 }
 
-func setWorkflowPhase(workflow *unstructured.Unstructured, phase argo.WorkflowPhase) {
-	workflow.SetLabels(map[string]string{
-		workflowPhaseLabel: string(phase),
-	})
+func setWorkflowRunId(
+	workflow *unstructured.Unstructured,
+	runId string,
+) {
+	labels := workflow.GetLabels()
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	labels[pipelineRunIdLabel] = runId
+	workflow.SetLabels(labels)
+}
+
+func setWorkflowPhase(
+	workflow *unstructured.Unstructured,
+	phase argo.WorkflowPhase,
+) {
+	labels := workflow.GetLabels()
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	labels[workflowPhaseLabel] = string(phase)
+	workflow.SetLabels(labels)
+}
+
+func randomResourceReferences() resource.References {
+	staticTime := time.Now().UTC().Round(0)
+	return resource.References{
+		RunConfigurationName: common.RandomNamespacedName(),
+		RunName:              common.RandomNamespacedName(),
+		PipelineName:         common.RandomNamespacedName(),
+		CreatedAt:            &staticTime,
+		FinishedAt:           &staticTime,
+	}
 }
