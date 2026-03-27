@@ -6,34 +6,21 @@ import (
 	"context"
 
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockMetadataStore struct {
-	resultComponents []common.PipelineComponent
-	err              error
+	mock.Mock
 }
 
-func (mms *MockMetadataStore) GetArtifactsForRun(_ context.Context, _ string) ([]common.PipelineComponent, error) {
-	return mms.resultComponents, mms.err
-
-}
-
-func (mms *MockMetadataStore) SetResultComponents(components []common.PipelineComponent) {
-	mms.resultComponents = components
-}
-
-func (mms *MockMetadataStore) reset() {
-	mms.err = nil
-}
-
-func (mms *MockMetadataStore) Reset() {
-	mms.reset()
-}
-
-func (mms *MockMetadataStore) error(err error) {
-	mms.err = err
-}
-
-func (mms *MockMetadataStore) Error(err error) {
-	mms.error(err)
+func (m *MockMetadataStore) GetArtifactsForRun(
+	_ context.Context,
+	runId string,
+) ([]common.PipelineComponent, error) {
+	args := m.Called(runId)
+	var pipelineComponents []common.PipelineComponent
+	if arg0 := args.Get(0); arg0 != nil {
+		pipelineComponents = arg0.([]common.PipelineComponent)
+	}
+	return pipelineComponents, args.Error(1)
 }

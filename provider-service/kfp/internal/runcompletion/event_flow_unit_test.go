@@ -103,7 +103,7 @@ var _ = Context("Eventing Flow", func() {
 			}
 
 			expectedError := errors.New("an error occurred")
-			mockMetadataStore.Error(expectedError)
+			mockMetadataStore.On("GetArtifactsForRun", "").Return(nil, expectedError)
 
 			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 			Expect(event).To(BeNil())
@@ -159,7 +159,7 @@ var _ = Context("Eventing Flow", func() {
 				},
 			},
 		}
-		mockMetadataStore.SetResultComponents(expectedComponents)
+		mockMetadataStore.On("GetArtifactsForRun", "").Return(expectedComponents, nil)
 
 		eventingServer := EventFlow{
 			Logger:        logr.Discard(),

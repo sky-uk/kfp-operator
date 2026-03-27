@@ -16,6 +16,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
+	"github.com/stretchr/testify/mock"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -97,6 +98,9 @@ var _ = BeforeSuite(func() {
 
 var _ = BeforeEach(func() {
 	numberOfEvents = 0
+	mockMetadataStore.Mock = mock.Mock{}
+	mockMetadataStore.On("GetArtifactsForRun", mock.Anything).Return(nil, nil)
+	mockKfpApi.Reset()
 })
 
 func WithTestContext(fun func(context.Context)) {
@@ -104,8 +108,6 @@ func WithTestContext(fun func(context.Context)) {
 	defer cancel()
 
 	Expect(deleteAllWorkflows(ctx)).To(Succeed())
-	mockMetadataStore.Reset()
-	mockKfpApi.Reset()
 	client := resty.New()
 	httpmock.ActivateNonDefault(client.GetClient())
 	httpmock.RegisterResponder(
