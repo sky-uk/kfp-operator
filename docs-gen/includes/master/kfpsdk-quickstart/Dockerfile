@@ -8,6 +8,7 @@ COPY --from=uv /uv /bin/uv
 COPY pyproject.toml uv.lock ./
 ENV UV_PROJECT_ENVIRONMENT=/usr/local
 RUN uv sync --no-install-project --no-dev
+ENV PATH="/.venv/bin:$PATH"
 
 COPY dist/*-${WHEEL_VERSION}-*.whl /
 RUN uv pip install --system --no-deps /*.whl && rm /*.whl

@@ -8,6 +8,7 @@ COPY --from=uv /uv /bin/uv
 COPY pyproject.toml uv.lock ./
 ENV UV_PROJECT_ENVIRONMENT=/usr/local
 RUN uv sync --no-install-project --no-dev
+ENV PATH="/.venv/bin:$PATH"
 
 RUN mkdir /data
 RUN wget https://raw.githubusercontent.com/tensorflow/tfx/master/tfx/examples/penguin/data/labelled/penguins_processed.csv -P /data

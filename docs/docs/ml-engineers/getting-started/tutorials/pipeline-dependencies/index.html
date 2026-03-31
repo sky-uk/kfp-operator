@@ -35,6 +35,7 @@ Auto
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>COPY</span> pyproject.toml uv.lock ./<span class=err>
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>ENV</span> <span class=nv>UV_PROJECT_ENVIRONMENT</span><span class=o>=</span>/usr/local<span class=err>
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> uv sync --no-install-project --no-dev<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>ENV</span> <span class=nv>PATH</span><span class=o>=</span><span class=s2>&#34;/.venv/bin:</span><span class=nv>$PATH</span><span class=s2>&#34;</span><span class=err>
 </span></span></span><span class=line><span class=cl><span class=err>
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> mkdir /data<span class=err>
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> wget https://raw.githubusercontent.com/tensorflow/tfx/master/tfx/examples/penguin/data/labelled/penguins_processed.csv -P /data<span class=err>
@@ -131,6 +132,7 @@ The code for this pipeline can be found under <a href=https://github.com/sky-uk/
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>COPY</span> pyproject.toml uv.lock ./<span class=err>
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>ENV</span> <span class=nv>UV_PROJECT_ENVIRONMENT</span><span class=o>=</span>/usr/local<span class=err>
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> uv sync --no-install-project --no-dev<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err></span><span class=k>ENV</span> <span class=nv>PATH</span><span class=o>=</span><span class=s2>&#34;/.venv/bin:</span><span class=nv>$PATH</span><span class=s2>&#34;</span><span class=err>
 </span></span></span><span class=line><span class=cl><span class=err>
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>COPY</span> dist/*-<span class=si>${</span><span class=nv>WHEEL_VERSION</span><span class=si>}</span>-*.whl /<span class=err>
 </span></span></span><span class=line><span class=cl><span class=err></span><span class=k>RUN</span> uv pip install --system --no-deps /*.whl <span class=o>&amp;&amp;</span> rm /*.whl<span class=err>
