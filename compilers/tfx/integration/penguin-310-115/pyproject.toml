@@ -7,7 +7,7 @@ dependencies = [
     "tfx==1.15.1",
     "google-cloud-aiplatform",
     "shapely<2",
-    "setuptools",
+    "setuptools<82",
 ]
 
 [build-system]
