@@ -43,6 +43,7 @@ test: build ## Run all tests
 
 integration-test: docker-build penguin-39 penguin-310 penguin-310-115 ## Run the integration test
 	docker volume create tfx-integration-test-shared
+	docker run --rm -v tfx-integration-test-shared:/shared alpine chmod 777 /shared
 	docker run -v tfx-integration-test-shared:/shared kfp-operator-tfx-compiler /shared
 	docker run -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /shared/pipeline_v3.9.json --pipeline_config /pipeline/pipeline.yaml
 	docker run -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /shared/pipeline_v3.10.json --pipeline_config /pipeline/pipeline.yaml
