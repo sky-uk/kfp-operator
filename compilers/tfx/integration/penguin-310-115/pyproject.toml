@@ -9,6 +9,7 @@ dependencies = [
     "shapely<2",
     "setuptools<82",
     "kfp<2,>=1.8.14",
+    "dill>=0.3.1.1",
 ]
 
 [build-system]
