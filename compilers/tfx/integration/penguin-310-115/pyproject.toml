@@ -1,0 +1,18 @@
+[project]
+name = "penguin-integration"
+version = "0.1.0"
+description = "Integration test environment for TFX penguin pipeline"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "tfx==1.15.1",
+    "google-cloud-aiplatform",
+    "shapely<2",
+    "setuptools<82",
+    "kfp<2,>=1.8.14",
+    "dill>=0.3.1.1",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
