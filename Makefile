@@ -87,11 +87,12 @@ functional-test: ## Run functional tests
 
 test: fmt vet mod-tidy unit-test decoupled-test functional-test
 	@set -e; \
+	$(MAKE) -C compilers/tfx integration-test & TFX_PID=$$!; \
 	trap 'echo "Cleaning up integration environment..."; $(MAKE) integration-test-down' EXIT; \
 	$(MAKE) integration-test-up; \
-	$(MAKE) integration-test
-	$(MAKE) -C compilers/tfx integration-test
-	$(MAKE) -C provider-service integration-test
+	$(MAKE) integration-test; \
+	$(MAKE) -C provider-service integration-test; \
+	wait $$TFX_PID
 
 
 test-compilers: ## Run all tests for compilers
