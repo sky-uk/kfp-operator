@@ -86,22 +86,20 @@ functional-test: ## Run functional tests
 	$(MAKE) -C triggers/run-completion-event-trigger functional-test
 
 test: fmt vet mod-tidy unit-test decoupled-test functional-test
-	@set -e; \
-	$(MAKE) -C compilers/tfx integration-test & TFX_PID=$$!; \
-	trap 'echo "Cleaning up integration environment..."; $(MAKE) integration-test-down' EXIT; \
-	$(MAKE) integration-test-up; \
-	$(MAKE) integration-test; \
-	$(MAKE) -C provider-service integration-test; \
-	wait $$TFX_PID
-
 
 test-compilers: ## Run all tests for compilers
 	$(MAKE) -C compilers test-all
 
-test-all: test helm-test-operator test-compilers ## Run all tests
+test-all: test helm-test-operator test-compilers integration-test-all  ## Run all tests
 
-integration-test-all: integration-test ## Run all integration tests
-	$(MAKE) -C compilers integration-test-all
+integration-test-all: ## Run all integration tests
+	@set -e; \
+	trap 'echo "Cleaning up integration environment..."; $(MAKE) integration-test-down' EXIT; \
+	$(MAKE) integration-test-up; \
+	$(MAKE) integration-test; \
+	$(MAKE) -C provider-service integration-test; \
+	$(MAKE) -C compilers/tfx integration-test;
+
 
 ##@ Build
 
