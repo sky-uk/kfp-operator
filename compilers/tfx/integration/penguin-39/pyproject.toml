@@ -8,6 +8,7 @@ dependencies = [
     "google-cloud-aiplatform",
     "shapely<2",
     "setuptools<82",
+    "kfp<2,>=1.8.5",
 ]
 
 [build-system]
