@@ -87,9 +87,9 @@ functional-test: ## Run functional tests
 
 test: fmt vet mod-tidy unit-test decoupled-test functional-test
 	@set -e; \
-#	trap 'echo "Cleaning up integration environment..."; $(MAKE) integration-test-down' EXIT; \
-#	$(MAKE) integration-test-up; \
-#	$(MAKE) integration-test
+	trap 'echo "Cleaning up integration environment..."; $(MAKE) integration-test-down' EXIT; \
+	$(MAKE) integration-test-up; \
+	$(MAKE) integration-test
 	$(MAKE) -C compilers/tfx integration-test
 	$(MAKE) -C provider-service integration-test
 
