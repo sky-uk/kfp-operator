@@ -3,11 +3,11 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 
 FROM python:3.10.12
 ARG WHEEL_VERSION
-ARG UV_VERSION
 COPY --from=uv /uv /bin/uv
 
 COPY pyproject.toml uv.lock ./
+ENV UV_PROJECT_ENVIRONMENT=/usr/local
 RUN uv sync --no-install-project --no-dev
 
 COPY dist/*-${WHEEL_VERSION}-*.whl /
-RUN uv pip install --no-deps /*.whl && rm /*.whl
+RUN uv pip install --system --no-deps /*.whl && rm /*.whl
