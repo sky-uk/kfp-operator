@@ -94,11 +94,12 @@ test-all: test helm-test-operator test-compilers integration-test-all  ## Run al
 
 integration-test-all: ## Run all integration tests
 	@set -e; \
+	$(MAKE) -C compilers/tfx integration-test & TFX_PID=$$!; \
 	trap 'echo "Cleaning up integration environment..."; $(MAKE) integration-test-down' EXIT; \
 	$(MAKE) integration-test-up; \
 	$(MAKE) integration-test; \
 	$(MAKE) -C provider-service integration-test; \
-	$(MAKE) -C compilers/tfx integration-test;
+	wait $$TFX_PID
 
 
 ##@ Build
