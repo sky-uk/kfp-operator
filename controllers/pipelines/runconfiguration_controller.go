@@ -7,6 +7,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
@@ -19,6 +20,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	runtimeMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -26,6 +28,36 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
+
+const (
+	runConfigurationNodeLabel   = "run_configuration_node"
+	runConfigurationEdgeLabel   = "run_configuration_edge"
+	runConfigurationIdLabel     = "id"
+	runConfigurationTitleLabel  = "title"
+	runConfigurationSourceLabel = "source"
+	runConfigurationTargetLabel = "target"
+)
+
+var runConfigNode = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: runConfigurationNodeLabel,
+		Help: "Node: RunConfiguration node in the dependency graph",
+	},
+	[]string{runConfigurationIdLabel, runConfigurationTitleLabel},
+)
+
+var runConfigEdge = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: runConfigurationEdgeLabel,
+		Help: "Edge: dependency between RunConfigurations (source executes before target)",
+	},
+	[]string{runConfigurationIdLabel, runConfigurationSourceLabel, runConfigurationTargetLabel},
+)
+
+func init() {
+	runtimeMetrics.Registry.MustRegister(runConfigNode)
+	runtimeMetrics.Registry.MustRegister(runConfigEdge)
+}
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
@@ -66,7 +98,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started")
 
-	var runConfiguration = &pipelineshub.RunConfiguration{}
+	runConfiguration := &pipelineshub.RunConfiguration{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, runConfiguration); err != nil {
 		logger.Error(err, "unable to fetch run configuration")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -75,6 +107,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
 	if runConfiguration.DeletionTimestamp != nil {
+		r.clearDependencyMetrics(runConfiguration)
 		return ctrl.Result{}, nil
 	}
 
@@ -144,10 +177,35 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		}
 	}
 
+	r.updateDependencyMetrics(runConfiguration)
+
 	duration := time.Now().Sub(startTime)
 	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
+}
+
+func (r *RunConfigurationReconciler) clearDependencyMetrics(rc *pipelineshub.RunConfiguration) {
+	rcName := rc.Name
+	runConfigEdge.DeletePartialMatch(prometheus.Labels{"target": rcName})
+	runConfigEdge.DeletePartialMatch(prometheus.Labels{"source": rcName})
+	runConfigNode.DeletePartialMatch(prometheus.Labels{"id": rcName})
+}
+
+func (r *RunConfigurationReconciler) updateDependencyMetrics(rc *pipelineshub.RunConfiguration) {
+	rcName := rc.Name
+	runConfigEdge.DeletePartialMatch(prometheus.Labels{"target": rcName})
+
+	// Ensure this RunConfiguration is registered as a node
+	runConfigNode.WithLabelValues(rcName, rcName).Set(1)
+
+	for _, dep := range rc.GetReferencedRCs() {
+		sourceName := dep.Name
+		edgeId := sourceName + " -> " + rcName
+		runConfigEdge.WithLabelValues(edgeId, sourceName, rcName).Set(1)
+		// Ensure the source is also registered as a node
+		runConfigNode.WithLabelValues(sourceName, sourceName).Set(1)
+	}
 }
 
 func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
