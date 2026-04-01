@@ -6,7 +6,7 @@ FROM python:${PYTHON_VERSION}
 
 COPY --from=uv /uv /bin/uv
 COPY uv.lock pyproject.toml /deps/
-RUN cd /deps && uv export --locked --no-dev --no-emit-project > requirements.txt && \
+RUN cd /deps && uv export --locked --no-dev --no-emit-project --no-hashes > requirements.txt && \
     uv pip install --system -r requirements.txt
 
 WORKDIR /pipeline
