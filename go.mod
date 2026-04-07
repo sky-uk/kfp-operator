@@ -43,7 +43,7 @@ require (
 	go.uber.org/zap v1.27.1
 	golang.org/x/sync v0.20.0
 	google.golang.org/api v0.274.0
-	google.golang.org/grpc v1.79.3
+	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
 	k8s.io/api v0.35.3
 	k8s.io/apiextensions-apiserver v0.35.3
@@ -62,7 +62,7 @@ require (
 	cloud.google.com/go/iam v1.6.0 // indirect
 	cloud.google.com/go/longrunning v0.8.0 // indirect
 	cloud.google.com/go/monitoring v1.24.3 // indirect
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.30.0 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.31.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.55.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
