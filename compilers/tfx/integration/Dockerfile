@@ -5,9 +5,9 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 FROM python:${PYTHON_VERSION}
 
 COPY --from=uv /uv /bin/uv
-COPY uv.lock pyproject.toml /deps/
-RUN cd /deps && uv export --locked --no-dev --no-emit-project --no-hashes > requirements.txt && \
-    uv pip install --system -r requirements.txt
+COPY uv.lock pyproject.toml ./
+ENV UV_PROJECT_ENVIRONMENT=/usr/local
+RUN uv sync --locked --no-install-project --no-dev
 
 WORKDIR /pipeline
 COPY *.py ./
