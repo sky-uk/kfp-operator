@@ -167,7 +167,7 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 	}
 
 	if runExists := slices.ContainsFunc(runs, func(run pipelineshub.Run) bool {
-		return string(run.CanomputeHash()) == string(desiredRun.ComputeHash())
+		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
 	}); runExists {
 		return nil
 	}
