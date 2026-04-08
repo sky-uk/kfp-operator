@@ -29,34 +29,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-const (
-	runConfigurationNodeLabel   = "run_configuration_node"
-	runConfigurationEdgeLabel   = "run_configuration_edge"
-	runConfigurationIdLabel     = "id"
-	runConfigurationTitleLabel  = "title"
-	runConfigurationSourceLabel = "source"
-	runConfigurationTargetLabel = "target"
-)
-
-var runConfigNode = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Name: runConfigurationNodeLabel,
-		Help: "Node: RunConfiguration node in the dependency graph",
+var runsTriggeredTotal = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "kfp_operator_runs_triggered_total",
+		Help: "Total number of runs triggered by RunConfigurations",
 	},
-	[]string{runConfigurationIdLabel, runConfigurationTitleLabel},
-)
-
-var runConfigEdge = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Name: runConfigurationEdgeLabel,
-		Help: "Edge: dependency between RunConfigurations (source executes before target)",
-	},
-	[]string{runConfigurationIdLabel, runConfigurationSourceLabel, runConfigurationTargetLabel},
+	[]string{"started_by", "started_by_resource", "started_by_resource_namespace", "run_configuration", "namespace", "pipeline"},
 )
 
 func init() {
-	runtimeMetrics.Registry.MustRegister(runConfigNode)
-	runtimeMetrics.Registry.MustRegister(runConfigEdge)
+	runtimeMetrics.Registry.MustRegister(runsTriggeredTotal)
 }
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
@@ -107,7 +89,6 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
 	if runConfiguration.DeletionTimestamp != nil {
-		r.clearDependencyMetrics(runConfiguration)
 		return ctrl.Result{}, nil
 	}
 
@@ -177,35 +158,10 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		}
 	}
 
-	r.updateDependencyMetrics(runConfiguration)
-
 	duration := time.Now().Sub(startTime)
 	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
-}
-
-func (r *RunConfigurationReconciler) clearDependencyMetrics(rc *pipelineshub.RunConfiguration) {
-	rcName := rc.Name
-	runConfigEdge.DeletePartialMatch(prometheus.Labels{"target": rcName})
-	runConfigEdge.DeletePartialMatch(prometheus.Labels{"source": rcName})
-	runConfigNode.DeletePartialMatch(prometheus.Labels{"id": rcName})
-}
-
-func (r *RunConfigurationReconciler) updateDependencyMetrics(rc *pipelineshub.RunConfiguration) {
-	rcName := rc.Name
-	runConfigEdge.DeletePartialMatch(prometheus.Labels{"target": rcName})
-
-	// Ensure this RunConfiguration is registered as a node
-	runConfigNode.WithLabelValues(rcName, rcName).Set(1)
-
-	for _, dep := range rc.GetReferencedRCs() {
-		sourceName := dep.Name
-		edgeId := sourceName + " -> " + rcName
-		runConfigEdge.WithLabelValues(edgeId, sourceName, rcName).Set(1)
-		// Ensure the source is also registered as a node
-		runConfigNode.WithLabelValues(sourceName, sourceName).Set(1)
-	}
 }
 
 func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
@@ -236,7 +192,29 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		desiredRun.Labels = lo.Assign(desiredRun.Labels, indicator.AsK8sLabels())
 	}
 
-	return r.EC.Client.Create(ctx, desiredRun)
+	if err := r.EC.Client.Create(ctx, desiredRun); err != nil {
+		return err
+	}
+
+	startedBy := ""
+	startedByResource := ""
+	startedByResourceNamespace := ""
+	if indicator != nil {
+		startedBy = indicator.Type
+		startedByResource = indicator.Source
+		startedByResourceNamespace = indicator.SourceNamespace
+	}
+
+	runsTriggeredTotal.WithLabelValues(
+		startedBy,
+		startedByResource,
+		startedByResourceNamespace,
+		runConfiguration.Name,
+		runConfiguration.Namespace,
+		runConfiguration.Spec.Run.Pipeline.Name,
+	).Inc()
+
+	return nil
 }
 
 func (r *RunConfigurationReconciler) updateRcTriggers(
