@@ -14,25 +14,27 @@ build: ## Build
 include ../../docker-targets.mk
 
 define penguin-staging
-	$(eval STAGING_DIR := $(shell mktemp -d))
-	cp ../../docs-gen/includes/master/quickstart/penguin_pipeline/*.py $(STAGING_DIR)
-	cp integration/Dockerfile integration/pipeline.yaml $(STAGING_DIR)
+cp ../../docs-gen/includes/master/quickstart/penguin_pipeline/*.py $$STAGING_DIR && \
+cp integration/Dockerfile integration/pipeline.yaml $$STAGING_DIR
 endef
 
 penguin-39: ## Build the penguin image for Python 3.9
-	$(call penguin-staging)
-	cp integration/penguin-39/pyproject.toml integration/penguin-39/uv.lock $(STAGING_DIR)
-	docker build --build-arg PYTHON_VERSION=3.9.13 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.9 $(STAGING_DIR)
+	STAGING_DIR=$$(mktemp -d) && \
+	$(penguin-staging) && \
+	cp integration/penguin-39/pyproject.toml integration/penguin-39/uv.lock $$STAGING_DIR && \
+	docker build --build-arg PYTHON_VERSION=3.9.13 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.9 $$STAGING_DIR
 
 penguin-310: ## Build the penguin image for Python 3.10
-	$(call penguin-staging)
-	cp integration/penguin-310/pyproject.toml integration/penguin-310/uv.lock $(STAGING_DIR)
-	docker build --build-arg PYTHON_VERSION=3.10.12 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10 $(STAGING_DIR)
+	STAGING_DIR=$$(mktemp -d) && \
+	$(penguin-staging) && \
+	cp integration/penguin-310/pyproject.toml integration/penguin-310/uv.lock $$STAGING_DIR && \
+	docker build --build-arg PYTHON_VERSION=3.10.12 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10 $$STAGING_DIR
 
 penguin-310-115: ## Build the penguin image for Python 3.10
-	$(call penguin-staging)
-	cp integration/penguin-310-115/pyproject.toml integration/penguin-310-115/uv.lock $(STAGING_DIR)
-	docker build --build-arg PYTHON_VERSION=3.10.12 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10-115 $(STAGING_DIR)
+	STAGING_DIR=$$(mktemp -d) && \
+	$(penguin-staging) && \
+	cp integration/penguin-310-115/pyproject.toml integration/penguin-310-115/uv.lock $$STAGING_DIR && \
+	docker build --build-arg PYTHON_VERSION=3.10.12 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10-115 $$STAGING_DIR
 
 IMG := kfp-operator-tfx-compiler
 WHEEL_VERSION=$(shell uv run python -c "import compiler; print(compiler.__version__)" 2>/dev/null || echo "0.0.0")
