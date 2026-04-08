@@ -50,11 +50,11 @@ penguin-images: penguin-39 penguin-310 penguin-310-115
 
 integration-test: docker-build ## Run the integration test
 	$(MAKE) -j3 penguin-images
-	docker volume create tfx-integration-test-shared
-	docker run --rm -v tfx-integration-test-shared:/shared alpine chmod 777 /shared
-	docker run --rm -v tfx-integration-test-shared:/shared kfp-operator-tfx-compiler /shared
-	docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /shared/pipeline_v3.9.json --pipeline_config /pipeline/pipeline.yaml &
-	docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /shared/pipeline_v3.10.json --pipeline_config /pipeline/pipeline.yaml &
-	docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_v3.10-115.json --pipeline_config /pipeline/pipeline.yaml &
+	docker volume create tfx-integration-test-shared; \
+	trap 'docker volume rm tfx-integration-test-shared' EXIT; \
+	docker run --rm -v tfx-integration-test-shared:/shared alpine chmod 777 /shared && \
+	docker run --rm -v tfx-integration-test-shared:/shared kfp-operator-tfx-compiler /shared && \
+	docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /shared/pipeline_v3.9.json --pipeline_config /pipeline/pipeline.yaml & \
+	docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /shared/pipeline_v3.10.json --pipeline_config /pipeline/pipeline.yaml & \
+	docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_v3.10-115.json --pipeline_config /pipeline/pipeline.yaml & \
 	wait
-	docker volume rm tfx-integration-test-shared
