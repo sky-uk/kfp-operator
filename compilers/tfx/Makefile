@@ -18,19 +18,19 @@ cp ../../docs-gen/includes/master/quickstart/penguin_pipeline/*.py $$STAGING_DIR
 cp integration/Dockerfile integration/pipeline.yaml $$STAGING_DIR
 endef
 
-penguin-39: ## Build the penguin image for Python 3.9
+penguin-39:
 	STAGING_DIR=$$(mktemp -d) && \
 	$(penguin-staging) && \
 	cp integration/penguin-39/pyproject.toml integration/penguin-39/uv.lock $$STAGING_DIR && \
 	docker build --build-arg PYTHON_VERSION=3.9.13 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.9 $$STAGING_DIR
 
-penguin-310: ## Build the penguin image for Python 3.10
+penguin-310:
 	STAGING_DIR=$$(mktemp -d) && \
 	$(penguin-staging) && \
 	cp integration/penguin-310/pyproject.toml integration/penguin-310/uv.lock $$STAGING_DIR && \
 	docker build --build-arg PYTHON_VERSION=3.10.12 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10 $$STAGING_DIR
 
-penguin-310-115: ## Build the penguin image for Python 3.10
+penguin-310-115:
 	STAGING_DIR=$$(mktemp -d) && \
 	$(penguin-staging) && \
 	cp integration/penguin-310-115/pyproject.toml integration/penguin-310-115/uv.lock $$STAGING_DIR && \
