@@ -7,8 +7,9 @@ test-all: ## Test all compilers
 	$(MAKE) -C kfp-sdk test
 
 integration-test-all: ## Integration test for all compilers
-	$(MAKE) -C tfx integration-test
+	$(MAKE) -C tfx integration-test & TFX_PID=$$!; \
 	$(MAKE) -C kfp-sdk integration-test
+	wait $$TFX_PID
 
 ##@ Build
 
