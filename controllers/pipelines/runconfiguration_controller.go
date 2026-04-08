@@ -7,10 +7,10 @@ import (
 	"slices"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/metrics"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	runtimeMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -28,18 +27,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
-
-var runsTriggeredTotal = prometheus.NewCounterVec(
-	prometheus.CounterOpts{
-		Name: "kfp_operator_runs_triggered_total",
-		Help: "Total number of runs triggered by RunConfigurations",
-	},
-	[]string{"started_by", "started_by_resource", "started_by_resource_namespace", "run_configuration", "namespace", "pipeline"},
-)
-
-func init() {
-	runtimeMetrics.Registry.MustRegister(runsTriggeredTotal)
-}
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
@@ -180,7 +167,7 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 	}
 
 	if runExists := slices.ContainsFunc(runs, func(run pipelineshub.Run) bool {
-		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
+		return string(run.CanomputeHash()) == string(desiredRun.ComputeHash())
 	}); runExists {
 		return nil
 	}
@@ -196,23 +183,18 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		return err
 	}
 
-	startedBy := ""
-	startedByResource := ""
-	startedByResourceNamespace := ""
+	labels := metrics.RunTriggeredLabels{
+		RunConfiguration: runConfiguration.Name,
+		Namespace:        runConfiguration.Namespace,
+		Pipeline:         runConfiguration.Spec.Run.Pipeline.Name,
+	}
 	if indicator != nil {
-		startedBy = indicator.Type
-		startedByResource = indicator.Source
-		startedByResourceNamespace = indicator.SourceNamespace
+		labels.StartedBy = indicator.Type
+		labels.StartedByResource = indicator.Source
+		labels.StartedByResourceNamespace = indicator.SourceNamespace
 	}
 
-	runsTriggeredTotal.WithLabelValues(
-		startedBy,
-		startedByResource,
-		startedByResourceNamespace,
-		runConfiguration.Name,
-		runConfiguration.Namespace,
-		runConfiguration.Spec.Run.Pipeline.Name,
-	).Inc()
+	metrics.RunsTriggeredTotal.With(labels.ToPrometheusLabels()).Inc()
 
 	return nil
 }
