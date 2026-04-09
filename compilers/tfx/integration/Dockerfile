@@ -1,15 +1,16 @@
+ARG UV_VERSION
 ARG PYTHON_VERSION
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 
-FROM python:$PYTHON_VERSION
+FROM python:${PYTHON_VERSION}
 
-ARG TFX_VERSION
-
-RUN pip install --prefer-binary --no-cache-dir tfx==$TFX_VERSION
-RUN pip install --no-cache-dir --upgrade google-cloud-aiplatform "shapely<2"
+COPY --from=uv /uv /bin/uv
+COPY uv.lock pyproject.toml ./
+ENV UV_PROJECT_ENVIRONMENT=/usr/local
+RUN uv sync --locked --no-install-project --no-dev
 
 WORKDIR /pipeline
 COPY *.py ./
 COPY *.yaml ./
 
 ENV PYTHONPATH="/pipeline:${PYTHONPATH}"
-

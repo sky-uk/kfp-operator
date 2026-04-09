@@ -61,7 +61,7 @@ integration-test-up: ## Spin up a minikube cluster for integration tests
 	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
 	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
 	# Proxy K8s API
-	kubectl proxy --port=8080 & echo $$! > config/testing/pids
+	nohup kubectl proxy --port=8080 > /dev/null 2>&1 & echo $$! > config/testing/pids
 
 integration-test: manifests generate helm-cmd yq ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
@@ -85,18 +85,21 @@ unit-test: manifests generate ## Run unit tests
 functional-test: ## Run functional tests
 	$(MAKE) -C triggers/run-completion-event-trigger functional-test
 
-test: fmt vet mod-tidy unit-test decoupled-test functional-test ## Run all tests
-	# TODO: after integration tests can run on CI, run provider-service as part
-	# of integration-test
-	$(MAKE) -C provider-service integration-test
+test: fmt vet mod-tidy unit-test decoupled-test functional-test
 
 test-compilers: ## Run all tests for compilers
 	$(MAKE) -C compilers test-all
 
-test-all: test helm-test-operator test-compilers ## Run all tests
+test-all: test helm-test-operator test-compilers integration-test-all  ## Run all tests
 
-integration-test-all: integration-test ## Run all integration tests
-	$(MAKE) -C compilers integration-test-all
+integration-test-all: ## Run all integration tests
+	@set -e; \
+	$(MAKE) -C compilers integration-test-all; \
+	trap 'echo "Cleaning up integration environment..."; $(MAKE) integration-test-down' EXIT; \
+	$(MAKE) integration-test-up; \
+	$(MAKE) integration-test; \
+	$(MAKE) -C provider-service integration-test;
+
 
 ##@ Build
 
