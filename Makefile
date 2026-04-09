@@ -98,7 +98,7 @@ integration-test-all: ## Run all integration tests
 	trap 'echo "Cleaning up integration environment..."; $(MAKE) integration-test-down' EXIT; \
 	$(MAKE) integration-test-up; \
 	$(MAKE) integration-test; \
-	$(MAKE) -C provider-service integration-test; \
+	$(MAKE) -C provider-service integration-test;
 
 
 ##@ Build

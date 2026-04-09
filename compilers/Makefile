@@ -8,8 +8,8 @@ test-all: ## Test all compilers
 
 integration-test-all: ## Integration test for all compilers
 	$(MAKE) -C tfx integration-test & TFX_PID=$$!; \
-	$(MAKE) -C kfp-sdk integration-test
-	wait $$TFX_PID
+	$(MAKE) -C kfp-sdk integration-test & KFP_SDK_PID=$$!; \
+	wait $$TFX_PID && wait $$KFP_SDK_PID
 
 ##@ Build
 
