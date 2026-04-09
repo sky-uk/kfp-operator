@@ -58,5 +58,5 @@ integration-test: docker-build ## Run the integration test
 	  docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /shared/pipeline_v3.9.json --pipeline_config /pipeline/pipeline.yaml & PID39=$$!; \
 	  docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /shared/pipeline_v3.10.json --pipeline_config /pipeline/pipeline.yaml & PID310=$$!; \
 	  docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_v3.10-115.json --pipeline_config /pipeline/pipeline.yaml & PID310_115=$$!; \
-	  wait $$PID39 && wait $$PID310 && wait $$PID310_115
+	  wait $$PID39 && wait $$PID310 && wait $$PID310_115 \
 	)
