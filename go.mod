@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	cloud.google.com/go/aiplatform v1.122.0
 	cloud.google.com/go/pubsub/v2 v2.5.1
-	cloud.google.com/go/storage v1.61.3
+	cloud.google.com/go/storage v1.62.0
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/argoproj/argo-workflows/v3 v3.7.3
 	github.com/distribution/reference v0.6.0
@@ -56,7 +56,7 @@ require (
 require (
 	cel.dev/expr v0.25.1 // indirect
 	cloud.google.com/go v0.123.0 // indirect
-	cloud.google.com/go/auth v0.18.2 // indirect
+	cloud.google.com/go/auth v0.19.0 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	cloud.google.com/go/iam v1.6.0 // indirect
