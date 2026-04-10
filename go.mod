@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator
 
-go 1.26.1
+go 1.26.2
 
 require (
 	cloud.google.com/go/aiplatform v1.123.0
