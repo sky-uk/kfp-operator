@@ -53,28 +53,50 @@ archive-version: ## Archive a version of the documentation. Requires VERSION to 
 		exit 1; \
 	fi
 
-	# Copy existing docs into a versioned directory
+	# Copy existing docs and static assets into versioned directories
 	cp -r content/docs/ content/versions/${VERSION}/
 	cp -r static/master/ static/versions/${VERSION}/
-	cp -r includes/master/ includes/versions/${VERSION}/
+
+	# Inline all readfile shortcodes in versioned content, replacing them with fenced code blocks
+	@find content/versions/${VERSION}/ -name '*.md' | while read md_file; do \
+		grep -q 'readfile' "$$md_file" || continue; \
+		tmp=$$(mktemp); \
+		while IFS= read -r line; do \
+			filepath=$$(echo "$$line" | sed -n 's|.*readfile file="/\([^"]*\)".*|\1|p'); \
+			lang=$$(echo "$$line" | sed -n 's|.*lang="\([^"]*\)".*|\1|p'); \
+			if [ -n "$$filepath" ] && [ -f "$$filepath" ]; then \
+				echo '```'"$$lang"; \
+				cat "$$filepath"; \
+				echo '```'; \
+			else \
+				echo "$$line"; \
+			fi; \
+		done < "$$md_file" > "$$tmp"; \
+		mv "$$tmp" "$$md_file"; \
+	done
+
+	# Update static asset paths (images, etc.) from /master/ to /versions/VERSION/
+	find content/versions/${VERSION}/ -type f -name '*.md' -exec sed -i '' 's|>}}/master/|>}}/versions/${VERSION}/|g' {} +
+
+	# Update GitHub branch parameter references to point to the release tag
+	find content/versions/${VERSION}/ -type f -name '*.md' -exec sed -i '' 's|{{< param "github_branch" >}}|${VERSION}|g' {} +
+
+	# Update hardcoded GitHub URLs to point to the release tag
+	find content/versions/${VERSION}/ -type f -name '*.md' -exec sed -i '' 's|github.com/sky-uk/kfp-operator/tree/master|github.com/sky-uk/kfp-operator/tree/${VERSION}|g' {} +
+	find content/versions/${VERSION}/ -type f -name '*.md' -exec sed -i '' 's|github.com/sky-uk/kfp-operator/blob/master|github.com/sky-uk/kfp-operator/blob/${VERSION}|g' {} +
+	find content/versions/${VERSION}/ -type f -name '*.md' -exec sed -i '' 's|raw.githubusercontent.com/sky-uk/kfp-operator/master|raw.githubusercontent.com/sky-uk/kfp-operator/${VERSION}|g' {} +
 
 	# Add an entry to our version selector for the new version
 	echo '\n[[params.versions]]\nversion = "${VERSION}"\nurl = "/kfp-operator/versions/${VERSION}"' >> hugo.toml
 
-	# find all links to the master version and update them to the new version
-	find content/versions/${VERSION}/ -type f -exec sed -i '' 's|/master/|/versions/${VERSION}/|g' {} +
-
 	# Update the index page to reflect its version
 	sed -i '' 's|"Documentation (master)"|"Documentation (${VERSION})"|g' content/versions/${VERSION}/_index.md
-
-	# Update the quickstart Makefile to include with correct path
-	sed -i '' 's|../../../../|../../../../../|g' includes/versions/${VERSION}/quickstart/Makefile
 
 	# Update the links to point to latest version
 	sed -i '' -E 's|href="versions/v[0-9]+\.[0-9]+\.[0-9]+"|href="versions/${VERSION}"|g' content/_index.md
 	sed -i '' -E 's|latest_stable_version = "/v[0-9]+\.[0-9]+\.[0-9]+"|latest_stable_version = "${VERSION}"|g' hugo.toml
 	sed -i '' -E 's|url = "/versions/v[0-9]+\.[0-9]+\.[0-9]+"|url = "/versions/${VERSION}"|g' hugo.toml
-	
+
 	# Add current date to the versioned docs to maintain order of section navigation
 	grep -q '^date:' content/versions/${VERSION}/_index.md || \
 	perl -i'' -pe 's/^(title:.*)/$$1\ndate: $(shell date +%F)/' content/versions/${VERSION}/_index.md
