@@ -82,7 +82,7 @@ Auto
 </span></span></code></pre></div><h3 id=installation-methods>Installation Methods</h3><h4 id=method-1-helm-repository-recommended>Method 1: Helm Repository (Recommended)</h4><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Add repository and install</span>
 </span></span><span class=line><span class=cl>helm repo add kfp-operator https://sky-uk.github.io/kfp-operator/
 </span></span><span class=line><span class=cl>helm install kfp-operator kfp-operator/kfp-operator -f values.yaml
-</span></span></code></pre></div><h4 id=method-3-local-development-requires-local-kubernetes-cluster>Method 3: Local Development (Requires local kubernetes cluster)</h4><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Clone repository and install from source</span>
+</span></span></code></pre></div><h4 id=method-2-local-development-requires-local-kubernetes-cluster>Method 2: Local Development (Requires local kubernetes cluster)</h4><div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash><span class=line><span class=cl><span class=c1># Clone repository and install from source</span>
 </span></span><span class=line><span class=cl>git clone https://github.com/sky-uk/kfp-operator.git
 </span></span><span class=line><span class=cl><span class=nb>cd</span> kfp-operator
 </span></span><span class=line><span class=cl>helm install kfp-operator ./helm/kfp-operator -f values.yaml

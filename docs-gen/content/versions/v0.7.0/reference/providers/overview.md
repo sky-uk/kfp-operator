@@ -22,7 +22,7 @@ off the [configuration provided.](#configuration)
 
 ![provider-controller]({{< param "subpath" >}}/versions/v0.7.0/images/provider-controller.svg)
 
-Interaction with this service is via argo-workflows, whereby http requests are sent to the service to perform actions on the provider.
+Interaction with this service is via Argo Workflows, whereby HTTP requests are sent to the service to perform actions on the provider.
 
 ### Eventing
 

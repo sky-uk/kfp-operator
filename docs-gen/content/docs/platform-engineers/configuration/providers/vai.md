@@ -71,4 +71,4 @@ The configured `serviceAccount` needs to have [workload identity](https://cloud.
 
 - **API**: Implements the [openapi spec for provider services](../overview/#api). 
 - **Event Handling**: The events are sourced from Pubsub where log output from Vertex AI is formatted in such a way to be consumed by the provider service as 
-a `run completion event`. This is then processed and sent to the operators webhook to update the status of the run.
+a `run completion event`. This is then processed and sent to the operator's webhook to update the status of the run.

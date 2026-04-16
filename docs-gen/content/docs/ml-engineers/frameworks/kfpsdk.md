@@ -6,7 +6,7 @@ weight: 2
 ---
 
 To create a KFP SDK pipeline:
-- Ensure your [Provider](../providers/overview/) supports KFP SDK by specifying the KFP SDK image in `spec.frameworks[]`.
+- Ensure your [Provider](../../../platform-engineers/configuration/providers/) supports KFP SDK by specifying the KFP SDK image in `spec.frameworks[]`.
 - Create a [Pipeline resource](../resources/pipeline/), specifying:
   - the `kfpsdk` framework in `spec.framework.name`. This needs to match the name specified in the Provider.
   - the fully qualified name of the Python function that creates a KFP SDK pipeline under `spec.framework.parameters[].pipeline`.

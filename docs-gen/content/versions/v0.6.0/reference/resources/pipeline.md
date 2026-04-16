@@ -39,4 +39,4 @@ Pipeline parameters can be updated at compile time. Pipeline versions therefore 
 
 A pipeline identifier field adheres to the following syntax:
 
-`PIPELIE_NAME[:PIPELINE_VERSION]`
+`PIPELINE_NAME[:PIPELINE_VERSION]`

@@ -9,7 +9,7 @@ weight: 20
 
 This section provides comprehensive guidance for configuring the KFP Operator platform for production use. As a platform engineer, you'll learn how to customize the operator behavior, set up providers, and optimize for your specific environment.
 
-## 📋 Configuration Overview
+## Configuration Overview
 
 The KFP Operator configuration consists of several layers:
 
@@ -172,7 +172,7 @@ webhookCertificates:
   provider: cert-manager
 ```
 
-## 🆘 Configuration Troubleshooting
+## Configuration Troubleshooting
 
 ### Common Configuration Issues
 
