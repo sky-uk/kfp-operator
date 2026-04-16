@@ -44,7 +44,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;value&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l"&gt;aValue&lt;/span&gt;&lt;span class="w"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</description></item><item><title>Kubeflow Pipelines SDK (KFP SDK)</title><link>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/frameworks/kfpsdk/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/frameworks/kfpsdk/</guid><description>&lt;p&gt;To create a KFP SDK pipeline:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;Ensure your &lt;a href="../providers/overview/"&gt;Provider&lt;/a&gt; supports KFP SDK by specifying the KFP SDK image in &lt;code&gt;spec.frameworks[]&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Ensure your &lt;a href="../../../platform-engineers/configuration/providers/"&gt;Provider&lt;/a&gt; supports KFP SDK by specifying the KFP SDK image in &lt;code&gt;spec.frameworks[]&lt;/code&gt;.&lt;/li&gt;
 &lt;li&gt;Create a &lt;a href="../resources/pipeline/"&gt;Pipeline resource&lt;/a&gt;, specifying:
 &lt;ul&gt;
 &lt;li&gt;the &lt;code&gt;kfpsdk&lt;/code&gt; framework in &lt;code&gt;spec.framework.name&lt;/code&gt;. This needs to match the name specified in the Provider.&lt;/li&gt;
@@ -74,7 +74,7 @@
 &lt;ol&gt;
 &lt;li&gt;Follow the steps in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/compilers/README.md"&gt;compilers README&lt;/a&gt; to build your custom Docker image, ensuring it conforms to the correct structure. Examples of the structure can be found in the code for the natively supported frameworks. This image will be called by a set of Argo Workflows, with &lt;a href="#compiler-workflow"&gt;these parameters&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;Publish the Docker image to a repository accessible via the KFP Operator deployment.&lt;/li&gt;
-&lt;li&gt;Update your &lt;a href="../../providers/overview/"&gt;Provider&lt;/a&gt; resource to support your custom framework by specifying your framework name and image in &lt;code&gt;spec.frameworks[]&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Update your &lt;a href="../../../platform-engineers/configuration/providers/"&gt;Provider&lt;/a&gt; resource to support your custom framework by specifying your framework name and image in &lt;code&gt;spec.frameworks[]&lt;/code&gt;.&lt;/li&gt;
 &lt;li&gt;To then use the custom framework in a &lt;a href="../../resources/pipeline/#fields"&gt;Pipeline&lt;/a&gt; resource, simply configure &lt;code&gt;spec.framework&lt;/code&gt; to take the same name as the framework set in the Provider resource, and any additional parameters that your framework requires.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;h3 id="compiler-workflow"&gt;Compiler Workflow&lt;/h3&gt;
