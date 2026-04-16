@@ -19,8 +19,8 @@ updates:
 
   - package-ecosystem: "uv"
     directories:
-    - "/compilers/kfp-sdk"
-    - "/docs-gen/includes/master/kfpsdk-quickstart"
+    - "/compilers/**"
+    - "/docs-gen/includes/master/**"
     schedule:
       interval: "weekly"
     rebase-strategy: "disabled"
