@@ -35,7 +35,7 @@ spec:
     - base-namespace/dependency-rc
 ```
 
-A Run Configuration can have one of more triggers that determine when the next training run will be started.
+A Run Configuration can have one or more triggers that determine when the next training run will be started.
 
 ## Fields
 

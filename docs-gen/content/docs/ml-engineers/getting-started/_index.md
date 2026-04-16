@@ -119,7 +119,7 @@ kubectl get pipelines
 # penguin-training  Ready    kubeflow-provider   30s
 ```
 
-### Step 5: Set Up Automated Execution
+### Step 4: Set Up Automated Execution
 
 Create automated pipeline execution with `run-configuration.yaml`:
 

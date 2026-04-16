@@ -27,4 +27,4 @@ official repository.
 - **API** : Implements the [openapi spec for provider services](../overview/#api).
 
 - **Event Handling**: The KFP provider creates run-completion events when reading the status of workflows triggered by
-Kubeflow. These events are then processed and sent to the operators webhook to update the status of the run.
+Kubeflow. These events are then processed and sent to the operator's webhook to update the status of the run.

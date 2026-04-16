@@ -146,7 +146,7 @@ spec:
 + provider: vai
   pipeline: penguin-pipeline
   experimentName: penguin-experiment
- runtimeParameters:
+  runtimeParameters:
   - name: TRAINING_RUNS
     value: '100'
   - name: EXAMPLES

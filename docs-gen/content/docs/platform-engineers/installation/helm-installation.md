@@ -169,7 +169,7 @@ helm repo add kfp-operator https://sky-uk.github.io/kfp-operator/
 helm install kfp-operator kfp-operator/kfp-operator -f values.yaml
 ```
 
-#### Method 3: Local Development (Requires local kubernetes cluster)
+#### Method 2: Local Development (Requires local kubernetes cluster)
 ```bash
 # Clone repository and install from source
 git clone https://github.com/sky-uk/kfp-operator.git
