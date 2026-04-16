@@ -1,7 +1,10 @@
 include ../help.mk
 
-build: clean install-npm-dependencies ## Build the site
+build: clean install-npm-dependencies tidy ## Build the site
 	hugo --minify
+
+tidy: ## Tidy Hugo module dependencies
+	hugo mod tidy
 
 quickstart: ## Build quickstart docker image
 	$(MAKE) -C includes/master/quickstart docker-build
