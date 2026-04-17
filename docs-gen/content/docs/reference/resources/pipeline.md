@@ -23,7 +23,7 @@ spec:
       components: base_pipeline.create_components
   env:
   - name: TRAINING_RUNS
-    value: 100
+    value: "100"
 ```
 
 ## Fields
