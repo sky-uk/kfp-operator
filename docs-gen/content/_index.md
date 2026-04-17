@@ -54,7 +54,8 @@ Enterprise security, observability, and integration with existing Kubernetes inf
 <h3>Define Pipelines as Code</h3>
 <p>Create Kubernetes manifests for your ML pipelines and version control them with your code.</p>
 
-<pre><code>
+<div class="td-content">
+{{< highlight yaml >}}
 apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Pipeline
 metadata:
@@ -64,7 +65,8 @@ spec:
   env:
   - name: MODEL_VERSION
     value: "v2.1"
-</code></pre>
+{{< /highlight >}}
+</div>
 
 </div>
 
@@ -72,7 +74,8 @@ spec:
 <h3>Deploy with kubectl</h3>
 <p>Use standard Kubernetes tools to deploy and manage your ML workflows.</p>
 
-<pre><code>
+<div class="td-content">
+{{< highlight shell >}}
 # Deploy your pipeline
 kubectl apply -f pipeline.yaml
 
@@ -81,7 +84,8 @@ kubectl apply -f runconfiguration.yaml
 
 # Monitor status
 kubectl get mlr,mlrc
-</code></pre>
+{{< /highlight >}}
+</div>
 </div>
 
 {{< /blocks/section >}}
@@ -117,8 +121,12 @@ kubectl get mlr,mlrc
 
 <div class="mt-4">
 <h4>Installation</h4>
-<pre><code>helm repo add kfp-operator https://sky-uk.github.io/kfp-operator/
-helm install kfp-operator kfp-operator/kfp-operator</code></pre>
+<div class="col-lg-6 mx-auto text-start text-body td-content">
+{{< highlight shell >}}
+helm repo add kfp-operator https://sky-uk.github.io/kfp-operator/
+helm install kfp-operator kfp-operator/kfp-operator
+{{< /highlight >}}
+</div>
 </div>
 </div>
 {{< /blocks/section >}}

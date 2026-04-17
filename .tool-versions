@@ -1,6 +1,6 @@
 python 3.10.12
 protoc 32.1
-hugo extended_0.151.0
+hugo extended_0.160.1
 golang 1.26.2
 nodejs 24.9.0
 minikube 1.31.2
