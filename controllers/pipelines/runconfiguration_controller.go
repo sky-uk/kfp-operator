@@ -10,6 +10,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/metrics"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
@@ -66,7 +67,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started")
 
-	var runConfiguration = &pipelineshub.RunConfiguration{}
+	runConfiguration := &pipelineshub.RunConfiguration{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, runConfiguration); err != nil {
 		logger.Error(err, "unable to fetch run configuration")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -178,7 +179,24 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		desiredRun.Labels = lo.Assign(desiredRun.Labels, indicator.AsK8sLabels())
 	}
 
-	return r.EC.Client.Create(ctx, desiredRun)
+	if err := r.EC.Client.Create(ctx, desiredRun); err != nil {
+		return err
+	}
+
+	labels := metrics.RunTriggeredLabels{
+		RunConfiguration: runConfiguration.Name,
+		Namespace:        runConfiguration.Namespace,
+		Pipeline:         runConfiguration.Spec.Run.Pipeline.Name,
+	}
+	if indicator != nil {
+		labels.StartedBy = indicator.Type
+		labels.StartedByResource = indicator.Source
+		labels.StartedByResourceNamespace = indicator.SourceNamespace
+	}
+
+	metrics.RunsTriggeredTotal.With(labels.ToPrometheusLabels()).Inc()
+
+	return nil
 }
 
 func (r *RunConfigurationReconciler) updateRcTriggers(
