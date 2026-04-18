@@ -28,5 +28,5 @@ version_scheme = "post-release"
 local_scheme = "dirty-tag"
 
 [build-system]
-requires = ["setuptools>=61", "setuptools-scm"]
+requires = ["setuptools>=82.0.1", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
