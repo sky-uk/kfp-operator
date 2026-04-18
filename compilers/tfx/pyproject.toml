@@ -8,7 +8,7 @@ dependencies = [
     "click>=7,<8",
     "PyYAML>=5.4.1",
     "kfp==1.8.22",
-    "setuptools~=70.0",
+    "setuptools~=82.0",
 ]
 
 [project.optional-dependencies]
@@ -29,5 +29,5 @@ version_scheme = "post-release"
 local_scheme = "dirty-tag"
 
 [build-system]
-requires = ["setuptools>=61", "setuptools-scm"]
+requires = ["setuptools>=82.0.1", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
