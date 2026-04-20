@@ -1,11 +1,11 @@
 import importlib
 import importlib.util
 import os
+from typing import Callable
 
 import click
 import yaml
 from kfp import compiler
-from typing import Callable
 
 
 @click.command()
@@ -15,7 +15,7 @@ from typing import Callable
 @click.option("--output_file", help="Output file path", required=True)
 def compile(pipeline_config: str, output_file: str):
     """Compiles KFP SDK pipeline into a Kubeflow Pipelines pipeline definition"""
-    with open(pipeline_config, "r") as pipeline_stream:
+    with open(pipeline_config) as pipeline_stream:
         pipeline_config_contents = yaml.safe_load(pipeline_stream)
         pipeline_name = get_pipeline_name(pipeline_config_contents)
         sanitised_pipeline_name = sanitise_namespaced_pipeline_name(pipeline_name)
@@ -61,7 +61,8 @@ def load_fn(pipeline_config_contents: dict, environment: list) -> Callable:
 
     if "." not in pipeline:
         raise ValueError(
-            f"Invalid pipeline format: [{pipeline}]. Expected format: 'module_path.function_name'."
+            f"Invalid pipeline format: [{pipeline}]."
+            " Expected format: 'module_path.function_name'."
         )
 
     for env in environment:

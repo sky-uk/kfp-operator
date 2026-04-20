@@ -13,8 +13,7 @@ dependencies = [
 dev = [
     "kfp>=2,<3",
     "pytest>=8",
-    "black>=25",
-    "flake8>=7",
+    "ruff>=0.15",
 ]
 
 [project.scripts]
@@ -26,6 +25,9 @@ packages = ["compiler"]
 [tool.setuptools_scm]
 version_scheme = "post-release"
 local_scheme = "dirty-tag"
+
+[tool.ruff.lint]
+select = ["E", "F", "UP", "B", "SIM", "I",]
 
 [build-system]
 requires = ["setuptools>=82.0.1", "setuptools-scm"]

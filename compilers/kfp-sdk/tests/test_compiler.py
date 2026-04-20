@@ -2,6 +2,7 @@ import os
 import sys
 
 import pytest
+
 from compiler import compiler
 
 
@@ -54,9 +55,9 @@ def test_compiler_invalid_pipeline_format():
     with pytest.raises(ValueError) as error:
         compiler.load_fn(pipeline_config_contents, environment=[])()
 
-    assert (
-        str(error.value)
-        == "Invalid pipeline format: [function]. Expected format: 'module_path.function_name'."
+    assert str(error.value) == (
+        "Invalid pipeline format: [function]."
+        " Expected format: 'module_path.function_name'."
     )
 
 
