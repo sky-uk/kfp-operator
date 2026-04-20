@@ -7,8 +7,8 @@ lock: ## Update uv.lock after changing pyproject.toml
 
 build: ## Build
 	uv sync --locked --all-extras
-	uv run black .
-	uv run flake8
+	uv run ruff format --check .
+	uv run ruff check .
 	uv build
 
 ##@ Containers
