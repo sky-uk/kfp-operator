@@ -27,7 +27,7 @@ version_scheme = "post-release"
 local_scheme = "dirty-tag"
 
 [tool.ruff.lint]
-select = ["E", "F", "UP", "B", "SIM", "I",]
+select = ["E", "F", "UP", "B", "SIM", "I"]
 
 [build-system]
 requires = ["setuptools>=82.0.1", "setuptools-scm"]
