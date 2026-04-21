@@ -5,39 +5,41 @@
 
 version: 2
 updates:
-  - package-ecosystem: "gomod"
-    directories:
-    - "/"
-    - "/docs-gen"
-    schedule:
-      interval: "weekly"
-    rebase-strategy: "disabled"
-    allow:
-    - dependency-type: "direct"
-    commit-message:
-      prefix: "chore(deps)"
+- package-ecosystem: "gomod"
+  directories:
+  - "/"
+  - "/docs-gen"
+  schedule:
+    interval: "weekly"
+  rebase-strategy: "disabled"
+  allow:
+  - dependency-type: "direct"
+  commit-message:
+    prefix: "chore(deps)"
+  open-pull-requests-limit: 3
 
-  - package-ecosystem: "uv"
-    directories:
-    - "/compilers/**"
-    - "/docs-gen/includes/master/**"
-    schedule:
-      interval: "weekly"
-    rebase-strategy: "disabled"
-    allow:
-    - dependency-type: "direct"
-    commit-message:
-      prefix: "chore(deps)"
-    exclude-paths:
-    - "docs-gen/includes/versions/**"
+- package-ecosystem: "uv"
+  directories:
+  - "/compilers/**"
+  - "/docs-gen/includes/master/**"
+  schedule:
+    interval: "weekly"
+  rebase-strategy: "disabled"
+  allow:
+  - dependency-type: "direct"
+  commit-message:
+    prefix: "chore(deps)"
+  exclude-paths:
+  - "docs-gen/includes/versions/**"
+  open-pull-requests-limit: 3
 
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    rebase-strategy: "disabled"
-    commit-message:
-      prefix: "chore(deps)"
-    exclude-paths:
-    - "docs-gen/includes/versions/**"
-    open-pull-requests-limit: 0
+- package-ecosystem: "pip"
+  directory: "/"
+  schedule:
+    interval: "weekly"
+  rebase-strategy: "disabled"
+  commit-message:
+    prefix: "chore(deps)"
+  exclude-paths:
+  - "docs-gen/includes/versions/**"
+  open-pull-requests-limit: 0
