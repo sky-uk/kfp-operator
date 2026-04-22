@@ -20,7 +20,14 @@ To get a working installation you will need to install both the KFP-Operator and
 
 Create basic `values.yaml` with the following content:
 
-{{% readfile file="/includes/versions/v0.6.0/quickstart/resources/values.yaml" code="true" lang="yaml" %}}
+```yaml
+fullnameOverride: kfp-operator
+manager:
+  argo:
+    serviceAccount: pipeline-runner
+  configuration:
+    defaultExperiment: Default
+```
 
 Install the latest version of the operator
 
@@ -80,7 +87,24 @@ Install one or more by following these instructions. Please refer to the [respec
 
 Create basic `kfp.yaml` value file with the following content:
 
-{{% readfile file="/includes/versions/v0.6.0/quickstart/resources/kfp.yaml" code="true" lang="yaml"%}}
+```yaml
+provider:
+  name: kfp-provider
+  type: kfp
+  executionMode: v1
+  serviceAccount:
+    name: kfp-operator-kfp
+    create: false
+  configuration:
+    kfpNamespace: kubeflow
+    restKfpApiUrl: http://ml-pipeline.kubeflow:8888
+    grpcMetadataStoreAddress: metadata-grpc-service.kubeflow:8080
+    grpcKfpApiAddress: ml-pipeline.kubeflow:8887
+    defaultBeamArgs:
+      - name: project
+        value: ${DATAFLOW_PROJECT}
+    pipelineRootStorage: ${PIPELINE_STORAGE}
+```
 
 Install the latest version of the provider
 
