@@ -20,7 +20,14 @@ To get a working installation you will need to install both the KFP-Operator and
 
 Create basic `values.yaml` with the following content:
 
-{{% readfile file="/includes/versions/v0.7.0/quickstart/resources/values.yaml" code="true" lang="yaml" %}}
+```yaml
+fullnameOverride: kfp-operator
+manager:
+  argo:
+    serviceAccount: pipeline-runner
+  configuration:
+    defaultExperiment: Default
+```
 
 Install the latest version of the operator
 

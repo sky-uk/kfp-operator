@@ -15,7 +15,28 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 | `runCompletionFeed` | Configuration of the service for the run completion feed back to KFP Operator                                                                                                                                 | See [here](#run-completion-feed-configuration) |
 
 An example configuration:
-{{% readfile file="/includes/versions/v0.6.0/reference/controller_manager_config.yaml" code="true" lang="yaml"%}}
+```yaml
+apiVersion: config.kubeflow.org/v1alpha5
+kind: KfpControllerConfig
+controller:
+  health:
+    healthProbeBindAddress: :8081
+  metrics:
+    bindAddress: :8080
+  webhook:
+    port: 9443
+  leaderElection:
+    leaderElect: true
+    resourceName: kfp-operator-lock
+spec:
+  defaultBeamArgs:
+    - name: project
+      value: ${DATAFLOW_PROJECT}
+  multiversion: true
+  pipelineStorage: ${PIPELINE_STORAGE}
+  workflowNamespace: kfp-operator-system
+  workflowTemplatePrefix: kfp-operator-
+```
 
 ## Run Completion Feed Configuration
 | Parameter name                | Description                                                                            | Example                                                                                    |
