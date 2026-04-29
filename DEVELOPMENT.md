@@ -1,5 +1,23 @@
 # Development
 
+<!-- TOC -->
+* [Development](#development)
+  * [Set up the development environment](#set-up-the-development-environment)
+  * [Run unit tests](#run-unit-tests)
+  * [Building and Publishing](#building-and-publishing)
+    * [Building and publishing container images](#building-and-publishing-container-images)
+    * [Building and publishing the Helm chart](#building-and-publishing-the-helm-chart)
+  * [Running locally](#running-locally)
+    * [Getting started](#getting-started)
+    * [Rebuild after code changes](#rebuild-after-code-changes)
+    * [Tear down](#tear-down)
+    * [How the stubs work](#how-the-stubs-work)
+  * [Run Argo integration tests](#run-argo-integration-tests)
+  * [Coding Guidelines](#coding-guidelines)
+    * [Logging](#logging)
+  * [CRD Versioning](#crd-versioning)
+<!-- TOC -->
+
 We use [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) to scaffold the kubernetes controllers.
 The [Kubebuilder Book](https://book.kubebuilder.io/) is a good introduction to the topic and we recommend reading it before proceeding.
 
@@ -98,13 +116,56 @@ Provide an optional [.netrc file](https://www.gnu.org/software/inetutils/manual/
 
 ## Running locally
 
-Running `make minikube-up` will spin up a local K8s cluster with the operator deployed.
+The local development environment uses a **stub provider** so you can test the full operator reconciliation loop without any real training infrastructure (no Vertex AI, no Kubeflow Pipelines, etc.).
 
-You can optionally perform additional provider setup and teardown steps by including a `provider-setup.sh` and `provider-teardown.sh` script.
+### Getting started
 
-CRDs will be installed into a local [minikube](https://github.com/kubernetes/minikube) cluster.
+```sh
+# Spin everything up (minikube, argo, cert-manager, minio, operator, eventing, stub provider)
+make minikube-up
 
-Please refer to the [quickstart tutorial](../quickstart) for instructions on creating a sample pipeline resource.
+# Apply resources
+kubectl apply -f local/pipeline.yaml
+kubectl apply -f local/runconfiguration.yaml
+
+# Watch them reconcile
+kubectl get pipelines -w
+kubectl get runconfigurations -w
+kubectl get runschedules -w
+kubectl get runs -w
+```
+
+After a minute or so, `stub-pipeline` should reach `Succeeded` and `stub-runconfiguration` should be actively creating RunSchedules and a Run.
+The Run should reach `Succeeded` and then be deleted. Shortly after the Run is created, the stub provider fires a fake run completion event.
+You can verify the full eventing flow by checking the Sensor logs — it should log `Successfully processed trigger 'log'` once the event has passed through the webhook, trigger service, NATS, and EventSource.
+
+### Rebuild after code changes
+
+```sh
+make minikube-upgrade
+```
+
+This rebuilds the operator, stub provider, and stub compiler images, pushes them to the in-cluster registry, and does a `helm upgrade`.
+
+### Tear down
+
+```sh
+make minikube-down
+```
+
+### How the stubs work
+
+- The stub provider (`provider-service/stub`) implements the full provider gRPC interface but doesn't talk to any external service.
+  Every operation (create/update/delete for pipelines, runs, run schedules, and experiments) returns a hardcoded success response immediately.
+  This means the operator's reconciliation loop runs end-to-end — creating Argo Workflows, waiting for them to complete, updating status — without needing real infrastructure.
+  - When a run is created, the stub provider also fires a fake run completion event to the operator's webhook after a 5-second delay (simulating pipeline execution time).
+    This exercises the full eventing flow: the event is received by the webhook, forwarded via gRPC to the run completion event trigger, published to NATS, picked up by the Argo Events EventSource, and delivered to the Sensor.
+
+- The stub compiler (`compilers/stub`) is equally minimal. Its `compile.sh` writes a static `{"foo": "bar"}` JSON file as the compiled pipeline output, and its `inject.sh` simply copies the compile script into the workflow step.
+  This is enough for the operator to treat the pipeline as successfully compiled.
+
+- The stub Provider CR (`local/stub-provider.yaml`) registers both `stub` and `tfx` as supported frameworks, both pointing at the stub compiler image.
+  This lets you test with either framework name in your Pipeline resources.
 
 ## Run Argo integration tests
 

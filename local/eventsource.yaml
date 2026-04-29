@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventBus
+metadata:
+  name: default
+  namespace: kfp-operator-system
+spec:
+  nats:
+    native: {}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: run-completion
+  namespace: kfp-operator-system
+spec:
+  eventBusName: default
+  nats:
+    run-completion:
+      jsonBody: true
+      subject: events
+      url: nats://eventbus-kfp-operator-events-stan-svc.kfp-operator-system.svc:4222

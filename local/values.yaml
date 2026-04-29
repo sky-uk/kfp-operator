@@ -16,7 +16,7 @@ manager:
       name: kfp-operator-argo
       create: true
   configuration:
-    defaultProvider: vai
+    defaultProvider: stub
     defaultExperiment: Default
     runCompletionTTL: 30s
   monitoring:
@@ -45,20 +45,9 @@ statusFeedback:
   enabled: true
 
 providers:
-- vai
+- stub
 
 provider:
-  env:
-  - name: GOOGLE_APPLICATION_CREDENTIALS
-    value: /etc/gcloud/key-file.json
-  volumes:
-  - name: gcp-credentials
-    secret:
-      secretName: gcp-credentials
-  volumeMounts:
-  - name: gcp-credentials
-    mountPath: /etc/gcloud
-    readOnly: true
   replicas: 1
   resources:
     limits:

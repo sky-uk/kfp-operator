@@ -1,21 +1,33 @@
 package provider
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	. "github.com/sky-uk/kfp-operator/pkg/common/testutil/provider"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
 
 type StubProvider struct {
-	logger logr.Logger
+	logger          logr.Logger
+	operatorWebhook string
+	providerName    common.NamespacedName
 }
 
-func New(logger logr.Logger) resource.Provider {
-	return &StubProvider{logger}
+func New(logger logr.Logger, operatorWebhook string, providerName common.NamespacedName) resource.Provider {
+	return &StubProvider{
+		logger:          logger,
+		operatorWebhook: operatorWebhook,
+		providerName:    providerName,
+	}
 }
 
 func (p *StubProvider) CreatePipeline(
@@ -55,8 +67,52 @@ func (p *StubProvider) CreateRun(
 ) (string, error) {
 	if strings.EqualFold(rd.Name.Name, CreateRunFail) {
 		return "", &CreateRunError{}
+	}
+
+	if p.operatorWebhook != "" {
+		go p.fireRunCompletionEvent(rd)
+	}
+
+	return CreateRunSucceeded, nil
+}
+
+func (p *StubProvider) fireRunCompletionEvent(rd base.RunDefinition) {
+	startTime := time.Now().UTC()
+	time.Sleep(5 * time.Second)
+	now := time.Now().UTC()
+	runId := fmt.Sprintf("stub-run-%d", now.Unix())
+
+	event := common.RunCompletionEventData{
+		Status:               common.RunCompletionStatuses.Succeeded,
+		PipelineName:         rd.PipelineName,
+		RunConfigurationName: rd.RunConfigurationName.NonEmptyPtr(),
+		RunName:              rd.Name.NonEmptyPtr(),
+		RunId:                runId,
+		RunStartTime:         &startTime,
+		RunEndTime:           &now,
+		PipelineComponents:   []common.PipelineComponent{},
+		Provider:             p.providerName,
+	}
+
+	body, err := json.Marshal(event)
+	if err != nil {
+		p.logger.Error(err, "failed to marshal run completion event")
+		return
+	}
+
+	p.logger.Info("firing run completion event", "webhook", p.operatorWebhook, "runId", runId, "runName", rd.Name)
+
+	resp, err := http.Post(p.operatorWebhook, "application/json", bytes.NewReader(body))
+	if err != nil {
+		p.logger.Error(err, "failed to send run completion event")
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		p.logger.Info("run completion event sent successfully", "runId", runId)
 	} else {
-		return CreateRunSucceeded, nil
+		p.logger.Error(fmt.Errorf("unexpected status code: %d", resp.StatusCode), "run completion event failed", "runId", runId)
 	}
 }
 

@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: stub-run-completion
+  namespace: kfp-operator-system
+spec:
+  eventBusName: default
+  dependencies:
+    - name: run-completion
+      eventSourceName: run-completion
+      eventName: run-completion
+  triggers:
+    - template:
+        name: log
+        log: {}
