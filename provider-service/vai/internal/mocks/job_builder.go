@@ -12,8 +12,9 @@ type MockJobBuilder struct{ mock.Mock }
 
 func (m *MockJobBuilder) MkRunPipelineJob(
 	rd base.RunDefinition,
+	networkAttachment string,
 ) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(rd)
+	args := m.Called(rd, networkAttachment)
 	var pipelineJob *aiplatformpb.PipelineJob
 	if arg0 := args.Get(0); arg0 != nil {
 		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
@@ -23,8 +24,9 @@ func (m *MockJobBuilder) MkRunPipelineJob(
 
 func (m *MockJobBuilder) MkRunSchedulePipelineJob(
 	rsd base.RunScheduleDefinition,
+	networkAttachment string,
 ) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(rsd)
+	args := m.Called(rsd, networkAttachment)
 	var pipelineJob *aiplatformpb.PipelineJob
 	if arg0 := args.Get(0); arg0 != nil {
 		pipelineJob = arg0.(*aiplatformpb.PipelineJob)

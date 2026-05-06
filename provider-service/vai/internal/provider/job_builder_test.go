@@ -27,7 +27,7 @@ var _ = Describe("JobBuilder", func() {
 		When("templateUri is valid", func() {
 			It("should make a run pipeline job", func() {
 				rd := testutil.RandomRunDefinition()
-				job, err := jb.MkRunPipelineJob(rd)
+				job, err := jb.MkRunPipelineJob(rd, "")
 				expectedTemplateUri := fmt.Sprintf(
 					"gs://%s/%s/%s/%s",
 					jb.pipelineBucket,
@@ -50,7 +50,7 @@ var _ = Describe("JobBuilder", func() {
 			It("should return error", func() {
 				rd := testutil.RandomRunDefinition()
 				rd.PipelineName.Name = ""
-				_, err := jb.MkRunPipelineJob(rd)
+				_, err := jb.MkRunPipelineJob(rd, "")
 
 				Expect(err).To(HaveOccurred())
 			})
@@ -59,9 +59,18 @@ var _ = Describe("JobBuilder", func() {
 			It("should return error", func() {
 				rd := testutil.RandomRunDefinition()
 				rd.PipelineName.Name = ""
-				_, err := jb.MkRunPipelineJob(rd)
+				_, err := jb.MkRunPipelineJob(rd, "")
 
 				Expect(err).To(HaveOccurred())
+			})
+		})
+		When("network attachment is provided", func() {
+			It("should set the network attachment", func() {
+				networkAttachment := "some-network-attachment"
+				rd := testutil.RandomRunDefinition()
+				job, err := jb.MkRunPipelineJob(rd, networkAttachment)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(job.PscInterfaceConfig.NetworkAttachment).To(Equal(networkAttachment))
 			})
 		})
 	})
@@ -70,7 +79,7 @@ var _ = Describe("JobBuilder", func() {
 		When("templateUri is valid", func() {
 			It("should make a run schedule pipeline job", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
-				job, err := jb.MkRunSchedulePipelineJob(rsd)
+				job, err := jb.MkRunSchedulePipelineJob(rsd, "")
 				expectedTemplateUri := fmt.Sprintf(
 					"gs://%s/%s/%s/%s",
 					jb.pipelineBucket,
@@ -93,7 +102,7 @@ var _ = Describe("JobBuilder", func() {
 			It("should return error", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				rsd.PipelineName.Name = ""
-				_, err := jb.MkRunSchedulePipelineJob(rsd)
+				_, err := jb.MkRunSchedulePipelineJob(rsd, "")
 
 				Expect(err).To(HaveOccurred())
 			})
@@ -102,9 +111,18 @@ var _ = Describe("JobBuilder", func() {
 			It("should return error", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				rsd.PipelineName.Name = ""
-				_, err := jb.MkRunSchedulePipelineJob(rsd)
+				_, err := jb.MkRunSchedulePipelineJob(rsd, "")
 
 				Expect(err).To(HaveOccurred())
+			})
+		})
+		When("network attachment is provided", func() {
+			It("should set the network attachment", func() {
+				networkAttachment := "some-network-attachment"
+				rsd := testutil.RandomRunScheduleDefinition()
+				job, err := jb.MkRunSchedulePipelineJob(rsd, networkAttachment)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(job.PscInterfaceConfig.NetworkAttachment).To(Equal(networkAttachment))
 			})
 		})
 	})
