@@ -82,6 +82,7 @@ spec:
 ```
 
 #### Kubeflow Pipelines Specific Parameters
+
 | Name                                  | Description                                                               |
 |---------------------------------------|---------------------------------------------------------------------------|
 | `parameters.grpcKfpApiAddress`        | The exposed grpc endpoint used to interact with Kubeflow pipelines        |
@@ -128,13 +129,13 @@ spec:
 
 #### Vertex AI Specific Parameters
 
-| Name                                    | Description                                                                                                                                                |
-|-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `eventsourcePipelineEventsSubscription` | The eventsource subscription used to capture run-completion events                                                                                         |
-| `maxConcurrentRunCount`                 | The number of pipelines that may run concurrently                                                                                                          |
-| `pipelineBucket`                        | The output storage bucket for a trained pipeline model                                                                                                     |
-| `vaiJobServiceAccount`                  | The service account should be used by VAI when submitting a pipeline                                                                                       |
-| `vaiLocation`                           | The region VAI should run a pipeline within                                                                                                                |
-| `vaiProject`                            | The project VAI should run a pipeline within                                                                                                               |
-| `pscNetworkAttachment`                  | The network attachment for [Private Service Connect](https://docs.cloud.google.com/vpc/docs/private-service-connect) to be used when submitting a pipeline |
+| Name                                    | Description                                                                                                                                           |
+|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `eventsourcePipelineEventsSubscription` | The eventsource subscription used to capture run-completion events                                                                                    |
+| `maxConcurrentRunCount`                 | The number of pipelines that may run concurrently                                                                                                     |
+| `pipelineBucket`                        | The output storage bucket for a trained pipeline model                                                                                                |
+| `vaiJobServiceAccount`                  | The service account should be used by VAI when submitting a pipeline                                                                                  |
+| `vaiLocation`                           | The region VAI should run a pipeline within                                                                                                           |
+| `vaiProject`                            | The project VAI should run a pipeline within                                                                                                          |
+| `pscNetworkAttachment`                  | The network attachment for [Private Service Connect](https://docs.cloud.google.com/vpc/docs/private-service-connect) to be used when submitting a job |
 
