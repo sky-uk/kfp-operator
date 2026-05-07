@@ -15,7 +15,7 @@ dependencies = [
 dev = [
     "pytest==8.4.2",
     "tfx==1.14",
-    "shapely<2",
+    "shapely<3",
 ]
 
 [project.scripts]
