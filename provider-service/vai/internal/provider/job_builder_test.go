@@ -73,6 +73,15 @@ var _ = Describe("JobBuilder", func() {
 				Expect(job.PscInterfaceConfig.NetworkAttachment).To(Equal(networkAttachment))
 			})
 		})
+		When("network attachment is not provided", func() {
+			It("should not setup the `PscInterfaceConfig`", func() {
+				networkAttachment := ""
+				rd := testutil.RandomRunDefinition()
+				job, err := jb.MkRunPipelineJob(rd, networkAttachment)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(job.PscInterfaceConfig).To(BeNil())
+			})
+		})
 	})
 
 	Context("MkRunSchedulePipelineJob", func() {
@@ -123,6 +132,15 @@ var _ = Describe("JobBuilder", func() {
 				job, err := jb.MkRunSchedulePipelineJob(rsd, networkAttachment)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(job.PscInterfaceConfig.NetworkAttachment).To(Equal(networkAttachment))
+			})
+		})
+		When("network attachment is not provided", func() {
+			It("should not setup the `PscInterfaceConfig`", func() {
+				networkAttachment := ""
+				rsd := testutil.RandomRunScheduleDefinition()
+				job, err := jb.MkRunSchedulePipelineJob(rsd, networkAttachment)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(job.PscInterfaceConfig).To(BeNil())
 			})
 		})
 	})
