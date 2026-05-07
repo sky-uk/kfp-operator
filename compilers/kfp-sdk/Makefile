@@ -21,6 +21,10 @@ DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-arg
 
 ##@ Development
 
+format: ## Format and fix source files in place
+	uv run ruff format .
+	uv run ruff check --fix .
+
 test: build ## Run unit tests
 	uv run pytest
 
