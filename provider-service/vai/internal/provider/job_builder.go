@@ -2,8 +2,9 @@ package provider
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"time"
+
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
@@ -15,9 +16,11 @@ import (
 type JobBuilder interface {
 	MkRunPipelineJob(
 		rd base.RunDefinition,
+		networkAttachment string,
 	) (*aiplatformpb.PipelineJob, error)
 	MkRunSchedulePipelineJob(
 		rsd base.RunScheduleDefinition,
+		networkAttachment string,
 	) (*aiplatformpb.PipelineJob, error)
 	MkSchedule(
 		rsd base.RunScheduleDefinition,
@@ -38,6 +41,7 @@ type DefaultJobBuilder struct {
 // to a vai pipeline job client.
 func (jb DefaultJobBuilder) MkRunPipelineJob(
 	rd base.RunDefinition,
+	networkAttachment string,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.Parameters))
 	for name, value := range rd.Parameters {
@@ -67,15 +71,16 @@ func (jb DefaultJobBuilder) MkRunPipelineJob(
 		return nil, err
 	}
 
-	job := jb.newPipelineJob(labels, params, pipelineResourceName, templateUri)
+	job := jb.newPipelineJob(labels, params, pipelineResourceName, templateUri, networkAttachment)
 
 	return job, nil
 }
 
-// MkRunScheudlePipelineJob creates a vai pipeline job for a run schedule that
+// MkRunSchedulePipelineJob creates a vai pipeline job for a run schedule that
 // can be used to create a vai schedule.
 func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 	rsd base.RunScheduleDefinition,
+	networkAttachment string,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rsd.Parameters))
 	for name, value := range rsd.Parameters {
@@ -108,7 +113,7 @@ func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 		return nil, err
 	}
 
-	job := jb.newPipelineJob(labels, params, pipelineResourceName, templateUri)
+	job := jb.newPipelineJob(labels, params, pipelineResourceName, templateUri, networkAttachment)
 
 	return job, nil
 }
@@ -151,7 +156,7 @@ func (jb DefaultJobBuilder) MkSchedule(
 	return schedule, nil
 }
 
-func (jb DefaultJobBuilder) newPipelineJob(labels map[string]string, params map[string]*aiplatformpb.Value, resourceName string, templateUri string) *aiplatformpb.PipelineJob {
+func (jb DefaultJobBuilder) newPipelineJob(labels map[string]string, params map[string]*aiplatformpb.Value, resourceName string, templateUri string, networkAttachment string) *aiplatformpb.PipelineJob {
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels: labels,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
@@ -160,6 +165,11 @@ func (jb DefaultJobBuilder) newPipelineJob(labels map[string]string, params map[
 		},
 		ServiceAccount: jb.serviceAccount,
 		TemplateUri:    templateUri,
+	}
+	if networkAttachment != "" {
+		pipelineJob.PscInterfaceConfig = &aiplatformpb.PscInterfaceConfig{
+			NetworkAttachment: networkAttachment,
+		}
 	}
 	return pipelineJob
 }

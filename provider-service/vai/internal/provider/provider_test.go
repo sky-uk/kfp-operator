@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -168,7 +169,7 @@ var _ = Describe("Provider", func() {
 						rd.PipelineVersion,
 					),
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", rd, mock.Anything).Return(&pj, nil)
+				mockJobBuilder.On("MkRunPipelineJob", rd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockPipelineClient.On(
 					"CreatePipelineJob",
@@ -204,7 +205,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", rd, mock.Anything).Return(nil, errors.New("failed"))
+				mockJobBuilder.On("MkRunPipelineJob", rd, "").Return(nil, errors.New("failed"))
 				_, err := vaiProvider.CreateRun(ctx, rd)
 
 				Expect(err).To(HaveOccurred())
@@ -219,7 +220,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", rd, mock.Anything).Return(&pj, nil)
+				mockJobBuilder.On("MkRunPipelineJob", rd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(nil, errors.New("failed"))
 				_, err := vaiProvider.CreateRun(ctx, rd)
 
@@ -235,7 +236,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", rd, mock.Anything).Return(&pj, nil)
+				mockJobBuilder.On("MkRunPipelineJob", rd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockPipelineClient.On("CreatePipelineJob", mock.Anything).Return(nil, errors.New("failed"))
 				_, err := vaiProvider.CreateRun(ctx, rd)
@@ -262,7 +263,7 @@ var _ = Describe("Provider", func() {
 						rsd.PipelineVersion,
 					),
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockJobBuilder.On(
 					"MkSchedule",
@@ -304,7 +305,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(nil, errors.New("failed"))
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(nil, errors.New("failed"))
 				_, err := vaiProvider.CreateRunSchedule(ctx, rsd)
 
 				Expect(err).To(HaveOccurred())
@@ -319,7 +320,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(nil, errors.New("failed"))
 				_, err := vaiProvider.CreateRunSchedule(ctx, rsd)
 
@@ -335,7 +336,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockJobBuilder.On(
 					"MkSchedule",
@@ -358,7 +359,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockJobBuilder.On(
 					"MkSchedule",
@@ -391,7 +392,7 @@ var _ = Describe("Provider", func() {
 						rsd.PipelineVersion,
 					),
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockJobBuilder.On(
 					"MkSchedule",
@@ -438,7 +439,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(nil, errors.New("failed"))
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(nil, errors.New("failed"))
 				_, err := vaiProvider.UpdateRunSchedule(ctx, rsd, "")
 
 				Expect(err).To(HaveOccurred())
@@ -453,7 +454,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(nil, errors.New("failed"))
 				_, err := vaiProvider.UpdateRunSchedule(ctx, rsd, "")
 
@@ -469,7 +470,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockJobBuilder.On(
 					"MkSchedule",
@@ -492,7 +493,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd, "").Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockJobBuilder.On(
 					"MkSchedule",

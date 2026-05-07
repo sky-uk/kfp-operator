@@ -16,6 +16,7 @@ type Parameters struct {
 	VaiProject                            string `mapstructure:"vaiProject" yaml:"vaiProject"`
 	VaiLocation                           string `mapstructure:"vaiLocation" yaml:"vaiLocation"`
 	VaiJobServiceAccount                  string `mapstructure:"vaiJobServiceAccount" yaml:"vaiJobServiceAccount"`
+	PscNetworkAttachment                  string `mapstructure:"pscNetworkAttachment" yaml:"pscNetworkAttachment"`
 	GcsEndpoint                           string `mapstructure:"gcsEndpoint" yaml:"gcsEndpoint"`
 	PipelineBucket                        string `mapstructure:"pipelineBucket" yaml:"pipelineBucket"`
 	EventsourcePipelineEventsSubscription string `mapstructure:"eventsourcePipelineEventsSubscription" yaml:"eventsourcePipelineEventsSubscription"`

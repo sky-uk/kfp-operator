@@ -141,7 +141,7 @@ func (vaip *VAIProvider) CreateRun(ctx context.Context, rd base.RunDefinition) (
 		return "", err
 	}
 
-	job, err := vaip.jobBuilder.MkRunPipelineJob(rd)
+	job, err := vaip.jobBuilder.MkRunPipelineJob(rd, vaip.config.Parameters.PscNetworkAttachment)
 	if err != nil {
 		return "", err
 	}
@@ -196,7 +196,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd)
+	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd, vaip.config.Parameters.PscNetworkAttachment)
 	if err != nil {
 		return "", err
 	}
@@ -256,7 +256,7 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 		return "", err
 	}
 
-	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd)
+	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd, vaip.config.Parameters.PscNetworkAttachment)
 	if err != nil {
 		return "", err
 	}
