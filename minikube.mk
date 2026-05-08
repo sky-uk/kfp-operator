@@ -4,11 +4,11 @@ MINIKUBE_VERSION := $(shell git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*
 MINIKUBE_REGISTRY_PORT = $(shell docker inspect $(MINIKUBE_PROFILE) --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 MINIKUBE_GOARCH := $(shell go env GOARCH)
 
-##@ Local development with stub provider (no real training infrastructure needed)
+##@ Local development with stub provider
 
 minikube-start: ## Start minikube cluster with registry
 	minikube start -p $(MINIKUBE_PROFILE) --driver=docker --registry-mirror="https://mirror.gcr.io"
-	minikube addons enable registry -p $(MINIKUBE_PROFILE) --images="KubeRegistryProxy=gcr.io/google_containers/kube-registry-proxy:0.4" ## The default gcr.io/k8s-minikube/kube-registry-proxy:0.0.5 isn't available anymore, the real fix is to update to the latest version of minikube
+	minikube addons enable registry -p $(MINIKUBE_PROFILE) --images="KubeRegistryProxy=gcr.io/google_containers/kube-registry-proxy:0.4" # The default gcr.io/k8s-minikube/kube-registry-proxy:0.0.5 isn't available anymore, the real fix is to update to the latest version of minikube
 	minikube ssh -p $(MINIKUBE_PROFILE) "sudo sysctl fs.inotify.max_user_watches=524288 && sudo sysctl fs.inotify.max_user_instances=512"
 
 minikube-install-dependencies: helm-cmd ## Install Argo Workflows, Argo Events, and cert-manager
