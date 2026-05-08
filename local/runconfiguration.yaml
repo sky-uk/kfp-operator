@@ -11,6 +11,7 @@ spec:
   triggers:
     onChange:
     - pipeline
+    - runSpec
     schedules:
     - cronExpression: "0 * * * *"
       startTime: "2025-01-01T00:00:00Z"
