@@ -4,7 +4,6 @@ metadata:
   name: stub-run-completion
   namespace: kfp-operator-system
 spec:
-  eventBusName: default
   dependencies:
   - name: run-completion
     eventSourceName: run-completion

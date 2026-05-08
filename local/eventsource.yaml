@@ -13,7 +13,6 @@ metadata:
   name: run-completion
   namespace: kfp-operator-system
 spec:
-  eventBusName: default
   nats:
     run-completion:
       jsonBody: true
