@@ -76,7 +76,7 @@ minikube-upgrade: ## Rebuild and upgrade operator + stub provider in-place
 	$(MAKE) docker-push docker-push-triggers VERSION=$(MINIKUBE_VERSION) GOARCH=$(MINIKUBE_GOARCH)
 	$(MAKE) -C provider-service/stub docker-push VERSION=$(MINIKUBE_VERSION) GOARCH=$(MINIKUBE_GOARCH)
 	$(MAKE) -C compilers/stub docker-push VERSION=$(MINIKUBE_VERSION) GOARCH=$(MINIKUBE_GOARCH)
-	$(MAKE) minikube-helm-upgrade VERSION=$(MINIKUBE_VERSION) CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
+	$(MAKE) minikube-helm-upgrade VERSION=$(MINIKUBE_VERSION) CONTAINER_REPOSITORIES=$(CONTAINER_REPOSITORIES)
 	$(MAKE) minikube-apply-provider
 
 minikube-down: ## Tear down the minikube cluster
