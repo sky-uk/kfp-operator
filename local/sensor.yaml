@@ -6,10 +6,10 @@ metadata:
 spec:
   eventBusName: default
   dependencies:
-    - name: run-completion
-      eventSourceName: run-completion
-      eventName: run-completion
+  - name: run-completion
+    eventSourceName: run-completion
+    eventName: run-completion
   triggers:
-    - template:
-        name: log
-        log: {}
+  - template:
+      name: log
+      log: {}
