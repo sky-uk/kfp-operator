@@ -44,9 +44,6 @@ runcompletionEventTrigger:
 statusFeedback:
   enabled: true
 
-providers:
-- stub
-
 provider:
   replicas: 1
   resources:
