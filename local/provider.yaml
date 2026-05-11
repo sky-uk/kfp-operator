@@ -1,0 +1,17 @@
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Provider
+metadata:
+  name: stub
+  namespace: kfp-operator-system
+spec:
+  serviceImage: localhost:5000/kfp-operator/kfp-operator-stub-provider-service:VERSION
+  serviceAccount: default
+  pipelineRootStorage: /tmp/pipeline-root
+  frameworks:
+  - name: stub
+    image: localhost:5000/kfp-operator/kfp-operator-stub-compiler:VERSION
+  - name: tfx
+    image: localhost:5000/kfp-operator/kfp-operator-stub-compiler:VERSION
+  allowedNamespaces:
+  - default
+  - kfp-operator-system

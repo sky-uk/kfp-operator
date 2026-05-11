@@ -1,0 +1,11 @@
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Pipeline
+metadata:
+  name: stub-pipeline
+  namespace: default
+spec:
+  provider: kfp-operator-system/stub
+  image: alpine:latest
+  framework:
+    name: stub
+    parameters: {}

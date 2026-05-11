@@ -1,78 +1,83 @@
-minikube-install-dependencies:
+MINIKUBE_PROFILE := local-kfp-operator
+MINIKUBE_REGISTRY := localhost:5000/kfp-operator
+MINIKUBE_VERSION := $(shell git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*' | sed 's/^v//')
+MINIKUBE_REGISTRY_PORT = $(shell docker inspect $(MINIKUBE_PROFILE) --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
+MINIKUBE_GOARCH := $(shell go env GOARCH)
+
+##@ Local development with stub provider
+
+minikube-start: ## Start minikube cluster with registry
+	minikube start -p $(MINIKUBE_PROFILE) --driver=docker --registry-mirror="https://mirror.gcr.io"
+	minikube addons enable registry -p $(MINIKUBE_PROFILE) --images="KubeRegistryProxy=gcr.io/google_containers/kube-registry-proxy:0.4" # The default gcr.io/k8s-minikube/kube-registry-proxy:0.0.5 isn't available anymore, the real fix is to update to the latest version of minikube
+	minikube ssh -p $(MINIKUBE_PROFILE) "sudo sysctl fs.inotify.max_user_watches=524288 && sudo sysctl fs.inotify.max_user_instances=512"
+
+minikube-install-dependencies: helm-cmd ## Install Argo Workflows, Argo Events, and cert-manager
 	$(HELM) repo add argo https://argoproj.github.io/argo-helm
-	$(HELM) install argo-workflows argo/argo-workflows -n argo --create-namespace
-	$(HELM) install argo-events argo/argo-events -n argo-events --create-namespace
-	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.crds.yaml
-	openssl req -new -newkey rsa:2048 -days 365 -keyout ./local/kfp-operator-webhook.key -out ./local/kfp-operator-webhook.csr \
-	  -subj "/C=US/ST=California/L=San Francisco/O=My Organization/OU=My Unit/CN=kfp-operator-webhook-service.kfp-operator-system.svc" \
-	  -extensions san -config <(echo "[req]"; echo "distinguished_name=req_distinguished_name"; echo "x509_extensions = san"; \
-	  echo "[req_distinguished_name]"; echo "C=US"; echo "ST=California"; echo "L=San Francisco"; echo "O=My Organization"; \
-	  echo "OU=My Unit"; echo "CN=kfp-operator-webhook-service.kfp-operator-system.svc"; \
-	  echo "[san]"; echo "subjectAltName=DNS:kfp-operator-webhook-service.kfp-operator-system.svc,DNS:kfp-operator-webhook-service") -nodes
-	openssl x509 -req -in ./local/kfp-operator-webhook.csr -signkey ./local/kfp-operator-webhook.key -out ./local/kfp-operator-webhook.crt \
-	  -extensions v3_req -extfile <(echo "[v3_req]"; echo "subjectAltName=DNS:kfp-operator-webhook-service.kfp-operator-system.svc,DNS:kfp-operator-webhook-service")
-	kubectl create namespace kfp-operator-system
-	kubectl create namespace vai
-	kubectl create namespace kfp
-	kubectl create secret tls webhook-server-cert --cert=./local/kfp-operator-webhook.crt --key=./local/kfp-operator-webhook.key --namespace kfp-operator-system
-	sleep 20
+	$(HELM) repo add jetstack https://charts.jetstack.io
+	$(HELM) repo update
+	$(HELM) upgrade --install argo-workflows argo/argo-workflows -n argo --create-namespace
+	$(HELM) upgrade --install argo-events argo/argo-events -n argo-events --create-namespace
+	$(HELM) upgrade --install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --set crds.enabled=true
+	kubectl create namespace kfp-operator-system --dry-run=client -o yaml | kubectl apply -f -
+	@echo "Waiting for cert-manager webhook to be ready..."
+	kubectl rollout status deployment/cert-manager-webhook -n cert-manager
 
-minikube-helm-install-operator: helm-package-operator ./local/values.yaml
+minikube-install-minio: ## Deploy MinIO for Argo artifact storage
+	@echo "Deploying MinIO for Argo artifact storage..."
+	kubectl apply -f ./local/minio.yaml
+	kubectl rollout status deployment/minio -n argo
+	@echo "Creating argo-artifacts bucket..."
+	kubectl delete pod minio-setup -n argo --ignore-not-found
+	kubectl run minio-setup --image=minio/mc:latest --restart=Never -n argo --command -- \
+		sh -c 'mc alias set local http://minio:9000 minioadmin minioadmin && mc mb local/argo-artifacts --ignore-existing'
+	kubectl wait --for=jsonpath='{.status.phase}'=Succeeded pod/minio-setup -n argo
+	kubectl delete pod minio-setup -n argo --ignore-not-found
+	@echo "Configuring Argo workflow controller to use MinIO..."
+	kubectl create configmap argo-workflows-workflow-controller-configmap -n argo \
+		--from-file=config=./local/argo-artifact-config.yaml --dry-run=client -o yaml | kubectl apply -f -
+	kubectl rollout restart deployment/argo-workflows-workflow-controller -n argo
+	kubectl rollout status deployment/argo-workflows-workflow-controller -n argo
+	@echo "MinIO artifact storage configured successfully."
 
-	$(HELM) install -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
+minikube-helm-install: helm-package-operator ./local/values.yaml ## Helm install the operator
+	$(HELM) upgrade --install -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=$(MINIKUBE_REGISTRY)
 
-minikube-helm-upgrade-operator: helm-package-operator ./local/values.yaml
-	$(HELM) upgrade -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
+minikube-helm-upgrade: helm-package-operator ./local/values.yaml ## Helm upgrade the operator
+	$(HELM) upgrade -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=$(MINIKUBE_REGISTRY)
 
-minikube-install-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
-minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
-minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
-minikube-install-operator:
-	$(MAKE) docker-push docker-push-triggers docker-push-providers
-	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
+minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:$(MINIKUBE_REGISTRY_PORT)/kfp-operator
+minikube-install-operator: ## Build and push operator + stub images, then helm install
+	$(MAKE) docker-push docker-push-triggers VERSION=$(MINIKUBE_VERSION) GOARCH=$(MINIKUBE_GOARCH)
+	$(MAKE) -C provider-service/stub docker-push VERSION=$(MINIKUBE_VERSION) GOARCH=$(MINIKUBE_GOARCH)
+	$(MAKE) -C compilers/stub docker-push VERSION=$(MINIKUBE_VERSION) GOARCH=$(MINIKUBE_GOARCH)
+	$(MAKE) minikube-helm-install VERSION=$(MINIKUBE_VERSION) CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
 
-minikube-install-provider: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
-minikube-install-provider: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
-minikube-install-provider: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
-minikube-install-provider:
-	$(MAKE) -C provider-service docker-push
-	$(MAKE) minikube-provider-setup
+minikube-apply-provider: ## Apply the stub Provider CR into the cluster
+	@sed "s|:VERSION|:$(MINIKUBE_VERSION)|g" ./local/provider.yaml | kubectl apply -f -
 
-minikube-provider-setup:
-	@if [ -f ./provider-setup.sh ]; then \
-		echo "Running provider setup script"; \
-		bash ./provider-setup.sh; \
-	else \
-		echo "Provider setup script not found"; \
-	fi
+minikube-install-eventing: ## Deploy EventSource and Sensor for run completion events
+	@echo "Deploying Argo Events EventSource and Sensor..."
+	kubectl apply -f ./local/eventsource.yaml
+	kubectl apply -f ./local/sensor.yaml
+	@echo "Waiting for EventBus to be ready..."
+	kubectl wait --for=condition=Deployed eventbus/default -n kfp-operator-system
+	@echo "Eventing resources deployed."
 
-minikube-provider-teardown:
-	@if [ -f ./provider-teardown.sh ]; then \
-		echo "Running provider teardown script"; \
-		bash ./provider-teardown.sh; \
-	else \
-		echo "Provider teardown script not found"; \
-	fi
-
-minikube-upgrade-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
-minikube-upgrade-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
-minikube-upgrade-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
-minikube-upgrade-operator:
-	$(MAKE) docker-push docker-push-triggers
-	$(MAKE) minikube-helm-upgrade-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
-
-minikube-upgrade-provider: minikube-provider-teardown minikube-install-provider
-
-minikube-start:
-	minikube start -p local-kfp-operator --driver=docker --registry-mirror="https://mirror.gcr.io"
-	minikube addons enable registry -p local-kfp-operator
-
-minikube-up:
+minikube-up: ## Spin up the full local stack from scratch
 	$(MAKE) minikube-start
 	$(MAKE) minikube-install-dependencies
 	$(MAKE) minikube-install-operator
-	$(MAKE) minikube-install-provider
+	$(MAKE) minikube-install-minio
+	$(MAKE) minikube-install-eventing
+	$(MAKE) minikube-apply-provider
 
-minikube-down:
-	$(MAKE) minikube-provider-teardown
-	minikube delete -p local-kfp-operator
+minikube-upgrade: export CONTAINER_REPOSITORIES=localhost:$(MINIKUBE_REGISTRY_PORT)/kfp-operator
+minikube-upgrade: ## Rebuild and upgrade operator + stub provider in-place
+	$(MAKE) docker-push docker-push-triggers VERSION=$(MINIKUBE_VERSION) GOARCH=$(MINIKUBE_GOARCH)
+	$(MAKE) -C provider-service/stub docker-push VERSION=$(MINIKUBE_VERSION) GOARCH=$(MINIKUBE_GOARCH)
+	$(MAKE) -C compilers/stub docker-push VERSION=$(MINIKUBE_VERSION) GOARCH=$(MINIKUBE_GOARCH)
+	$(MAKE) minikube-helm-upgrade VERSION=$(MINIKUBE_VERSION) CONTAINER_REPOSITORIES=$(CONTAINER_REPOSITORIES)
+	$(MAKE) minikube-apply-provider
+
+minikube-down: ## Tear down the minikube cluster
+	minikube delete -p $(MINIKUBE_PROFILE)

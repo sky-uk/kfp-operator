@@ -18,7 +18,6 @@ func main() {
 	}
 
 	ctx := logr.NewContext(context.Background(), logger)
-	stubProvider := provider.New(logger)
 	cfg, err := baseConfig.LoadConfig(
 		baseConfig.Config{
 			Server: baseConfig.Server{
@@ -33,6 +32,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	stubProvider := provider.New(logger, cfg.OperatorWebhook, cfg.ProviderName)
 
 	if err = server.Start(ctx, *cfg, stubProvider); err != nil {
 		panic(err)

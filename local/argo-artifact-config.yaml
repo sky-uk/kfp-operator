@@ -1,0 +1,15 @@
+nodeEvents:
+  enabled: true
+workflowEvents:
+  enabled: true
+artifactRepository:
+  s3:
+    bucket: argo-artifacts
+    endpoint: minio.argo:9000
+    insecure: true
+    accessKeySecret:
+      name: argo-artifacts-minio
+      key: accesskey
+    secretKeySecret:
+      name: argo-artifacts-minio
+      key: secretkey
