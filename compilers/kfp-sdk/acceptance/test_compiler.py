@@ -1,12 +1,12 @@
 import os
 import sys
-import yaml
-
-import pytest
-from click.testing import CliRunner
-from compiler import compiler
 from tempfile import TemporaryDirectory
 
+import pytest
+import yaml
+from click.testing import CliRunner
+
+from compiler import compiler
 
 runner = CliRunner()
 
@@ -46,7 +46,7 @@ def test_compiler__compile(tmp_path):
         assert result.exit_code == 0
         assert os.stat(output_file).st_size != 0
 
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             pipeline = yaml.safe_load(f.read())
 
         assert pipeline["schemaVersion"] == "2.1.0"
@@ -56,6 +56,7 @@ def test_compiler__compile(tmp_path):
 
         for executor_name, executor_spec in executors.items():
             actual_image = executor_spec["container"]["image"]
-            assert (
-                actual_image == expected_image
-            ), f"Executor '{executor_name}' has image '{actual_image}', expected '{expected_image}'"
+            assert actual_image == expected_image, (
+                f"Executor '{executor_name}' has image"
+                f" '{actual_image}', expected '{expected_image}'"
+            )
