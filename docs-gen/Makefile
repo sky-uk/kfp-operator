@@ -61,6 +61,9 @@ archive-version: ## Archive a version of the documentation. Requires VERSION to 
 	cp -r static/master/ static/versions/${VERSION}/
 	cp -r includes/master/ includes/versions/${VERSION}/
 
+	# Remove Python package management files to prevent dependabot security updates on archived docs
+	find includes/versions/${VERSION}/ -type f \( -name 'pyproject.toml' -o -name 'uv.lock' \) -delete
+
 	# Add an entry to our version selector for the new version
 	echo '\n[[params.versions]]\nversion = "${VERSION}"\nurl = "/kfp-operator/versions/${VERSION}"' >> hugo.toml
 
