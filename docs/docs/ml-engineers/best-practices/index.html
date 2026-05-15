@@ -43,7 +43,7 @@ Auto
 </span></span><span class=line><span class=cl>    <span class=p>)</span>
 </span></span><span class=line><span class=cl>    <span class=c1># ... rest of pipeline with hardcoded values</span>
 </span></span></code></pre></div><h4 id=2-proper-parameterization>2. Proper Parameterization</h4><p><strong>Use environment variables for configuration and runtime parameters for experimentation:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=c># Pipeline resource with proper parameterization</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1alpha5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1beta1</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pipeline</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>training-pipeline</span><span class=w>
@@ -197,7 +197,7 @@ Auto
 </span></span><span class=line><span class=cl>kubectl create namespace customer-churn
 </span></span><span class=line><span class=cl>kubectl create namespace fraud-detection
 </span></span><span class=line><span class=cl>kubectl create namespace recommendation-engine
-</span></span></code></pre></div><h2 id=automation-and-scheduling>Automation and Scheduling</h2><h3 id=runconfiguration-best-practices>RunConfiguration Best Practices</h3><h4 id=1-intelligent-scheduling>1. Intelligent Scheduling</h4><p><strong>Set up appropriate scheduling based on data availability and business needs:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1alpha5</span><span class=w>
+</span></span></code></pre></div><h2 id=automation-and-scheduling>Automation and Scheduling</h2><h3 id=runconfiguration-best-practices>RunConfiguration Best Practices</h3><h4 id=1-intelligent-scheduling>1. Intelligent Scheduling</h4><p><strong>Set up appropriate scheduling based on data availability and business needs:</strong></p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1beta1</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>RunConfiguration</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>daily-model-training</span><span class=w>

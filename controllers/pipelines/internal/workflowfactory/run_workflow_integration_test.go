@@ -17,7 +17,6 @@ import (
 
 var _ = Context("Run Resource Workflows", Serial, func() {
 	workflowFactory := RunWorkflowFactory(config.ConfigSpec{
-		DefaultProvider: "not-used",
 		DefaultProviderValues: config.DefaultProviderValues{
 			ServicePort: 8080,
 		},

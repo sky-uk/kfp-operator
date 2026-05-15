@@ -279,7 +279,7 @@ kubectl logs -n kfp-operator-system deployment/kfp-operator-controller-manager
 ```bash
 # Create a test provider (adjust for your environment)
 cat <<EOF | kubectl apply -f -
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Provider
 metadata:
   name: test-provider

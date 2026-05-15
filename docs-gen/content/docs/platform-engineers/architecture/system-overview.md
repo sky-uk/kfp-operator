@@ -32,7 +32,7 @@ The **Kubeflow Pipelines Operator** is a Kubernetes-native solution that brings 
 The operator extends Kubernetes with custom resources that represent ML pipeline entities:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Pipeline
 metadata:
   name: training-pipeline
@@ -217,7 +217,7 @@ The KFP Operator supports multiple parameter types for maximum flexibility:
 #### Compile-time Parameters
 ```yaml
 # In your Pipeline resource
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Pipeline
 metadata:
   name: training-pipeline
@@ -250,7 +250,7 @@ num_epochs = RuntimeParameter(
 
 ```yaml
 # In your Run resource
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Run
 metadata:
   name: experiment-run-1
@@ -285,7 +285,7 @@ Traditional ML workflows often require manual intervention when a model finishes
 React to pipeline execution completion with detailed status information:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: RunConfiguration
 metadata:
   name: retrain-on-dependency-completion

@@ -12,7 +12,6 @@ import (
 
 var _ = Context("Experiment Resource Workflows", Serial, func() {
 	workflowFactory := ExperimentWorkflowFactory(config.ConfigSpec{
-		DefaultProvider: "not-used",
 		DefaultProviderValues: config.DefaultProviderValues{
 			ServicePort: 8080,
 		},
