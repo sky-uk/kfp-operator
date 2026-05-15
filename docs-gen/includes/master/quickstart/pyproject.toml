@@ -5,11 +5,9 @@ description = ""
 authors = []
 requires-python = "==3.10.12"
 dependencies = [
-    "tfx==1.15.1",
-    "shapely<2",
-    "kfp==1.8.22",
+    "tfx==1.17.3",
+    "kfp>=2.6.0,<2.7.0",
     "setuptools~=82.0",
-    "dill==0.3.1.1",
 ]
 
 [tool.setuptools]
