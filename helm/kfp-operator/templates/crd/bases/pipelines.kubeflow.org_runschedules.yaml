@@ -275,19 +275,7 @@ spec:
               provider:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?/[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                 type: string
-              runtimeParameters:
-                description: 'Deprecated: Needed for conversion only'
-                items:
-                  properties:
-                    name:
-                      type: string
-                    value:
-                      type: string
-                  required:
-                  - name
-                  - value
-                  type: object
-                type: array
+
               schedule:
                 properties:
                   cronExpression:
