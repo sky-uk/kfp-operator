@@ -12,7 +12,6 @@ import (
 
 var _ = Context("RunSchedule Resource Workflows", Serial, func() {
 	workflowFactory := RunScheduleWorkflowFactory(config.ConfigSpec{
-		DefaultProvider: "not-used",
 		DefaultProviderValues: config.DefaultProviderValues{
 			ServicePort: 8080,
 		},

@@ -52,7 +52,7 @@ def create_pipeline():
 
 ```yaml
 # Pipeline resource with proper parameterization
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Pipeline
 metadata:
   name: training-pipeline
@@ -269,15 +269,16 @@ kubectl create namespace recommendation-engine
 **Set up appropriate scheduling based on data availability and business needs:**
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: RunConfiguration
 metadata:
   name: daily-model-training
 spec:
   run:
     pipeline: training-pipeline
-    runtimeParameters:
-      data_date: "{{ .Date }}"
+    parameters:
+      - name: data_date
+        value: "{{ .Date }}"
   schedule:
     cron: "0 6 * * *"  # 6 AM daily
 ```

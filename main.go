@@ -34,7 +34,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	pipelineshubalpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	pipelineshubalpha6 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
 	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
@@ -59,7 +58,6 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(pipelineshubalpha5.AddToScheme(scheme))
 	utilruntime.Must(pipelineshubalpha6.AddToScheme(scheme))
 	utilruntime.Must(pipelineshub.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
@@ -105,11 +103,8 @@ func main() {
 		options.LeaderElectionID = ctrlConfig.System.LeaderElection.Id
 	}
 
-	// TODO: This is temporary whilst have conversion from v1alpha5/6 to v1beta1, this is to be removed once v1alpha6 is removed.
-	pipelineshubalpha5.DefaultProvider = ctrlConfig.Spec.DefaultProvider
-	pipelineshubalpha5.DefaultProviderNamespace = ctrlConfig.Spec.WorkflowNamespace
+	// TODO: This is temporary whilst have conversion from v1alpha6 to v1beta1, this is to be removed once v1alpha6 is removed.
 	pipelineshubalpha6.DefaultProviderNamespace = ctrlConfig.Spec.WorkflowNamespace
-	pipelineshubalpha5.DefaultTfxImage = ctrlConfig.Spec.DefaultTfxImage
 	pipelineshubalpha6.DefaultTfxImage = ctrlConfig.Spec.DefaultTfxImage
 
 	var mgr ctrl.Manager

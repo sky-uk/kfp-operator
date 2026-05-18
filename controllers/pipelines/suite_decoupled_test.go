@@ -114,7 +114,6 @@ var _ = BeforeSuite(func() {
 		},
 		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
-		DefaultProvider:   apis.RandomLowercaseString(),
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
 	}
 

@@ -39,7 +39,6 @@ type LeaderElectionConfig struct {
 }
 
 type ConfigSpec struct {
-	DefaultProvider        string                `yaml:"defaultProvider,omitempty"`
 	DefaultProviderValues  DefaultProviderValues `yaml:"defaultProviderValues,omitempty"`
 	DefaultTfxImage        string                `yaml:"defaultTfxImage,omitempty"`
 	WorkflowTemplatePrefix string                `yaml:"workflowTemplatePrefix,omitempty"`

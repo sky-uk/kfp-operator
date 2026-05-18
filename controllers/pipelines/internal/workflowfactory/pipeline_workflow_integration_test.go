@@ -13,7 +13,6 @@ import (
 var _ = Context("Pipeline Resource Workflows", Serial, func() {
 	workflowFactory := PipelineWorkflowFactory(
 		config.ConfigSpec{
-			DefaultProvider: "not-used",
 			DefaultProviderValues: config.DefaultProviderValues{
 				ServicePort: 8080,
 			},
