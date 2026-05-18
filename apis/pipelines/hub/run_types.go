@@ -35,11 +35,7 @@ type RunSpec struct {
 	Pipeline       PipelineIdentifier    `json:"pipeline,omitempty"`
 	ExperimentName string                `json:"experimentName,omitempty"`
 	Parameters     []Parameter           `json:"parameters,omitempty"`
-	// Deprecated: Needed for conversion only
-	// +kubebuilder:validation:-
-	// +optional
-	RuntimeParameters []Parameter      `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact `json:"artifacts,omitempty"`
+	Artifacts      []OutputArtifact      `json:"artifacts,omitempty"`
 }
 
 // ResolveParameters validates Parameters against dependencies, erroring on unresolved required refs while
