@@ -276,8 +276,9 @@ metadata:
 spec:
   run:
     pipeline: training-pipeline
-    runtimeParameters:
-      data_date: "{{ .Date }}"
+    parameters:
+      - name: data_date
+        value: "{{ .Date }}"
   schedule:
     cron: "0 6 * * *"  # 6 AM daily
 ```

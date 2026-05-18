@@ -256,9 +256,11 @@ metadata:
   name: experiment-run-1
 spec:
   pipeline: training-pipeline
-  runtimeParameters:
-    learning_rate: "0.01"
-    num_epochs: "20"
+  parameters:
+    - name: learning_rate
+      value: "0.01"
+    - name: num_epochs
+      value: "20"
 ```
 
 ### Best Practices
