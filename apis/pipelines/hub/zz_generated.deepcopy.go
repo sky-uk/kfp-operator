@@ -768,11 +768,6 @@ func (in *RunScheduleSpec) DeepCopyInto(out *RunScheduleSpec) {
 		*out = make([]apis.NamedValue, len(*in))
 		copy(*out, *in)
 	}
-	if in.RuntimeParameters != nil {
-		in, out := &in.RuntimeParameters, &out.RuntimeParameters
-		*out = make([]apis.NamedValue, len(*in))
-		copy(*out, *in)
-	}
 	if in.Artifacts != nil {
 		in, out := &in.Artifacts, &out.Artifacts
 		*out = make([]OutputArtifact, len(*in))
@@ -798,13 +793,6 @@ func (in *RunSpec) DeepCopyInto(out *RunSpec) {
 	out.Pipeline = in.Pipeline
 	if in.Parameters != nil {
 		in, out := &in.Parameters, &out.Parameters
-		*out = make([]Parameter, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
-	}
-	if in.RuntimeParameters != nil {
-		in, out := &in.RuntimeParameters, &out.RuntimeParameters
 		*out = make([]Parameter, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])

@@ -29,9 +29,10 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	if len(dst.Spec.RuntimeParameters) > 0 {
-		dst.Spec.Parameters = dst.Spec.RuntimeParameters
-		dst.Spec.RuntimeParameters = nil
+	if len(src.Spec.RuntimeParameters) > 0 {
+		if err := pipelines.TransformInto(src.Spec.RuntimeParameters, &dst.Spec.Parameters); err != nil {
+			return err
+		}
 	}
 
 	return nil
