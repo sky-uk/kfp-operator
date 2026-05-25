@@ -41,6 +41,7 @@ var _ = Describe("ExperimentService", func() {
 					Experiment: &go_client.Experiment{
 						DisplayName: "namespace-name",
 						Description: "description",
+						Namespace:   "namespace",
 					},
 				},
 			).Return(&go_client.Experiment{ExperimentId: expectedId}, nil)
@@ -70,6 +71,7 @@ var _ = Describe("ExperimentService", func() {
 						Experiment: &go_client.Experiment{
 							DisplayName: "namespace-name",
 							Description: "description",
+							Namespace:   "namespace",
 						},
 					},
 				).Return(nil, errors.New("failed"))
@@ -121,7 +123,8 @@ var _ = Describe("ExperimentService", func() {
 			mockClient.On(
 				"ListExperiments",
 				&go_client.ListExperimentsRequest{
-					Filter: util.ByDisplayNameFilter("namespace-name"),
+					Filter:    util.ByDisplayNameFilter("namespace-name"),
+					Namespace: "namespace",
 				},
 			).Return(&expectedResult, nil)
 			res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
@@ -147,7 +150,8 @@ var _ = Describe("ExperimentService", func() {
 				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
-						Filter: util.ByDisplayNameFilter("namespace-name"),
+						Filter:    util.ByDisplayNameFilter("namespace-name"),
+						Namespace: "namespace",
 					},
 				).Return(nil, errors.New("failed"))
 				res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
@@ -165,7 +169,8 @@ var _ = Describe("ExperimentService", func() {
 				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
-						Filter: util.ByDisplayNameFilter("namespace-name"),
+						Filter:    util.ByDisplayNameFilter("namespace-name"),
+						Namespace: "namespace",
 					},
 				).Return(&expectedResult, nil)
 				res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
@@ -186,7 +191,8 @@ var _ = Describe("ExperimentService", func() {
 				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
-						Filter: util.ByDisplayNameFilter("namespace-name"),
+						Filter:    util.ByDisplayNameFilter("namespace-name"),
+						Namespace: "namespace",
 					},
 				).Return(&expectedResult, nil)
 				res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)

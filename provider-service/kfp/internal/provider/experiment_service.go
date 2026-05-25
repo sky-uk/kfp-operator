@@ -59,6 +59,7 @@ func (es *DefaultExperimentService) CreateExperiment(
 			Experiment: &go_client.Experiment{
 				DisplayName: experimentName,
 				Description: description,
+				Namespace:   experiment.Namespace,
 			},
 		},
 	)
@@ -96,7 +97,8 @@ func (es *DefaultExperimentService) ExperimentIdByDisplayName(
 	experimentResult, err := es.client.ListExperiments(
 		ctx,
 		&go_client.ListExperimentsRequest{
-			Filter: kfpUtil.ByDisplayNameFilter(experimentName),
+			Filter:    kfpUtil.ByDisplayNameFilter(experimentName),
+			Namespace: experiment.Namespace,
 		},
 	)
 	if err != nil {

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -80,6 +81,15 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 }
 
 var _ resource.Provider = &KfpProvider{}
+
+// scopeToKfpNamespace overrides the namespace in a NamespacedName with the
+// provider's configured kfpNamespace. This ensures all KFP API calls
+// (experiments, runs, schedules) are scoped to the provider's own namespace
+// rather than the team namespace where the CR originated.
+func (p *KfpProvider) scopeToKfpNamespace(name common.NamespacedName) common.NamespacedName {
+	name.Namespace = p.config.Parameters.KfpNamespace
+	return name
+}
 
 func (p *KfpProvider) CreatePipeline(
 	ctx context.Context,
@@ -171,7 +181,7 @@ func (p *KfpProvider) CreateRun(
 		return "", err
 	}
 
-	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, rd.ExperimentName)
+	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, p.scopeToKfpNamespace(rd.ExperimentName))
 	if err != nil {
 		return "", err
 	}
@@ -220,7 +230,7 @@ func (p *KfpProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, rsd.ExperimentName)
+	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, p.scopeToKfpNamespace(rsd.ExperimentName))
 	if err != nil {
 		return "", err
 	}
@@ -264,7 +274,7 @@ func (p *KfpProvider) CreateExperiment(
 ) (string, error) {
 	expId, err := p.experimentService.CreateExperiment(
 		ctx,
-		ed.Name,
+		p.scopeToKfpNamespace(ed.Name),
 		ed.Description,
 	)
 	if err != nil {
