@@ -5,7 +5,7 @@ go 1.26.2
 require (
 	cloud.google.com/go/aiplatform v1.125.0
 	cloud.google.com/go/pubsub/v2 v2.6.0
-	cloud.google.com/go/storage v1.62.1
+	cloud.google.com/go/storage v1.62.2
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/argoproj/argo-workflows/v3 v3.7.13
 	github.com/distribution/reference v0.6.0
