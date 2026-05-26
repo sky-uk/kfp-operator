@@ -1,0 +1,75 @@
+FROM debian:trixie-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# -----------------------------
+# System dependencies
+# -----------------------------
+RUN apt-get update && apt-get install -y \
+    bash \
+    curl \
+    git \
+    ca-certificates \
+    build-essential \
+    unzip \
+    zip \
+    wget \
+    jq \
+    clang \
+    gnupg \
+    dirmngr \
+    docker.io \
+    libssl-dev \
+    libreadline-dev \
+    zlib1g-dev \
+    libbz2-dev \
+    libsqlite3-dev \
+    libffi-dev \
+    libncursesw5-dev \
+    xz-utils \
+    liblzma-dev \
+    tk-dev \
+    libxml2-dev \
+    libxmlsec1-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# -----------------------------
+# Install asdf
+# -----------------------------
+ENV ASDF_DIR=/opt/asdf
+
+RUN git clone https://github.com/asdf-vm/asdf.git ${ASDF_DIR} --branch v0.14.0
+
+# asdf paths
+ENV PATH="${ASDF_DIR}/bin:${ASDF_DIR}/shims:${PATH}"
+
+# Load asdf in interactive shells
+RUN echo '. /opt/asdf/asdf.sh' >> /etc/bash.bashrc
+
+# -----------------------------
+# Install asdf plugins
+# -----------------------------
+RUN /opt/asdf/bin/asdf plugin add golang https://github.com/asdf-community/asdf-golang.git && \
+    /opt/asdf/bin/asdf plugin add python https://github.com/asdf-community/asdf-python.git && \
+    /opt/asdf/bin/asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git && \
+    /opt/asdf/bin/asdf plugin add hugo https://github.com/nklmilojevic/asdf-hugo.git && \
+    /opt/asdf/bin/asdf plugin add protoc https://github.com/paxosglobal/asdf-protoc.git && \
+    /opt/asdf/bin/asdf plugin add uv https://github.com/asdf-community/asdf-uv.git && \
+    /opt/asdf/bin/asdf plugin add minikube https://github.com/alvarobp/asdf-minikube.git
+
+# -----------------------------
+# Install tool versions
+# -----------------------------
+COPY .tool-versions /tmp/.tool-versions
+
+RUN mkdir -p /workspace && \
+    cp /tmp/.tool-versions /workspace/.tool-versions && \
+    cd /workspace && \
+    /opt/asdf/bin/asdf install
+
+# -----------------------------
+# Workspace
+# -----------------------------
+WORKDIR /workspace
+
+CMD ["bash"]

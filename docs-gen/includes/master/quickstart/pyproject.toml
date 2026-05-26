@@ -3,16 +3,22 @@ name = "penguin_pipeline"
 version = "0.1.0"
 description = ""
 authors = []
-requires-python = "==3.10.12"
+requires-python = ">3.10.19"
 dependencies = [
     "tfx==1.17.3",
     "kfp>=2.6.0,<2.7.0",
-    "setuptools~=82.0",
+    "setuptools<82",
+    "boto3",
+]
+
+[tool.uv]
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'"
 ]
 
 [tool.setuptools]
 packages = ["penguin_pipeline"]
 
 [build-system]
-requires = ["setuptools>=82.0.1", "wheel"]
+requires = ["setuptools>=61,<82", "wheel"]
 build-backend = "setuptools.build_meta"
