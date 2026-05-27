@@ -26,13 +26,15 @@ type RunService interface {
 }
 
 type DefaultRunService struct {
-	client         client.RunServiceClient
-	labelGenerator label.LabelGen
+	client              client.RunServiceClient
+	labelGenerator      label.LabelGen
+	pipelineRootStorage string
 }
 
 func NewRunService(
 	conn *grpc.ClientConn,
 	labelGenerator label.LabelGen,
+	pipelineRootStorage string,
 ) (RunService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
@@ -41,8 +43,9 @@ func NewRunService(
 	}
 
 	return &DefaultRunService{
-		client:         go_client.NewRunServiceClient(conn),
-		labelGenerator: labelGenerator,
+		client:              go_client.NewRunServiceClient(conn),
+		labelGenerator:      labelGenerator,
+		pipelineRootStorage: pipelineRootStorage,
 	}, nil
 }
 
@@ -69,6 +72,13 @@ func (rs DefaultRunService) CreateRun(
 		return "", err
 	}
 
+	namespacedName, err := rd.PipelineName.String()
+	if err != nil {
+		return "", err
+	}
+
+	outputDirectory := fmt.Sprintf("%s/%s", rs.pipelineRootStorage, namespacedName)
+
 	run, err := rs.client.CreateRun(ctx, &go_client.CreateRunRequest{
 		Run: &go_client.Run{
 			ExperimentId: experimentId,
@@ -80,7 +90,8 @@ func (rs DefaultRunService) CreateRun(
 				},
 			},
 			RuntimeConfig: &go_client.RuntimeConfig{
-				Parameters: runParameters,
+				Parameters:   runParameters,
+				PipelineRoot: outputDirectory,
 			},
 		},
 	})
