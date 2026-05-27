@@ -13,6 +13,7 @@ import (
 	latest "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -101,6 +102,34 @@ var _ = Describe("RunService", func() {
 			Expect(runId).To(Equal(expectedId))
 		})
 
+		When("PipelineRootStorage is empty string", func() {
+			It("should submit a run request with PipelineRoot as empty string", func() {
+				expectedId := "expected-id"
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+				emptyPipelineRootReq := proto.Clone(expectedReq).(*go_client.CreateRunRequest)
+				emptyPipelineRootReq.Run.RuntimeConfig.PipelineRoot = ""
+				mockClient.On("CreateRun", emptyPipelineRootReq).Return(
+					&go_client.Run{RunId: expectedId},
+					nil,
+				)
+				runService = DefaultRunService{
+					client:              &mockClient,
+					labelGenerator:      &mockLabelGen,
+					pipelineRootStorage: "",
+				}
+				runId, err := runService.CreateRun(
+					ctx,
+					rd,
+					pipelineId,
+					pipelineVersionId,
+					experimentVersion,
+				)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(runId).To(Equal(expectedId))
+			})
+		})
+
 		When("Name is invalid", func() {
 			It("should return an error", func() {
 				rdCopy := rd
@@ -120,7 +149,7 @@ var _ = Describe("RunService", func() {
 			})
 		})
 
-		When("RunService Errors", func() {
+		When("RunServiceClient Errors", func() {
 			It("should return an error", func() {
 				expectedErr := errors.New("error")
 				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)

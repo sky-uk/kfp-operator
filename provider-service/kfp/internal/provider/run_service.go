@@ -77,7 +77,11 @@ func (rs DefaultRunService) CreateRun(
 		return "", err
 	}
 
-	outputDirectory := fmt.Sprintf("%s/%s", rs.pipelineRootStorage, namespacedName)
+	outputDirectory := ""
+
+	if rs.pipelineRootStorage != "" {
+		outputDirectory = fmt.Sprintf("%s/%s", rs.pipelineRootStorage, namespacedName)
+	}
 
 	run, err := rs.client.CreateRun(ctx, &go_client.CreateRunRequest{
 		Run: &go_client.Run{
