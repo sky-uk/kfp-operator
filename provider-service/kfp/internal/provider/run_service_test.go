@@ -63,7 +63,8 @@ var _ = Describe("RunService", func() {
 				},
 			},
 			RuntimeConfig: &go_client.RuntimeConfig{
-				Parameters: expectedRuntimeParams,
+				Parameters:   expectedRuntimeParams,
+				PipelineRoot: "pipelineRootStorage/pipelineNamespace/pipelineName",
 			},
 		},
 	}
@@ -73,8 +74,9 @@ var _ = Describe("RunService", func() {
 			mockClient = mocks.MockRunServiceClient{}
 			mockLabelGen = mocks.MockLabelGen{}
 			runService = DefaultRunService{
-				client:         &mockClient,
-				labelGenerator: &mockLabelGen,
+				client:              &mockClient,
+				labelGenerator:      &mockLabelGen,
+				pipelineRootStorage: "pipelineRootStorage",
 			}
 		},
 	)
