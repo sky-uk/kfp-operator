@@ -20,7 +20,7 @@ var _ = Context("Provider Status Manager", func() {
 		ctx           = context.Background()
 		provider      *pipelineshub.Provider
 		client        k8sClient.Client
-		statusManager StatusManager
+		statusManager ProviderStatusManager
 	)
 
 	BeforeEach(func() {
@@ -37,12 +37,12 @@ var _ = Context("Provider Status Manager", func() {
 			NonCached:    client,
 		}
 
-		statusManager = StatusManager{
+		statusManager = ProviderStatusManager{
 			client: optInClient,
 		}
 	})
 
-	var _ = Describe("UpdateProviderStatus", func() {
+	var _ = Describe("UpdateStatus", func() {
 
 		It("should not error if the provider status is updated successfully", func() {
 			provider.Status = pipelineshub.Status{}
@@ -53,7 +53,7 @@ var _ = Context("Provider Status Manager", func() {
 
 			expectedMessage := "test"
 			expectedStatus := apis.Succeeded
-			err = statusManager.UpdateProviderStatus(ctx, provider, expectedStatus, expectedMessage)
+			err = statusManager.UpdateStatus(ctx, provider, expectedStatus, expectedMessage)
 			Expect(err).ToNot(HaveOccurred())
 
 			err = client.Get(ctx, k8sClient.ObjectKey{Name: provider.Name, Namespace: provider.Namespace}, provider)
@@ -73,7 +73,7 @@ var _ = Context("Provider Status Manager", func() {
 
 			expectedMessage := "test"
 			expectedStatus := apis.Failed
-			err = statusManager.UpdateProviderStatus(ctx, provider, expectedStatus, expectedMessage)
+			err = statusManager.UpdateStatus(ctx, provider, expectedStatus, expectedMessage)
 			Expect(err).ToNot(HaveOccurred())
 
 			err = client.Get(ctx, k8sClient.ObjectKey{Name: provider.Name, Namespace: provider.Namespace}, provider)
@@ -86,7 +86,7 @@ var _ = Context("Provider Status Manager", func() {
 
 		It("should return error if the status is not updated", func() {
 			// No provider is created so no status to update
-			err := statusManager.UpdateProviderStatus(ctx, provider, apis.Succeeded, "test")
+			err := statusManager.UpdateStatus(ctx, provider, apis.Succeeded, "test")
 			Expect(err).To(HaveOccurred())
 		})
 	})

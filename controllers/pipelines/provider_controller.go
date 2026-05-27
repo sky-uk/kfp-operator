@@ -26,10 +26,10 @@ const (
 )
 
 type ProviderReconciler struct {
-	ProviderLoader    ProviderLoader
-	DeploymentManager DeploymentResourceManager
-	ServiceManager    ServiceResourceManager
-	StatusManager     ProviderStatusManager
+	ProviderLoader        ProviderLoader
+	DeploymentManager     DeploymentResourceManager
+	ServiceManager        ServiceResourceManager
+	providerStatusUpdater providerStatusUpdater
 }
 
 func NewProviderReconciler(ec K8sExecutionContext, config config.ConfigSpec) *ProviderReconciler {
@@ -48,10 +48,19 @@ func NewProviderReconciler(ec K8sExecutionContext, config config.ConfigSpec) *Pr
 			client: &ec.Client,
 			config: &config,
 		},
-		StatusManager: StatusManager{
+		providerStatusUpdater: ProviderStatusManager{
 			client: &ec.Client,
 		},
 	}
+}
+
+type providerStatusUpdater interface {
+	UpdateStatus(
+		ctx context.Context,
+		provider *pipelineshub.Provider,
+		state apis.SynchronizationState,
+		message string,
+	) error
 }
 
 func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -103,20 +112,20 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if providerOutOfSync || existingDeployment == nil || !r.DeploymentManager.Equal(existingDeployment, desiredDeployment) {
 		if existingDeployment == nil {
-			r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Creating, "")
+			r.providerStatusUpdater.UpdateStatus(ctx, &provider, apis.Creating, "")
 
 			if err := r.DeploymentManager.Create(ctx, desiredDeployment, &provider); err != nil {
-				if statusError := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource deployment"); statusError != nil {
+				if statusError := r.providerStatusUpdater.UpdateStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource deployment"); statusError != nil {
 					err = errors.Join(err, statusError)
 				}
 				return ctrl.Result{}, err
 			}
 
 		} else {
-			r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Updating, "")
+			r.providerStatusUpdater.UpdateStatus(ctx, &provider, apis.Updating, "")
 
 			if err := r.DeploymentManager.Update(ctx, existingDeployment, desiredDeployment, &provider); err != nil {
-				if statusError := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource deployment"); statusError != nil {
+				if statusError := r.providerStatusUpdater.UpdateStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource deployment"); statusError != nil {
 					err = errors.Join(err, statusError)
 				}
 				return ctrl.Result{}, err
@@ -135,10 +144,10 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if providerOutOfSync || existingSvc == nil || !r.ServiceManager.Equal(existingSvc, desiredSvc) {
 		if existingSvc == nil {
 
-			r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Creating, "")
+			r.providerStatusUpdater.UpdateStatus(ctx, &provider, apis.Creating, "")
 
 			if err := r.ServiceManager.Create(ctx, desiredSvc, &provider); err != nil {
-				if statusError := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource service"); statusError != nil {
+				if statusError := r.providerStatusUpdater.UpdateStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource service"); statusError != nil {
 					err = errors.Join(err, statusError)
 				}
 				return ctrl.Result{}, err
@@ -146,11 +155,11 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 		} else {
 
-			r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Updating, "")
+			r.providerStatusUpdater.UpdateStatus(ctx, &provider, apis.Updating, "")
 
 			// delete, to allow a new one to be created avoiding issues with immutability
 			if err := r.ServiceManager.Delete(ctx, existingSvc); err != nil {
-				if statusError := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource service"); statusError != nil {
+				if statusError := r.providerStatusUpdater.UpdateStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource service"); statusError != nil {
 					err = errors.Join(err, statusError)
 				}
 				return ctrl.Result{}, err
@@ -158,7 +167,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	if err := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Succeeded, ""); err != nil {
+	if err := r.providerStatusUpdater.UpdateStatus(ctx, &provider, apis.Succeeded, ""); err != nil {
 		return ctrl.Result{}, err
 	}
 

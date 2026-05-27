@@ -9,11 +9,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockStatusManager struct {
+type MockProviderStatusUpdater struct {
 	mock.Mock
 }
 
-func (m *MockStatusManager) UpdateProviderStatus(_ context.Context, provider *pipelineshub.Provider, state apis.SynchronizationState, message string) error {
+func (m *MockProviderStatusUpdater) UpdateStatus(
+	_ context.Context,
+	provider *pipelineshub.Provider,
+	state apis.SynchronizationState,
+	message string,
+) error {
 	args := m.Called(provider, state, message)
 	return args.Error(0)
 }

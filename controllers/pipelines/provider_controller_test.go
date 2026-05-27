@@ -32,7 +32,7 @@ var _ = Context("Provider Controller", func() {
 		mockProviderLoader *mocks.MockProviderLoader
 		mockDeploymentMan  *mocks.MockDeploymentManager
 		mockServiceMan     *mocks.MockServiceManager
-		mockStatusMan      *mocks.MockStatusManager
+		statusUpdater      *mocks.MockProviderStatusUpdater
 	)
 
 	err := pipelineshub.AddToScheme(scheme)
@@ -46,13 +46,13 @@ var _ = Context("Provider Controller", func() {
 		mockProviderLoader = &mocks.MockProviderLoader{}
 		mockDeploymentMan = &mocks.MockDeploymentManager{}
 		mockServiceMan = &mocks.MockServiceManager{}
-		mockStatusMan = &mocks.MockStatusManager{}
+		statusUpdater = &mocks.MockProviderStatusUpdater{}
 
 		providerReconciler = ProviderReconciler{
-			ProviderLoader:    mockProviderLoader,
-			DeploymentManager: mockDeploymentMan,
-			ServiceManager:    mockServiceMan,
-			StatusManager:     mockStatusMan,
+			ProviderLoader:        mockProviderLoader,
+			DeploymentManager:     mockDeploymentMan,
+			ServiceManager:        mockServiceMan,
+			providerStatusUpdater: statusUpdater,
 		}
 	})
 
@@ -71,7 +71,7 @@ var _ = Context("Provider Controller", func() {
 				On("Construct", provider).Return(service).
 				On("Create", service, provider).Return(nil)
 
-			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+			statusUpdater.On("UpdateStatus", provider, mock.Anything, mock.Anything).Return(nil)
 
 			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
 				NamespacedName: types.NamespacedName{
@@ -86,8 +86,8 @@ var _ = Context("Provider Controller", func() {
 			mockDeploymentMan.AssertCalled(GinkgoT(), "Create", deployment, provider)
 			mockServiceMan.AssertCalled(GinkgoT(), "Create", service, provider)
 
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Creating, "")
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Creating, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Succeeded, "")
 
 		})
 
@@ -108,7 +108,7 @@ var _ = Context("Provider Controller", func() {
 				On("Equal", service, service).Return(true).
 				On("Delete", service).Return(nil)
 
-			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+			statusUpdater.On("UpdateStatus", provider, mock.Anything, mock.Anything).Return(nil)
 
 			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
 				NamespacedName: types.NamespacedName{
@@ -123,8 +123,8 @@ var _ = Context("Provider Controller", func() {
 			mockDeploymentMan.AssertCalled(GinkgoT(), "Update", deployment, deployment, provider)
 			mockServiceMan.AssertCalled(GinkgoT(), "Delete", service)
 
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Updating, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Succeeded, "")
 		})
 
 		Specify("Should update a deployment if it is out of sync", func() {
@@ -141,7 +141,7 @@ var _ = Context("Provider Controller", func() {
 				On("Construct", provider).Return(service).
 				On("Equal", service, service).Return(true)
 
-			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+			statusUpdater.On("UpdateStatus", provider, mock.Anything, mock.Anything).Return(nil)
 
 			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
 				NamespacedName: types.NamespacedName{
@@ -154,8 +154,8 @@ var _ = Context("Provider Controller", func() {
 			Expect(result).To(Equal(ctrl.Result{}))
 
 			mockDeploymentMan.AssertCalled(GinkgoT(), "Update", deployment, deployment, provider)
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Updating, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Succeeded, "")
 		})
 
 		Specify("Should delete a service if it is out of sync", func() {
@@ -172,7 +172,7 @@ var _ = Context("Provider Controller", func() {
 				On("Equal", service, service).Return(false).
 				On("Delete", service).Return(nil)
 
-			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+			statusUpdater.On("UpdateStatus", provider, mock.Anything, mock.Anything).Return(nil)
 
 			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
 				NamespacedName: types.NamespacedName{
@@ -186,8 +186,8 @@ var _ = Context("Provider Controller", func() {
 
 			mockServiceMan.AssertCalled(GinkgoT(), "Delete", service)
 
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Updating, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Succeeded, "")
 		})
 
 		Specify("Should Update a deployment if it is out of sync", func() {
@@ -204,7 +204,7 @@ var _ = Context("Provider Controller", func() {
 				On("Construct", provider).Return(service).
 				On("Equal", service, service).Return(true)
 
-			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+			statusUpdater.On("UpdateStatus", provider, mock.Anything, mock.Anything).Return(nil)
 
 			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
 				NamespacedName: types.NamespacedName{
@@ -217,8 +217,8 @@ var _ = Context("Provider Controller", func() {
 			Expect(result).To(Equal(ctrl.Result{}))
 
 			mockDeploymentMan.AssertCalled(GinkgoT(), "Update", deployment, deployment, provider)
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Updating, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Succeeded, "")
 		})
 
 		Specify("Should set state as failed when error occurs", func() {
@@ -230,7 +230,7 @@ var _ = Context("Provider Controller", func() {
 				On("Equal", deployment, deployment).Return(false).
 				On("Update", deployment, deployment, provider).Return(errors.NewBadRequest("error"))
 
-			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+			statusUpdater.On("UpdateStatus", provider, mock.Anything, mock.Anything).Return(nil)
 
 			_, err := providerReconciler.Reconcile(ctx, ctrl.Request{
 				NamespacedName: types.NamespacedName{
@@ -241,8 +241,8 @@ var _ = Context("Provider Controller", func() {
 
 			Expect(err).To(HaveOccurred())
 
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
-			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Failed, "Failed to reconcile subresource deployment")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Updating, "")
+			statusUpdater.AssertCalled(GinkgoT(), "UpdateStatus", provider, apis.Failed, "Failed to reconcile subresource deployment")
 		})
 	})
 })

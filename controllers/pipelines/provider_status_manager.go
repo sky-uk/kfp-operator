@@ -8,15 +8,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-type ProviderStatusManager interface {
-	UpdateProviderStatus(ctx context.Context, provider *pipelineshub.Provider, state apis.SynchronizationState, message string) error
-}
-
-type StatusManager struct {
+type ProviderStatusManager struct {
 	client *controllers.OptInClient
 }
 
-func (sm StatusManager) UpdateProviderStatus(ctx context.Context, provider *pipelineshub.Provider, state apis.SynchronizationState, message string) error {
+func (sm ProviderStatusManager) UpdateStatus(
+	ctx context.Context,
+	provider *pipelineshub.Provider,
+	state apis.SynchronizationState,
+	message string,
+) error {
 	logger := log.FromContext(ctx)
 
 	if state == apis.Succeeded {
