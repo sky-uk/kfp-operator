@@ -63,7 +63,8 @@ var _ = Describe("RunService", func() {
 				},
 			},
 			RuntimeConfig: &go_client.RuntimeConfig{
-				Parameters: expectedRuntimeParams,
+				Parameters:   expectedRuntimeParams,
+				PipelineRoot: "pipelineRootStorage/pipelineNamespace/pipelineName",
 			},
 		},
 	}
@@ -73,8 +74,9 @@ var _ = Describe("RunService", func() {
 			mockClient = mocks.MockRunServiceClient{}
 			mockLabelGen = mocks.MockLabelGen{}
 			runService = DefaultRunService{
-				client:         &mockClient,
-				labelGenerator: &mockLabelGen,
+				client:              &mockClient,
+				labelGenerator:      &mockLabelGen,
+				pipelineRootStorage: "pipelineRootStorage",
 			}
 		},
 	)
@@ -99,6 +101,32 @@ var _ = Describe("RunService", func() {
 			Expect(runId).To(Equal(expectedId))
 		})
 
+		When("PipelineRootStorage is empty string", func() {
+			It("should submit a run request with PipelineRoot as empty string", func() {
+				expectedId := "expected-id"
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+				mockClient.On("CreateRun", mock.MatchedBy(func(req *go_client.CreateRunRequest) bool {
+					return req.Run.RuntimeConfig.PipelineRoot == ""
+				})).Return(&go_client.Run{RunId: expectedId}, nil)
+
+				runService = DefaultRunService{
+					client:              &mockClient,
+					labelGenerator:      &mockLabelGen,
+					pipelineRootStorage: "",
+				}
+				runId, err := runService.CreateRun(
+					ctx,
+					rd,
+					pipelineId,
+					pipelineVersionId,
+					experimentVersion,
+				)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(runId).To(Equal(expectedId))
+			})
+		})
+
 		When("Name is invalid", func() {
 			It("should return an error", func() {
 				rdCopy := rd
@@ -118,7 +146,7 @@ var _ = Describe("RunService", func() {
 			})
 		})
 
-		When("RunService Errors", func() {
+		When("RunServiceClient Errors", func() {
 			It("should return an error", func() {
 				expectedErr := errors.New("error")
 				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)

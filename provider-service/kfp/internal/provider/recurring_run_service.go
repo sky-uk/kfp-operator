@@ -29,11 +29,16 @@ type RecurringRunService interface {
 }
 
 type DefaultRecurringRunService struct {
-	client         client.RecurringRunServiceClient
-	labelGenerator label.LabelGen
+	client              client.RecurringRunServiceClient
+	labelGenerator      label.LabelGen
+	pipelineRootStorage string
 }
 
-func NewRecurringRunService(conn *grpc.ClientConn, labelGenerator label.LabelGen) (RecurringRunService, error) {
+func NewRecurringRunService(
+	conn *grpc.ClientConn,
+	labelGenerator label.LabelGen,
+	pipelineRootStorage string,
+) (RecurringRunService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
 			"no gRPC connection was provided to start recurring run service",
@@ -41,8 +46,9 @@ func NewRecurringRunService(conn *grpc.ClientConn, labelGenerator label.LabelGen
 	}
 
 	return &DefaultRecurringRunService{
-		client:         go_client.NewRecurringRunServiceClient(conn),
-		labelGenerator: labelGenerator,
+		client:              go_client.NewRecurringRunServiceClient(conn),
+		labelGenerator:      labelGenerator,
+		pipelineRootStorage: pipelineRootStorage,
 	}, nil
 }
 
@@ -75,6 +81,16 @@ func (rrs *DefaultRecurringRunService) CreateRecurringRun(
 		return "", err
 	}
 
+	outputDirectory := ""
+
+	if rrs.pipelineRootStorage != "" {
+		namespacedName, err := rsd.PipelineName.String()
+		if err != nil {
+			return "", err
+		}
+		outputDirectory = fmt.Sprintf("%s/%s", rrs.pipelineRootStorage, namespacedName)
+	}
+
 	recurringRun, err := rrs.client.CreateRecurringRun(ctx, &go_client.CreateRecurringRunRequest{
 		RecurringRun: &go_client.RecurringRun{
 			DisplayName: recurringRunName,
@@ -85,7 +101,8 @@ func (rrs *DefaultRecurringRunService) CreateRecurringRun(
 				},
 			},
 			RuntimeConfig: &go_client.RuntimeConfig{
-				Parameters: runtimeParams,
+				Parameters:   runtimeParams,
+				PipelineRoot: outputDirectory,
 			},
 			MaxConcurrency: 1,
 			Trigger: &go_client.Trigger{
