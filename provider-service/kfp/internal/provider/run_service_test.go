@@ -13,7 +13,6 @@ import (
 	latest "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -106,12 +105,10 @@ var _ = Describe("RunService", func() {
 			It("should submit a run request with PipelineRoot as empty string", func() {
 				expectedId := "expected-id"
 				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
-				emptyPipelineRootReq := proto.Clone(expectedReq).(*go_client.CreateRunRequest)
-				emptyPipelineRootReq.Run.RuntimeConfig.PipelineRoot = ""
-				mockClient.On("CreateRun", emptyPipelineRootReq).Return(
-					&go_client.Run{RunId: expectedId},
-					nil,
-				)
+				mockClient.On("CreateRun", mock.MatchedBy(func(req *go_client.CreateRunRequest) bool {
+					return req.Run.RuntimeConfig.PipelineRoot == ""
+				})).Return(&go_client.Run{RunId: expectedId}, nil)
+
 				runService = DefaultRunService{
 					client:              &mockClient,
 					labelGenerator:      &mockLabelGen,
