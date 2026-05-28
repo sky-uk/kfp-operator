@@ -72,14 +72,13 @@ func (rs DefaultRunService) CreateRun(
 		return "", err
 	}
 
-	namespacedName, err := rd.PipelineName.String()
-	if err != nil {
-		return "", err
-	}
-
 	outputDirectory := ""
 
 	if rs.pipelineRootStorage != "" {
+		namespacedName, err := rd.PipelineName.String()
+		if err != nil {
+			return "", err
+		}
 		outputDirectory = fmt.Sprintf("%s/%s", rs.pipelineRootStorage, namespacedName)
 	}
 
