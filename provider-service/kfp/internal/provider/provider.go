@@ -53,7 +53,7 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 		return nil, err
 	}
 
-	recurringRunService, err := NewRecurringRunService(conn, labelGenerator)
+	recurringRunService, err := NewRecurringRunService(conn, labelGenerator, config.PipelineRootStorage)
 	if err != nil {
 		return nil, err
 	}
