@@ -29,10 +29,11 @@ var _ = Describe("DefaultRecurringRunService", func() {
 	)
 
 	const (
-		recurringRunId    = "recurring-run-id"
-		pipelineId        = "pipeline-id"
-		pipelineVersionId = "pipeline-version-id"
-		experimentVersion = "experiment-version"
+		recurringRunId      = "recurring-run-id"
+		pipelineId          = "pipeline-id"
+		pipelineVersionId   = "pipeline-version-id"
+		experimentVersion   = "experiment-version"
+		pipelineRootStorage = "pipelineRootStorage"
 	)
 
 	BeforeEach(func() {
@@ -41,6 +42,7 @@ var _ = Describe("DefaultRecurringRunService", func() {
 		recurringRunService = DefaultRecurringRunService{
 			&mockClient,
 			&mockLabelGen,
+			pipelineRootStorage,
 		}
 		rsd = testutil.RandomRunScheduleDefinition()
 	})
@@ -80,6 +82,12 @@ var _ = Describe("DefaultRecurringRunService", func() {
 						},
 						RuntimeConfig: &go_client.RuntimeConfig{
 							Parameters: expectedRuntimeParams,
+							PipelineRoot: fmt.Sprintf(
+								"%s/%s/%s",
+								pipelineRootStorage,
+								rsd.PipelineName.Namespace,
+								rsd.PipelineName.Name,
+							),
 						},
 						MaxConcurrency: 1,
 						Trigger: &go_client.Trigger{
@@ -103,6 +111,36 @@ var _ = Describe("DefaultRecurringRunService", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(expectedId))
+		})
+
+		When("PipelineRootStorage is empty string", func() {
+			It("should submit a recurring run request with PipelineRoot as empty string", func() {
+				expectedId := "expected-recurring-run-id"
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+				mockClient.On(
+					"CreateRecurringRun",
+					mock.MatchedBy(func(req *go_client.CreateRecurringRunRequest) bool {
+						return req.RecurringRun.RuntimeConfig.PipelineRoot == ""
+					}),
+				).Return(&go_client.RecurringRun{RecurringRunId: expectedId}, nil)
+
+				recurringRunService = DefaultRecurringRunService{
+					client:              &mockClient,
+					labelGenerator:      &mockLabelGen,
+					pipelineRootStorage: "",
+				}
+
+				res, err := recurringRunService.CreateRecurringRun(
+					ctx,
+					rsd,
+					pipelineId,
+					pipelineVersionId,
+					experimentVersion,
+				)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(res).To(Equal(expectedId))
+			})
 		})
 
 		When("run schedule definition doesn't have a name", func() {
