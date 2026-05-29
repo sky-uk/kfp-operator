@@ -66,7 +66,7 @@ spec:
       value: '100'
   triggers:
     schedules:
-      - cronExpression: 0 * * * *
+    - cronExpression: 0 * * * *
 ```
 
 ## Experiment
