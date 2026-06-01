@@ -106,3 +106,27 @@ _parse_raw_artifact = _patched_parse_raw_artifact
 p = Path(m.__file__)
 p.write_text(p.read_text() + patch)
 PYEOF
+
+# 3. kubeflow_v2_run_executor: Enrich input artifact types from the component
+#    inputs spec before parsing. KFP v2 driver passes empty instanceSchema for
+#    input artifacts resolved from upstream MLMD outputs. This copies the correct
+#    artifact type from the inputs_spec to each input artifact.
+COPY patch_tfx_executor.py /tmp/patch_tfx_executor.py
+RUN python3 /tmp/patch_tfx_executor.py && rm /tmp/patch_tfx_executor.py
+
+# 4. path_utils: Remove the Format-Serving subdirectory from serving_model_dir.
+#    TFX saves trained models under model_uri/Format-Serving/ by default. KFP v2
+#    launcher has a bug downloading deeply nested directory artifacts from GCS
+#    (mkdir fails when a file placeholder exists for a directory name). Saving
+#    directly to model_uri avoids this issue.
+RUN python3 -c "\
+from pathlib import Path; \
+import tfx.utils.path_utils as m; \
+p = Path(m.__file__); \
+src = p.read_text(); \
+old = 'return os.path.join(output_uri, path_constants.SERVING_MODEL_DIR)'; \
+new = 'return output_uri  # patched: skip Format-Serving subdir for KFP v2 compat'; \
+assert old in src, f'Could not find target string in {p}'; \
+src = src.replace(old, new); \
+p.write_text(src); \
+print('Patched path_utils.serving_model_dir')"
