@@ -2,7 +2,10 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -81,6 +84,36 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 
 var _ resource.Provider = &KfpProvider{}
 
+// unwrapTfxPipelineSpec extracts the pipelineSpec from a TFX compiled pipeline.
+// TFX compiles pipelines into a Vertex PipelineJob wrapper with the structure:
+//
+//	{displayName, labels, pipelineSpec, runtimeConfig}
+//
+// Kubeflow Pipelines expects the bare KFP IR PipelineSpec, so for TFX pipelines
+// the nested pipelineSpec is unwrapped. For non-TFX pipelines (e.g. kfp-sdk),
+// the compiled pipeline is returned unchanged.
+func unwrapTfxPipelineSpec(compiledPipeline json.RawMessage, frameworkName string) (json.RawMessage, error) {
+	if strings.ToLower(frameworkName) != "tfx" {
+		return compiledPipeline, nil
+	}
+
+	var wrapper map[string]json.RawMessage
+	if err := json.Unmarshal(compiledPipeline, &wrapper); err != nil {
+		return compiledPipeline, nil
+	}
+
+	if pipelineSpec, ok := wrapper["pipelineSpec"]; ok {
+		return pipelineSpec, nil
+	}
+
+	if pipelineSpec, ok := wrapper["pipeline_spec"]; ok {
+		return pipelineSpec, nil
+	}
+
+	// No wrapper detected, return as-is (already a bare pipelineSpec)
+	return compiledPipeline, nil
+}
+
 func (p *KfpProvider) CreatePipeline(
 	ctx context.Context,
 	pdw resource.PipelineDefinitionWrapper,
@@ -88,6 +121,11 @@ func (p *KfpProvider) CreatePipeline(
 	pipelineName, err := util.ResourceNameFromNamespacedName(pdw.PipelineDefinition.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch resource name %v", err)
+	}
+
+	pdw.CompiledPipeline, err = unwrapTfxPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	if err != nil {
+		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
 	}
 
 	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
@@ -118,6 +156,11 @@ func (p *KfpProvider) UpdatePipeline(
 	}
 
 	var err error
+	pdw.CompiledPipeline, err = unwrapTfxPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	if err != nil {
+		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
+	}
+
 	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
 	if err != nil {
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
