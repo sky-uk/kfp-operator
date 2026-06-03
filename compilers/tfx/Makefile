@@ -15,7 +15,7 @@ include ../../docker-targets.mk
 
 define penguin-staging
 cp ../../docs-gen/includes/master/quickstart/penguin_pipeline/*.py $$STAGING_DIR && \
-cp integration/Dockerfile integration/pipeline.yaml integration/patch_tfx_executor.py $$STAGING_DIR
+cp integration/Dockerfile integration/pipeline.yaml $$STAGING_DIR
 endef
 
 penguin-39:
