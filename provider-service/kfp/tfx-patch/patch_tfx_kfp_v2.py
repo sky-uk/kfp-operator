@@ -165,20 +165,33 @@ _PATCH_2 = Patch(
 
 # Patch 3 — Artifact class inference from metadata (entrypoint_utils.py)
 #
-# KFP v2 maps multiple TFX types to the same system.* title (e.g. both
-# tfx.Examples and tfx.Dataset become system.Dataset). After patch 1 maps
-# system.Dataset → Dataset, artifacts lack Examples-specific properties like
-# split_names. Fix: inspect metadata keys to infer the correct TFX type
-# before delegating to the original _parse_raw_artifact.
+# KFP v2 maps multiple TFX types to the same system.* title:
+#   - system.Dataset ← Examples (has split_names/span/version) and Dataset
+#   - system.Model   ← PushedModel (has pushed/pushed_destination) and Model
+# After patch 1 resolves system.* to a default TFX class, artifacts may lack
+# type-specific properties. Fix: inspect metadata keys to infer the correct
+# TFX type before delegating to the original _parse_raw_artifact.
 
 _PATCH_3_APPENDED_CODE = f"""
 
 {PATCH_MARKER}
-_DATASET_SIGNATURES = [
-    (frozenset({{"split_names", "span", "version"}}), "tfx.Examples"),
-    (frozenset({{"split_names", "span"}}), "tfx.Examples"),
-    (frozenset({{"split_names"}}), "tfx.Examples"),
-]
+# Signatures to disambiguate TFX types that share the same system.* title.
+# Each entry maps a set of metadata/property keys to the correct tfx.* title.
+_TYPE_INFERENCE_RULES = {{
+    "system.Dataset": [
+        (frozenset({{"split_names", "span", "version"}}), "tfx.Examples"),
+        (frozenset({{"split_names", "span"}}), "tfx.Examples"),
+        (frozenset({{"split_names"}}), "tfx.Examples"),
+    ],
+    "system.Model": [
+        (frozenset({{"pushed_destination", "pushed"}}), "tfx.PushedModel"),
+        (frozenset({{"pushed_destination"}}), "tfx.PushedModel"),
+        (frozenset({{"pushed"}}), "tfx.PushedModel"),
+    ],
+}}
+# Also match tfx.* variants that may appear via instance_schema titles.
+_TYPE_INFERENCE_RULES["tfx.Dataset"] = _TYPE_INFERENCE_RULES["system.Dataset"]
+_TYPE_INFERENCE_RULES["tfx.Model"] = _TYPE_INFERENCE_RULES["system.Model"]
 
 _original_parse_raw_artifact = _parse_raw_artifact
 
@@ -194,14 +207,15 @@ def _parse_raw_artifact(artifact_pb, name_from_id):
         data = yaml.safe_load(type_schema.instance_schema) or {{}}
         title = data.get("title")
 
-    if title in ("system.Dataset", "tfx.Dataset"):
+    signatures = _TYPE_INFERENCE_RULES.get(title)
+    if signatures:
         meta_keys = set()
         if artifact_pb.metadata and artifact_pb.metadata.fields:
             meta_keys = set(artifact_pb.metadata.fields.keys())
         prop_keys = set(artifact_pb.properties.keys()) if artifact_pb.properties else set()
         all_keys = meta_keys | prop_keys
 
-        for signature, tfx_title in _DATASET_SIGNATURES:
+        for signature, tfx_title in signatures:
             if signature <= all_keys:
                 logging.info(
                     "Inferred TFX type %s from metadata keys %s", tfx_title, all_keys
