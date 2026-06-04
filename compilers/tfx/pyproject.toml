@@ -14,7 +14,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest==8.4.2",
-    "tfx==1.14",
+    "tfx==1.15.1",
     "shapely<2",
 ]
 
