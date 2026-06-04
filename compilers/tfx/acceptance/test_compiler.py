@@ -18,7 +18,7 @@ def setup():
 
 def test_cli():
     with TemporaryDirectory() as tmp_dir:
-        output_file_path = os.path.join(tmp_dir, 'pipeline.yaml')
+        output_file_path = os.path.join(tmp_dir, 'pipeline.json')
 
         result = runner.invoke(compiler.compile, ['--pipeline_config', config_file_path, '--output_file', output_file_path])
 
@@ -26,9 +26,9 @@ def test_cli():
         assert os.stat(output_file_path).st_size != 0
 
         f = open(output_file_path, "r")
-        pipeline = yaml.safe_load(f.read())
-        assert pipeline['schemaVersion'] == '2.1.0'
-        assert pipeline['pipelineInfo']['name'] == "namespace-test"
+        pipeline = json.load(f)
+        assert pipeline['pipelineSpec']['schemaVersion'] == '2.1.0'
+        assert pipeline['pipelineSpec']['pipelineInfo']['name'] == "namespace-test"
 
 
 def test_failure():
