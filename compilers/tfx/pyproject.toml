@@ -13,9 +13,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest==8.4.2",
-    "tfx==1.15.1",
+    "tfx==1.17.3",
     "shapely<2",
-    "kfp<2,>=1.8.14",
+    "kfp>=2",
 ]
 
 [project.scripts]
