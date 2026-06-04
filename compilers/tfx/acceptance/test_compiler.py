@@ -27,7 +27,7 @@ def test_cli():
 
         f = open(output_file_path, "r")
         pipeline = yaml.safe_load(f.read())
-        assert pipeline['pipelineSpec']['schemaVersion'] == '2.0.0'
+        assert pipeline['pipelineSpec']['schemaVersion'] == '2.1.0'
         assert pipeline['pipelineSpec']['pipelineInfo']['name'] == "namespace-test"
 
 
