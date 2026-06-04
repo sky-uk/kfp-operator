@@ -15,10 +15,11 @@ To create a TFX pipeline:
 
 ## TFX Parameters
 
-| Name         | Description                                                                                        |
-| ------------ | -------------------------------------------------------------------------------------------------- |
-| `components` | Fully qualified name of the Python function creating TFX pipeline components.                      |
-| `beamArgs[]` | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline. |
+| Name                  | Description                                                                                        |
+|-----------------------|----------------------------------------------------------------------------------------------------|
+| `components`          | Fully qualified name of the Python function creating TFX pipeline components.                      |
+| `beamArgs[]`          | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline. |
+| `pipelineSpecVersion` | Version of the PipelineSpec to use. Defaults to `2.1`.                                             |
 
 
 ### TFX Pipeline resource example
