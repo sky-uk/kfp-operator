@@ -46,7 +46,7 @@ penguin-310-117:
 	STAGING_DIR=$$(mktemp -d) && \
 	$(penguin-staging) && \
 	cp integration/penguin-310-117/pyproject.toml integration/penguin-310-117/uv.lock $$STAGING_DIR && \
-	docker build --build-arg PYTHON_VERSION=3.10.12 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10-117 $$STAGING_DIR
+	docker build --build-arg PYTHON_VERSION=3.10 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10-117 $$STAGING_DIR
 
 IMG := kfp-operator-tfx-compiler
 WHEEL_VERSION=$(shell uv run python -c "import compiler; print(compiler.__version__)" 2>/dev/null || echo "0.0.0")
