@@ -2,6 +2,12 @@
 
 A lightweight `scratch`-based image containing a single Python script (`patch_tfx_kfp_v2.py`) that fixes five TFX runtime incompatibilities with the OSS KFP v2 driver/launcher.
 
+> [!Important]
+> *Disclaimer:*
+> This patch has only been tested against the test quickstart image within this repository. It's not guaranteed to work with all tfx pipelines.
+> This provides a base setup for pipelines to run on KFP, but it is not a complete solution, and should not be relied upon.
+
+
 ## Patches
 
 | # | Target | Fix |
