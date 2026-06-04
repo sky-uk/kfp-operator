@@ -547,8 +547,8 @@ as updates are not propagated or checked and will result in runtime errors on th
  &lt;td&gt;List of named objects. These will be provided as &lt;code&gt;beam_pipeline_args&lt;/code&gt; when compiling the pipeline.&lt;/td&gt;
  &lt;/tr&gt;
  &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;pipelineSpecVersion&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;Version of the PipelineSpec to use. Defaults to &lt;code&gt;2.1&lt;/code&gt;.&lt;/td&gt;
+ &lt;td&gt;&lt;code&gt;usePipelineSpec2_1&lt;/code&gt;&lt;/td&gt;
+ &lt;td&gt;Boolean. Use PipelineSpec 2.1 when &lt;code&gt;true&lt;/code&gt; (default), or 2.0 when &lt;code&gt;false&lt;/code&gt;.&lt;/td&gt;
  &lt;/tr&gt;
  &lt;/tbody&gt;
 &lt;/table&gt;

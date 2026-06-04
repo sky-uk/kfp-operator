@@ -22,7 +22,7 @@ def compile(pipeline_config: str, output_file: str):
         pipeline_beam_args = framework_parameters.get('beamArgs', [])
         beam_cli_args = name_values_to_cli_args(pipeline_beam_args)
 
-        use_pipeline_spec_2_1 = framework_parameters.get('pipelineSpecVersion', '2.1') == '2.1'
+        use_pipeline_spec_2_1 = framework_parameters.get('usePipelineSpec2_1', True)
 
         components = load_fn(framework_parameters.get('components', ""), pipeline_config_contents.get('env', []))()
 
