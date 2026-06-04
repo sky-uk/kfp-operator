@@ -329,13 +329,13 @@ version = "0.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
-    { name = "kfp" },
     { name = "pyyaml" },
     { name = "setuptools" },
 ]
 
 [package.optional-dependencies]
 dev = [
+    { name = "kfp" },
     { name = "pytest" },
     { name = "shapely" },
     { name = "tfx" },
@@ -344,7 +344,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.1.8,<9" },
-    { name = "kfp", specifier = "==1.8.22" },
+    { name = "kfp", marker = "extra == 'dev'", specifier = ">=1.8.14,<2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==8.4.2" },
     { name = "pyyaml", specifier = ">=5.4.1" },
     { name = "setuptools", specifier = "~=70.0" },
