@@ -1,0 +1,21 @@
+[project]
+name = "penguin_pipeline"
+version = "0.1.0"
+description = "Quickstart TFX pipeline with kfp>=2 and google-genai support"
+authors = []
+requires-python = "==3.10.12"
+dependencies = [
+    "tfx==1.15.1",
+    "shapely<2",
+    "kfp>=2",
+    "google-genai",
+    "setuptools~=70.0",
+    "dill==0.3.1.1",
+]
+
+[tool.setuptools]
+packages = ["penguin_pipeline"]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
