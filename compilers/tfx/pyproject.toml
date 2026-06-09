@@ -7,15 +7,15 @@ requires-python = ">=3.9,<3.11"
 dependencies = [
     "click>=8.1.8,<9",
     "PyYAML>=5.4.1",
-    "kfp==1.8.22",
     "setuptools~=70.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest==8.4.2",
-    "tfx==1.14",
+    "tfx==1.17.3",
     "shapely<2",
+    "kfp>=2",
 ]
 
 [project.scripts]

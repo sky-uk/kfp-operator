@@ -4,8 +4,10 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/stretchr/testify/mock"
 
@@ -495,6 +497,37 @@ var _ = Describe("Provider", func() {
 					Expect(err).To(Equal(expectedErr))
 				})
 			})
+		})
+	})
+
+	Context("unwrapTfxPipelineSpec", func() {
+		It("should extract pipelineSpec from wrapper for TFX framework (case-insensitive)", func() {
+			innerSpec := map[string]interface{}{
+				"pipelineInfo": map[string]interface{}{"name": "test-pipeline"},
+				"root":         map[string]interface{}{},
+			}
+			wrapper := map[string]interface{}{
+				"displayName":   "test-pipeline",
+				"pipelineSpec":  innerSpec,
+				"runtimeConfig": map[string]interface{}{},
+			}
+			compiled, _ := json.Marshal(wrapper)
+			expected, _ := json.Marshal(innerSpec)
+
+			result, err := unwrapTfxPipelineSpec(compiled, "TfX")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(MatchJSON(expected))
+		})
+
+		It("should return compiled pipeline unchanged for non-TFX frameworks", func() {
+			pipelineSpec := map[string]interface{}{
+				"pipelineInfo": map[string]interface{}{"name": "test"},
+			}
+			compiled, _ := json.Marshal(pipelineSpec)
+
+			result, err := unwrapTfxPipelineSpec(compiled, "kfpsdk")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(MatchJSON(compiled))
 		})
 	})
 })

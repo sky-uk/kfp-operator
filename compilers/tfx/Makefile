@@ -36,6 +36,18 @@ penguin-310-115:
 	cp integration/penguin-310-115/pyproject.toml integration/penguin-310-115/uv.lock $$STAGING_DIR && \
 	docker build --build-arg PYTHON_VERSION=3.10.12 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10-115 $$STAGING_DIR
 
+penguin-310-116:
+	STAGING_DIR=$$(mktemp -d) && \
+	$(penguin-staging) && \
+	cp integration/penguin-310-116/pyproject.toml integration/penguin-310-116/uv.lock $$STAGING_DIR && \
+	docker build --build-arg PYTHON_VERSION=3.10.12 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10-116 $$STAGING_DIR
+
+penguin-310-117:
+	STAGING_DIR=$$(mktemp -d) && \
+	$(penguin-staging) && \
+	cp integration/penguin-310-117/pyproject.toml integration/penguin-310-117/uv.lock $$STAGING_DIR && \
+	docker build --build-arg PYTHON_VERSION=3.10 --build-arg UV_VERSION=${UV_VERSION} -t penguin:3.10-117 $$STAGING_DIR
+
 IMG := kfp-operator-tfx-compiler
 WHEEL_VERSION=$(shell uv run python -c "import compiler; print(compiler.__version__)" 2>/dev/null || echo "0.0.0")
 UV_VERSION=$(shell grep '^uv ' ../../.tool-versions | awk '{print $$2}')
@@ -46,10 +58,10 @@ DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-arg
 test: build ## Run all tests
 	uv run pytest
 
-penguin-images: penguin-39 penguin-310 penguin-310-115
+penguin-images: penguin-39 penguin-310 penguin-310-115 penguin-310-116 penguin-310-117
 
 integration-test: docker-build ## Run the integration test
-	$(MAKE) -j3 penguin-images
+	$(MAKE) -j5 penguin-images
 	docker volume create tfx-integration-test-shared; \
 	trap 'docker volume rm tfx-integration-test-shared' EXIT; \
 	docker run --rm -v tfx-integration-test-shared:/shared alpine chmod 777 /shared && \
@@ -58,5 +70,7 @@ integration-test: docker-build ## Run the integration test
 	  docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /shared/pipeline_v3.9.json --pipeline_config /pipeline/pipeline.yaml & PID39=$$!; \
 	  docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /shared/pipeline_v3.10.json --pipeline_config /pipeline/pipeline.yaml & PID310=$$!; \
 	  docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_v3.10-115.json --pipeline_config /pipeline/pipeline.yaml & PID310_115=$$!; \
-	  wait $$PID39 && wait $$PID310 && wait $$PID310_115 \
+	  docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10-116 --output_file /shared/pipeline_v3.10-116.json --pipeline_config /pipeline/pipeline.yaml & PID310_116=$$!; \
+	  docker run --rm -v tfx-integration-test-shared:/shared --entrypoint /shared/compile.sh penguin:3.10-117 --output_file /shared/pipeline_v3.10-117.json --pipeline_config /pipeline/pipeline.yaml & PID310_117=$$!; \
+	  wait $$PID39 && wait $$PID310 && wait $$PID310_115 && wait $$PID310_116 && wait $$PID310_117 \
 	)
