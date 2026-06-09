@@ -85,7 +85,7 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 var _ resource.Provider = &KfpProvider{}
 
 // unwrapTfxPipelineSpec extracts the pipelineSpec from a TFX compiled pipeline.
-// TFX compiles pipelines into a Vertex PipelineJob wrapper with the structure:
+// TFX compiles pipelines into a Vertex PipelineJob wrapper
 //
 // Kubeflow Pipelines expects the bare KFP IR PipelineSpec, so for TFX pipelines
 // the nested pipelineSpec is unwrapped. For non-TFX pipelines (e.g. kfp-sdk),
