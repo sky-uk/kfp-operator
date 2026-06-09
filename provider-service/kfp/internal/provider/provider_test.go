@@ -4,8 +4,11 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/stretchr/testify/mock"
 
@@ -495,6 +498,146 @@ var _ = Describe("Provider", func() {
 					Expect(err).To(Equal(expectedErr))
 				})
 			})
+		})
+	})
+
+	Context("unwrapTfxPipelineSpec", func() {
+		It("should extract pipelineSpec from TFX wrapper", func() {
+			innerSpec := map[string]interface{}{
+				"pipelineInfo": map[string]interface{}{"name": "test-pipeline"},
+				"root":         map[string]interface{}{},
+			}
+			wrapper := map[string]interface{}{
+				"displayName":   "test-pipeline",
+				"pipelineSpec":  innerSpec,
+				"runtimeConfig": map[string]interface{}{},
+			}
+			compiled, _ := json.Marshal(wrapper)
+			expected, _ := json.Marshal(innerSpec)
+
+			result, err := unwrapTfxPipelineSpec(json.RawMessage(compiled), "tfx")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(MatchJSON(expected))
+		})
+
+		It("should handle pipeline_spec key (snake_case)", func() {
+			innerSpec := map[string]interface{}{"pipelineInfo": map[string]interface{}{"name": "test"}}
+			wrapper := map[string]interface{}{
+				"displayName":   "test",
+				"pipeline_spec": innerSpec,
+			}
+			compiled, _ := json.Marshal(wrapper)
+			expected, _ := json.Marshal(innerSpec)
+
+			result, err := unwrapTfxPipelineSpec(json.RawMessage(compiled), "tfx")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(MatchJSON(expected))
+		})
+
+		It("should be case-insensitive for framework name", func() {
+			innerSpec := map[string]interface{}{"pipelineInfo": map[string]interface{}{"name": "test"}}
+			wrapper := map[string]interface{}{"pipelineSpec": innerSpec}
+			compiled, _ := json.Marshal(wrapper)
+			expected, _ := json.Marshal(innerSpec)
+
+			result, err := unwrapTfxPipelineSpec(json.RawMessage(compiled), "TFX")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(MatchJSON(expected))
+		})
+
+		It("should return compiled pipeline unchanged for non-TFX frameworks", func() {
+			pipelineSpec := map[string]interface{}{
+				"pipelineInfo": map[string]interface{}{"name": "test"},
+			}
+			compiled, _ := json.Marshal(pipelineSpec)
+
+			result, err := unwrapTfxPipelineSpec(json.RawMessage(compiled), "kfpsdk")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(MatchJSON(compiled))
+		})
+
+		It("should return compiled pipeline unchanged when TFX but no pipelineSpec key", func() {
+			bareSpec := map[string]interface{}{
+				"pipelineInfo": map[string]interface{}{"name": "test"},
+			}
+			compiled, _ := json.Marshal(bareSpec)
+
+			result, err := unwrapTfxPipelineSpec(json.RawMessage(compiled), "tfx")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(MatchJSON(compiled))
+		})
+
+		It("should return compiled pipeline unchanged when TFX but invalid JSON", func() {
+			compiled := json.RawMessage([]byte("not-json"))
+
+			result, err := unwrapTfxPipelineSpec(compiled, "tfx")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(compiled))
+		})
+	})
+
+	Context("Pipeline with TFX framework", func() {
+		const id = "pipeline-id"
+
+		It("should unwrap pipelineSpec from TFX compiled pipeline on CreatePipeline", func() {
+			innerSpec := map[string]interface{}{
+				"pipelineInfo": map[string]interface{}{"name": "test"},
+			}
+			wrapper := map[string]interface{}{
+				"displayName":   "test",
+				"pipelineSpec":  innerSpec,
+				"runtimeConfig": map[string]interface{}{},
+			}
+			compiled, _ := json.Marshal(wrapper)
+			unwrapped, _ := json.Marshal(innerSpec)
+
+			tfxPdw := testutil.RandomPipelineDefinitionWrapper()
+			tfxPdw.PipelineDefinition.Framework = pipelineshub.PipelineFramework{Name: "tfx"}
+			tfxPdw.CompiledPipeline = compiled
+			version := tfxPdw.PipelineDefinition.Version
+			nsnStr, err := util.ResourceNameFromNamespacedName(tfxPdw.PipelineDefinition.Name)
+			Expect(err).ToNot(HaveOccurred())
+
+			labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(json.RawMessage(unwrapped), nil)
+			pipelineUploadService.On("UploadPipeline", mock.MatchedBy(func(content []byte) bool {
+				return string(content) == string(unwrapped)
+			}), nsnStr).Return(id, nil)
+			pipelineService.On("DeletePipelineVersions", id).Return(nil)
+			pipelineUploadService.On("UploadPipelineVersion", id, mock.MatchedBy(func(content []byte) bool {
+				return string(content) == string(unwrapped)
+			}), version).Return(nil)
+
+			result, err := provider.CreatePipeline(ctx, tfxPdw)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(id))
+		})
+
+		It("should not unwrap for kfpsdk compiled pipeline on CreatePipeline", func() {
+			pipelineSpec := map[string]interface{}{
+				"pipelineInfo": map[string]interface{}{"name": "test"},
+				"components":   map[string]interface{}{},
+			}
+			compiled, _ := json.Marshal(pipelineSpec)
+
+			kfpPdw := testutil.RandomPipelineDefinitionWrapper()
+			kfpPdw.PipelineDefinition.Framework = pipelineshub.PipelineFramework{Name: "kfpsdk"}
+			kfpPdw.CompiledPipeline = compiled
+			version := kfpPdw.PipelineDefinition.Version
+			nsnStr, err := util.ResourceNameFromNamespacedName(kfpPdw.PipelineDefinition.Name)
+			Expect(err).ToNot(HaveOccurred())
+
+			labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(json.RawMessage(compiled), nil)
+			pipelineUploadService.On("UploadPipeline", mock.MatchedBy(func(content []byte) bool {
+				return string(content) == string(compiled)
+			}), nsnStr).Return(id, nil)
+			pipelineService.On("DeletePipelineVersions", id).Return(nil)
+			pipelineUploadService.On("UploadPipelineVersion", id, mock.MatchedBy(func(content []byte) bool {
+				return string(content) == string(compiled)
+			}), version).Return(nil)
+
+			result, err := provider.CreatePipeline(ctx, kfpPdw)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(id))
 		})
 	})
 })

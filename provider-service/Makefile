@@ -30,8 +30,10 @@ test: ## Run all tests for all providers
 docker-build: ## Build all provider docker images
 	$(MAKE) -C vai docker-build
 	$(MAKE) -C kfp docker-build
+	$(MAKE) -C kfp/tfx-patch docker-build
 
 
 docker-push: ## Publish all provider docker images
 	$(MAKE) -C vai docker-push
 	$(MAKE) -C kfp docker-push
+	$(MAKE) -C kfp/tfx-patch docker-push
