@@ -13,6 +13,7 @@ from tfx_kfp_v2_shim._hook import TfxShimFinder
 from tfx_kfp_v2_shim._patches import (
     patch_compiler_utils,
     patch_entrypoint_utils,
+    patch_experimental,
     patch_path_utils,
 )
 
@@ -22,6 +23,7 @@ _ENTRYPOINT_UTILS = (
     "tfx.orchestration.kubeflow.v2.container.kubeflow_v2_entrypoint_utils"
 )
 _PATH_UTILS = "tfx.utils.path_utils"
+_EXPERIMENTAL = "tfx.v1.orchestration.experimental"
 
 _installed = False
 
@@ -40,6 +42,7 @@ def install(*, vertex_compatible: bool = False) -> None:
     patches = {
         _COMPILER_UTILS: patch_compiler_utils,
         _ENTRYPOINT_UTILS: patch_entrypoint_utils,
+        _EXPERIMENTAL: patch_experimental,
     }
     if not vertex_compatible:
         patches[_PATH_UTILS] = patch_path_utils
