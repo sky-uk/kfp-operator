@@ -47,15 +47,29 @@ def patch_compiler_utils(mod: ModuleType) -> None:
     KFP v2 normalises TFX artifact types to system.* titles (e.g. system.Model).
     TFX looks these up in TITLE_TO_CLASS_PATH but only has tfx.* entries.
     """
-    from tfx.types import simple_artifacts, standard_artifacts
+    from tfx.types import standard_artifacts
     from tfx.utils import name_utils
 
+    # TFX 1.14 has simple_artifacts; TFX 1.15+ moved them to system_artifacts
+    try:
+        from tfx.types import simple_artifacts
+        file_cls = simple_artifacts.File
+        dataset_cls = simple_artifacts.Dataset
+        metrics_cls = simple_artifacts.Metrics
+        statistics_cls = simple_artifacts.Statistics
+    except ImportError:
+        from tfx.types import system_artifacts
+        file_cls = standard_artifacts.Artifact
+        dataset_cls = system_artifacts.Dataset
+        metrics_cls = system_artifacts.Metrics
+        statistics_cls = system_artifacts.Statistics
+
     system_to_tfx = {
-        "system.Artifact": simple_artifacts.File,
+        "system.Artifact": file_cls,
         "system.Model": standard_artifacts.Model,
-        "system.Dataset": simple_artifacts.Dataset,
-        "system.Metrics": simple_artifacts.Metrics,
-        "system.Statistics": simple_artifacts.Statistics,
+        "system.Dataset": dataset_cls,
+        "system.Metrics": metrics_cls,
+        "system.Statistics": statistics_cls,
     }
     mod.TITLE_TO_CLASS_PATH.update(
         {title: name_utils.get_full_name(cls) for title, cls in system_to_tfx.items()}
@@ -139,6 +153,28 @@ def _patch_parse_raw_artifact_dict(mod: ModuleType) -> None:
 
     mod.parse_raw_artifact_dict = _patched
     log.info("Patch 4: wrapped parse_raw_artifact_dict")
+
+
+# ── Patch 6: Re-export KubeflowV2DagRunner in experimental ────────────────
+
+def patch_experimental(mod: ModuleType) -> None:
+    """Re-export KubeflowV2DagRunner in tfx.v1.orchestration.experimental.
+
+    With kfp>=2, TFX removes KubeflowV2DagRunner from the experimental
+    namespace.  The kfp-operator compiler imports it from there, so we
+    re-inject it from the v2 runner module.
+    """
+    if hasattr(mod, "KubeflowV2DagRunner"):
+        log.info("Patch 6: KubeflowV2DagRunner already present, skipping")
+        return
+
+    try:
+        from tfx.orchestration.kubeflow.v2 import kubeflow_v2_dag_runner
+        mod.KubeflowV2DagRunner = kubeflow_v2_dag_runner.KubeflowV2DagRunner
+        mod.KubeflowV2DagRunnerConfig = kubeflow_v2_dag_runner.KubeflowV2DagRunnerConfig
+        log.info("Patch 6: re-exported KubeflowV2DagRunner into experimental")
+    except (ImportError, AttributeError) as exc:
+        log.warning("Patch 6: could not import KubeflowV2DagRunner: %s", exc)
 
 
 # ── Patch 5: Flatten model directory (path_utils) ─────────────────────────
