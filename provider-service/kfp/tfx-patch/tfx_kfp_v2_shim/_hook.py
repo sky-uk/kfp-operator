@@ -83,14 +83,18 @@ class _ShimLoader(importlib.abc.Loader):
         finally:
             self._finder._in_progress.discard(fullname)
 
-        # Copy the real module's namespace into the module object that the
+        # Apply the patch to the *real* module first.  This is critical:
+        # functions defined in real_module have __globals__ pointing at
+        # real_module.__dict__, so intra-module global lookups (e.g.
+        # parse_raw_artifact_dict calling _parse_raw_artifact) must find
+        # the patched version there.
+        patch_fn = self._finder._patches[fullname]
+        patch_fn(real_module)
+        log.info("Patched %s via import hook", fullname)
+
+        # Copy the (now patched) namespace into the module object that the
         # import system gave us, so callers get a single consistent object.
         module.__dict__.update(real_module.__dict__)
 
         # Put *our* module back (the import system expects it there).
         sys.modules[fullname] = module
-
-        # Apply the patch.
-        patch_fn = self._finder._patches[fullname]
-        patch_fn(module)
-        log.info("Patched %s via import hook", fullname)
