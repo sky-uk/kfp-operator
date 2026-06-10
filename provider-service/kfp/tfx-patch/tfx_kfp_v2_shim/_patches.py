@@ -74,7 +74,9 @@ def patch_compiler_utils(mod: ModuleType) -> None:
     mod.TITLE_TO_CLASS_PATH.update(
         {title: name_utils.get_full_name(cls) for title, cls in system_to_tfx.items()}
     )
-    log.info("Patch 1: added %d system.* title mappings", len(system_to_tfx))
+    added = {title: name_utils.get_full_name(cls) for title, cls in system_to_tfx.items()}
+    log.info("Patch 1: added %d system.* title mappings: %s", len(added), added)
+    log.info("Patch 1: TITLE_TO_CLASS_PATH id=%d, keys=%s", id(mod.TITLE_TO_CLASS_PATH), list(mod.TITLE_TO_CLASS_PATH.keys()))
 
 
 # ── Patches 2, 3, 4: entrypoint_utils ─────────────────────────────────────
@@ -121,7 +123,28 @@ def _patch_parse_raw_artifact(mod: ModuleType) -> None:
         if kind == "instance_schema" and not type_schema.instance_schema:
             artifact_pb.type.instance_schema = "title: ''"
 
-        return original(artifact_pb, name_from_id)
+        # Debug: log the type schema being processed
+        log.info(
+            "Patch 2+3: processing artifact kind=%s title=%s schema=%r",
+            kind, title,
+            getattr(type_schema, 'instance_schema', None)
+            if kind == 'instance_schema'
+            else getattr(type_schema, 'schema_title', None),
+        )
+
+        try:
+            return original(artifact_pb, name_from_id)
+        except (ValueError, ImportError) as exc:
+            log.error(
+                "Patch 2+3: original _parse_raw_artifact failed for "
+                "kind=%s title=%s schema=%r: %s",
+                kind, title,
+                getattr(type_schema, 'instance_schema', None)
+                if kind == 'instance_schema'
+                else getattr(type_schema, 'schema_title', None),
+                exc,
+            )
+            raise
 
     mod._parse_raw_artifact = _patched
     log.info("Patch 2+3: wrapped _parse_raw_artifact")
