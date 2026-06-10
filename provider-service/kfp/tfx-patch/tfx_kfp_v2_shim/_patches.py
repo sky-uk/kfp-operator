@@ -19,6 +19,22 @@ from types import ModuleType
 
 log = logging.getLogger(__name__)
 
+
+# ── Generic Artifact stand-in for system.Artifact ─────────────────────────
+# The base ``artifact.Artifact`` class cannot be instantiated without
+# ``mlmd_artifact_type`` (TYPE_NAME is not set).  TFX 1.14 had
+# ``simple_artifacts.File`` for this role; TFX 1.15 removed it.
+# We provide a minimal concrete subclass so ``artifact_cls()`` succeeds
+# inside TFX's ``_parse_raw_artifact``.
+
+def _make_generic_artifact_class():
+    """Lazily create the class so we don't import TFX at module load."""
+    from tfx.types import artifact as _artifact_mod
+    class _GenericArtifact(_artifact_mod.Artifact):
+        TYPE_NAME = "GenericArtifact"
+    return _GenericArtifact
+
+
 # ── Type inference rules (patch 3) ─────────────────────────────────────────
 # Disambiguate TFX types that share the same system.* title.
 # Keys are the (possibly wrong) title; values are (metadata_keys, correct_title).
@@ -59,7 +75,7 @@ def patch_compiler_utils(mod: ModuleType) -> None:
         statistics_cls = simple_artifacts.Statistics
     except ImportError:
         from tfx.types import system_artifacts
-        file_cls = standard_artifacts.Artifact
+        file_cls = _make_generic_artifact_class()
         dataset_cls = system_artifacts.Dataset
         metrics_cls = system_artifacts.Metrics
         statistics_cls = system_artifacts.Statistics
