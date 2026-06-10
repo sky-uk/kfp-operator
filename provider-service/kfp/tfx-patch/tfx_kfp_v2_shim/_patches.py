@@ -9,6 +9,7 @@ Patches
 1. ``patch_compiler_utils``  — add system.* → TFX class mappings
 2. ``patch_entrypoint_utils`` — null-safe schema + type inference + enrichment
 5. ``patch_path_utils``       — flatten model serving directory
+7. ``patch_run_executor``     — clean up zero-byte directory markers after execution
 """
 
 from __future__ import annotations
@@ -111,9 +112,10 @@ def patch_compiler_utils(mod: ModuleType) -> None:
 # ── Patches 2, 3, 4: entrypoint_utils ─────────────────────────────────────
 
 def patch_entrypoint_utils(mod: ModuleType) -> None:
-    """Apply patches 2 (null schema), 3 (type inference), 4 (enrichment)."""
+    """Apply patches 2 (null schema), 3 (type inference), 4 (enrichment), 7 (GCS markers)."""
     _patch_parse_raw_artifact(mod)
     _patch_parse_raw_artifact_dict(mod)
+    _patch_translate_executor_output(mod)
 
 
 def _patch_parse_raw_artifact(mod: ModuleType) -> None:
@@ -207,6 +209,29 @@ def _patch_parse_raw_artifact_dict(mod: ModuleType) -> None:
     log.info("Patch 4: wrapped parse_raw_artifact_dict")
 
 
+def _patch_translate_executor_output(mod: ModuleType) -> None:
+    """Wrap ``translate_executor_output`` to clean GCS markers (patch 7).
+
+    After each executor finishes, ``translate_executor_output`` is called with
+    the output artifacts.  We wrap it to delete zero-byte GCS directory
+    markers from each output artifact URI before the launcher uploads them.
+    """
+    original = mod.translate_executor_output
+
+    def _patched(output_dict, name_from_id):
+        # Clean up GCS markers from output artifact URIs.
+        for _key, artifacts in output_dict.items():
+            for art in artifacts:
+                uri = art.uri
+                if uri and uri.startswith("gs://"):
+                    _delete_gcs_directory_markers(uri)
+
+        return original(output_dict, name_from_id)
+
+    mod.translate_executor_output = _patched
+    log.info("Patch 7: wrapped translate_executor_output with GCS marker cleanup")
+
+
 # ── Patch 6: Re-export KubeflowV2DagRunner in experimental ────────────────
 
 def patch_experimental(mod: ModuleType) -> None:
@@ -240,11 +265,86 @@ def patch_path_utils(mod: ModuleType) -> None:
 
     WARNING: This breaks Vertex AI compatibility.
     """
-    def _flat_serving_model_dir(output_uri: str) -> str:
+    def _flat_serving_model_dir(output_uri: str, is_old_artifact: bool = False) -> str:
         return output_uri
 
     mod.serving_model_dir = _flat_serving_model_dir
     log.info("Patch 5: flattened serving_model_dir")
+
+
+# ── Patch 7: zero-byte directory marker cleanup (run_executor) ─────────────────
+
+def patch_run_executor(mod: ModuleType) -> None:
+    """Wrap ``_run_executor`` to delete zero-byte GCS directory markers.
+
+    TensorFlow's legacy GCS filesystem (TF ≤ 2.16) creates zero-byte
+    placeholder blobs as directory markers (e.g. ``gs://…/model/``).
+    The KFP v2 launcher downloads these as regular files, which then
+    block ``os.MkdirAll`` for child paths in downstream components.
+
+    This patch runs after each component executor completes and deletes
+    any zero-byte blobs whose names end with ``/`` under each output
+    artifact URI.
+    """
+    original = mod._run_executor
+
+    def _patched_run_executor(args, beam_args):
+        original(args, beam_args)
+        _cleanup_output_markers(args)
+
+    mod._run_executor = _patched_run_executor
+    log.info("Patch 7: wrapped _run_executor with GCS marker cleanup")
+
+
+def _cleanup_output_markers(args) -> None:
+    """Parse output artifact URIs from executor args and remove markers."""
+    try:
+        from google.protobuf import json_format
+        from kfp.pipeline_spec import pipeline_spec_pb2
+
+        executor_input = pipeline_spec_pb2.ExecutorInput()
+        json_format.Parse(
+            args.json_serialized_invocation_args,
+            executor_input,
+            ignore_unknown_fields=True,
+        )
+        for _key, artifact_list in executor_input.outputs.artifacts.items():
+            for artifact in artifact_list.artifacts:
+                uri = artifact.uri
+                if uri and uri.startswith("gs://"):
+                    _delete_gcs_directory_markers(uri)
+    except Exception as exc:
+        log.warning("Patch 7: marker cleanup failed: %s", exc)
+
+
+def _delete_gcs_directory_markers(uri: str) -> None:
+    """Delete zero-byte blobs ending with ``/`` under *uri*."""
+    try:
+        from google.cloud import storage as gcs_storage
+
+        path = uri[5:]  # strip "gs://"
+        bucket_name, _, prefix = path.partition("/")
+        if prefix and not prefix.endswith("/"):
+            prefix += "/"
+
+        client = gcs_storage.Client()
+        bucket = client.bucket(bucket_name)
+
+        deleted = 0
+        for blob in bucket.list_blobs(prefix=prefix):
+            if blob.size == 0 and blob.name.endswith("/"):
+                blob.delete()
+                deleted += 1
+
+        if deleted:
+            log.info(
+                "Patch 7: deleted %d GCS directory marker(s) under %s",
+                deleted, uri,
+            )
+    except Exception as exc:
+        log.warning(
+            "Patch 7: could not clean markers under %s: %s", uri, exc,
+        )
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────
