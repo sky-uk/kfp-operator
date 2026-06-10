@@ -15,6 +15,7 @@ from __future__ import annotations
 import importlib
 import importlib.abc
 import importlib.machinery
+import importlib.util
 import logging
 import sys
 from typing import Callable, Dict, Optional, Sequence
@@ -98,3 +99,23 @@ class _ShimLoader(importlib.abc.Loader):
 
         # Put *our* module back (the import system expects it there).
         sys.modules[fullname] = module
+
+    def get_code(self, fullname: str):
+        """Return code object for the module.
+
+        Required by ``runpy`` (used by ``python -m``).  We locate the real
+        loader via the standard finders (skipping ourselves) and delegate.
+        """
+        self._finder._in_progress.add(fullname)
+        try:
+            real_spec = importlib.util.find_spec(fullname)
+        finally:
+            self._finder._in_progress.discard(fullname)
+
+        if real_spec is None or real_spec.loader is None:
+            return None
+
+        if hasattr(real_spec.loader, "get_code"):
+            return real_spec.loader.get_code(fullname)
+
+        return None
