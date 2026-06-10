@@ -26,12 +26,25 @@ log = logging.getLogger(__name__)
 # ``simple_artifacts.File`` for this role; TFX 1.15 removed it.
 # We provide a minimal concrete subclass so ``artifact_cls()`` succeeds
 # inside TFX's ``_parse_raw_artifact``.
+_GenericArtifact = None  # populated lazily by _get_generic_artifact_class()
 
-def _make_generic_artifact_class():
-    """Lazily create the class so we don't import TFX at module load."""
-    from tfx.types import artifact as _artifact_mod
-    class _GenericArtifact(_artifact_mod.Artifact):
-        TYPE_NAME = "GenericArtifact"
+
+def _get_generic_artifact_class():
+    """Return (and cache) a concrete Artifact subclass with TYPE_NAME set."""
+    global _GenericArtifact  # noqa: PLW0603
+    if _GenericArtifact is None:
+        from tfx.types import artifact as _artifact_mod
+        _GenericArtifact = type(
+            "GenericArtifact",
+            (_artifact_mod.Artifact,),
+            {"TYPE_NAME": "GenericArtifact"},
+        )
+        # Make it importable via name_utils.get_full_name → import_class_by_path
+        _GenericArtifact.__module__ = __name__
+        _GenericArtifact.__qualname__ = "GenericArtifact"
+        # Register on this module so import_class_by_path can find it
+        import sys
+        sys.modules[__name__].GenericArtifact = _GenericArtifact
     return _GenericArtifact
 
 
@@ -75,7 +88,7 @@ def patch_compiler_utils(mod: ModuleType) -> None:
         statistics_cls = simple_artifacts.Statistics
     except ImportError:
         from tfx.types import system_artifacts
-        file_cls = _make_generic_artifact_class()
+        file_cls = _get_generic_artifact_class()
         dataset_cls = system_artifacts.Dataset
         metrics_cls = system_artifacts.Metrics
         statistics_cls = system_artifacts.Statistics
