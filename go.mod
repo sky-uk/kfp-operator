@@ -25,7 +25,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/kubeflow/pipelines v0.0.0-20250902140602-fc3214d4b4d3
 	github.com/nats-io/nats.go v1.52.0
-	github.com/onsi/ginkgo/v2 v2.29.0
+	github.com/onsi/ginkgo/v2 v2.30.0
 	github.com/onsi/gomega v1.40.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/client_model v0.6.2
