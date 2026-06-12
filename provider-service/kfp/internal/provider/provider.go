@@ -84,20 +84,18 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 
 var _ resource.Provider = &KfpProvider{}
 
-// unwrapTfxPipelineSpec extracts the pipelineSpec from a TFX compiled pipeline.
-// TFX compiles pipelines into a Vertex PipelineJob wrapper
-//
-// Kubeflow Pipelines expects the bare KFP IR PipelineSpec, so for TFX pipelines
-// the nested pipelineSpec is unwrapped. For non-TFX pipelines (e.g. kfp-sdk),
-// the compiled pipeline is returned unchanged.
-func unwrapTfxPipelineSpec(compiledPipeline json.RawMessage, frameworkName string) (json.RawMessage, error) {
+// extractPipelineSpec extracts the bare KFP IR PipelineSpec from a compiled pipeline.
+// TFX compiles pipelines into a Vertex PipelineJob wrapper containing a nested
+// pipelineSpec. For TFX pipelines, the nested pipelineSpec is extracted.
+// For non-TFX pipelines (e.g. kfp-sdk), the compiled pipeline is returned unchanged.
+func extractPipelineSpec(compiledPipeline json.RawMessage, frameworkName string) (json.RawMessage, error) {
 	if strings.ToLower(frameworkName) != "tfx" {
 		return compiledPipeline, nil
 	}
 
 	var wrapper map[string]json.RawMessage
 	if err := json.Unmarshal(compiledPipeline, &wrapper); err != nil {
-		return compiledPipeline, nil
+		return nil, fmt.Errorf("failed to unmarshal TFX pipeline spec: %w", err)
 	}
 
 	if pipelineSpec, ok := wrapper["pipelineSpec"]; ok {
@@ -117,7 +115,7 @@ func (p *KfpProvider) CreatePipeline(
 		return "", fmt.Errorf("failed to fetch resource name %v", err)
 	}
 
-	pdw.CompiledPipeline, err = unwrapTfxPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	pdw.CompiledPipeline, err = extractPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
 	}
@@ -150,7 +148,7 @@ func (p *KfpProvider) UpdatePipeline(
 	}
 
 	var err error
-	pdw.CompiledPipeline, err = unwrapTfxPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	pdw.CompiledPipeline, err = extractPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
 	}
