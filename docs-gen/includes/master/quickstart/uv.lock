@@ -535,34 +535,6 @@ css = [
 ]
 
 [[package]]
-name = "boto3"
-version = "1.43.17"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "botocore" },
-    { name = "jmespath" },
-    { name = "s3transfer" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d8/6b/80f6bf4f6253c2221c70a2b70af72038bb6e8820ac4547f2ba7d4efcb6be/boto3-1.43.17.tar.gz", hash = "sha256:8cf48babdd52ff0e2d891dc661143780b361d3776a3be06cd719da0696995074", size = 113167, upload-time = "2026-05-28T19:39:18.157Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/1e/30b218998dee295873f33c591bb5daf08c42ec27e5fb0ebb13977677e96f/boto3-1.43.17-py3-none-any.whl", hash = "sha256:f6b3862a0b14e237f9323223ee76b0563e87a6bbe6d94a42e7b008a901ba8950", size = 140538, upload-time = "2026-05-28T19:39:15.75Z" },
-]
-
-[[package]]
-name = "botocore"
-version = "1.43.17"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "jmespath" },
-    { name = "python-dateutil" },
-    { name = "urllib3" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/30/37/a9227caa820189bce55564b6cfc9bbf22f6c984e6b0f0c614348424fb84a/botocore-1.43.17.tar.gz", hash = "sha256:27f4ecb80cf1e5be70415fc4a4d3db3907d41ef8178c9df822364f275427d375", size = 15417107, upload-time = "2026-05-28T19:39:04.577Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d6/ff/1625713b2ecac9f9bb65c7a51e71cb206b3089ba38f86ba5eff34e947176/botocore-1.43.17-py3-none-any.whl", hash = "sha256:499af7c942ecfd404322974e82c6b5d05a8ea16e9f19320b353e16f401adc5b4", size = 15097131, upload-time = "2026-05-28T19:38:59.775Z" },
-]
-
-[[package]]
 name = "cachetools"
 version = "5.5.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2210,15 +2182,6 @@ wheels = [
 ]
 
 [[package]]
-name = "jmespath"
-version = "1.1.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d3/59/322338183ecda247fb5d1763a6cbe46eff7222eaeebafd9fa65d4bf5cb11/jmespath-1.1.0.tar.gz", hash = "sha256:472c87d80f36026ae83c6ddd0f1d05d4e510134ed462851fd5f754c8c3cbb88d", size = 27377, upload-time = "2026-01-22T16:35:26.279Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/14/2f/967ba146e6d58cf6a652da73885f52fc68001525b4197effc174321d70b4/jmespath-1.1.0-py3-none-any.whl", hash = "sha256:a5663118de4908c91729bea0acadca56526eb2698e83de10cd116ae0f4e97c64", size = 20419, upload-time = "2026-01-22T16:35:24.919Z" },
-]
-
-[[package]]
 name = "joblib"
 version = "1.5.2"
 source = { registry = "https://pypi.org/simple" }
@@ -3606,17 +3569,17 @@ name = "penguin-pipeline"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "boto3" },
     { name = "kfp" },
     { name = "setuptools" },
+    { name = "tensorflow-io" },
     { name = "tfx" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "boto3" },
     { name = "kfp", specifier = ">=2.6.0,<2.7.0" },
     { name = "setuptools", specifier = "<82" },
+    { name = "tensorflow-io" },
     { name = "tfx", specifier = "==1.17.3" },
 ]
 
@@ -4825,18 +4788,6 @@ wheels = [
 ]
 
 [[package]]
-name = "s3transfer"
-version = "0.18.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "botocore" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e0/1f/12417f7f493fc45e1f9fd5d4a9b6c125cf8d2cf3f8ddbdfab3e76406e9d6/s3transfer-0.18.0.tar.gz", hash = "sha256:3760b8b7ec1315da54048b2d626276732bee4300d054d492d4e1d43e20d4ecbd", size = 160560, upload-time = "2026-05-28T19:39:09.124Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/58/a58fc997655386daa2e25784e30c288aa3e3819e401f77029ee4899fb55a/s3transfer-0.18.0-py3-none-any.whl", hash = "sha256:239c13b09e65ad0346e1be7348b8a202dcad44ac7ea7c6eb858fc881dce739b6", size = 88572, upload-time = "2026-05-28T19:39:07.999Z" },
-]
-
-[[package]]
 name = "sacrebleu"
 version = "2.5.1"
 source = { registry = "https://pypi.org/simple" }
@@ -5159,6 +5110,28 @@ dependencies = [
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6e/1a/fbae76f4057b9bcdf9468025d7a8ca952dec14bfafb9fc0b1e4244ce212f/tensorflow_hub-0.15.0-py2.py3-none-any.whl", hash = "sha256:8af12cb2d1fc0d1a9509a620e7589daf173714e99f08aaf090a4748ff20b45c8", size = 85415, upload-time = "2023-10-06T09:58:50.593Z" },
+]
+
+[[package]]
+name = "tensorflow-io"
+version = "0.37.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "tensorflow-io-gcs-filesystem" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/27/c5/8f01fb6df8fc2eb0a7d6a5f1e3ff010268dd48bef55c2117e4eaa3c8720e/tensorflow_io-0.37.1-cp310-cp310-macosx_10_14_x86_64.whl", hash = "sha256:dc1adb4a39a02c2d389e2711439ca7d03c4ccf0c5074af5ee123c5d5ca372dcb", size = 22100394, upload-time = "2024-07-01T23:43:17.849Z" },
+    { url = "https://files.pythonhosted.org/packages/09/4b/4ac0c7bacc6bfcf2ce1500931b288bcf52eacc6398ae946d7724f2f88421/tensorflow_io-0.37.1-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:e9488e2d737057121e1218eeb34f96f2d2423ed3cf7d00eba68bc3a5b66d2366", size = 31808785, upload-time = "2024-07-01T23:43:21.576Z" },
+    { url = "https://files.pythonhosted.org/packages/c9/aa/0b510a4914c0727c4244698aa3ff5c426eb1a8275e3c374a758e7ba0582e/tensorflow_io-0.37.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d7ce860f864e3f9ef12bb8980c4e80a941713bfe7dbfe71e6e05dbb96003c8d6", size = 48623974, upload-time = "2024-07-01T23:43:24.917Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/d6/926232dff47d3425df15d6b269258c4770fc058edaae9f34209c97ad8785/tensorflow_io-0.37.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dee4a2d6c3586bda78d747d003d063ec503c6ac124c24d4dfcf4f105cd9309a1", size = 49593032, upload-time = "2024-07-01T23:43:28.272Z" },
+    { url = "https://files.pythonhosted.org/packages/df/35/91571185983a98453cf3baeee0cad433c3e5abacc2baf16f80ff39f3c067/tensorflow_io-0.37.1-cp311-cp311-macosx_10_14_x86_64.whl", hash = "sha256:14c7ada03c2ab8ca3beca618833d0da8de1d693598827147c56a0dde54e17d87", size = 22100396, upload-time = "2024-07-01T23:43:31.941Z" },
+    { url = "https://files.pythonhosted.org/packages/50/0f/4770defb52f09d03b9cae6109dcfb329b471152a3c3e5cb472f59a28bece/tensorflow_io-0.37.1-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:410b70c108ce93f657147b8e9528353e1df5292a5e33cd6555d4cd964c856b0e", size = 31808786, upload-time = "2024-07-01T23:43:35.272Z" },
+    { url = "https://files.pythonhosted.org/packages/f5/34/8f3b1f9fd56ad6d0f1bd995c1c765d2bc137281f22976930db8ff5474247/tensorflow_io-0.37.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:144251635584e128060f7047a710e567bfac6171de03e0a79faf2b909bc689c4", size = 48623974, upload-time = "2024-07-01T23:43:39.512Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/5e/f47443a14a00816fab54caf74599e2fcb34c05d6059e91f82126f8f4c68d/tensorflow_io-0.37.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b072ae78143df8f786d3cbb9060b76f17f966824dd1e7906d3252c79525d2358", size = 49593032, upload-time = "2024-07-01T23:43:42.958Z" },
+    { url = "https://files.pythonhosted.org/packages/7c/74/6042510c333143c9ea7dda27cba7b7c3df1be1cd380ce018d7bc1c9ac3df/tensorflow_io-0.37.1-cp312-cp312-macosx_10_14_x86_64.whl", hash = "sha256:42c587d9962554adbcfd2da17b51415dbb04c18afb06055649b7c3be4c21a266", size = 22100394, upload-time = "2024-07-01T23:43:46.397Z" },
+    { url = "https://files.pythonhosted.org/packages/65/cf/de4565efb945064b79225da5c18e16de56ff09e1436df3237bbfe3d2f5a1/tensorflow_io-0.37.1-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:1fdc5c28c038ab9ae0ad505a9fce45e6cc6dadd1133932d4f38fdea8d8a05900", size = 31808786, upload-time = "2024-07-01T23:43:49.574Z" },
+    { url = "https://files.pythonhosted.org/packages/37/ed/27ada83e3802df4b235d921c8f402dbefd20b65c38e2915fed0cc914f851/tensorflow_io-0.37.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1c51b213c8d9b933e1602fccfb8fd70e8b5719e27916fcbe088ca7f695c70f49", size = 48623974, upload-time = "2024-07-01T23:43:52.953Z" },
+    { url = "https://files.pythonhosted.org/packages/b4/4c/3f673f2ca7660f7defde57716a2978333db5bb9882c28f720713b0c476bd/tensorflow_io-0.37.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1abf9b8db2faa37c94aed7fef267c93e0fba30b6ec30f857a39ea7e89bf3748d", size = 49593033, upload-time = "2024-07-01T23:43:58.236Z" },
 ]
 
 [[package]]

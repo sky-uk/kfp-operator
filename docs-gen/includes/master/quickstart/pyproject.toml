@@ -8,7 +8,7 @@ dependencies = [
     "tfx==1.17.3",
     "kfp>=2.6.0,<2.7.0",
     "setuptools<82",
-    "boto3",
+    "tensorflow-io",
 ]
 
 [tool.uv]
