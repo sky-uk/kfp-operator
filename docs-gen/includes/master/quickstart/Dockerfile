@@ -7,6 +7,10 @@ FROM python:3.10-trixie
 ARG WHEEL_VERSION
 COPY --from=uv /uv /bin/uv
 
+# Force pure-Python protobuf to avoid C++ ABI conflicts between
+# protobuf 4.x and grpcio's bundled C++ protobuf library.
+ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+
 COPY pyproject.toml uv.lock ./
 ENV UV_PROJECT_ENVIRONMENT=/usr/local
 RUN uv sync --locked --no-install-project --no-dev --python 3.10

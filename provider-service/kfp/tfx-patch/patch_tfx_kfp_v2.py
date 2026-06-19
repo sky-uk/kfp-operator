@@ -296,13 +296,48 @@ _PATCH_5 = Patch(
     replacement=f"return output_uri  {PATCH_MARKER}",
 )
 
+# Patch 6 — Force-exit after executor completion (run_executor.py)
+#
+# TensorFlow / ml-metadata / protobuf C++ extensions crash during Python's
+# atexit phase with "pure virtual method called" due to destructor ordering
+# issues. The crash happens AFTER all executor work is done and output
+# metadata has been written, but the non-zero exit code causes the KFP
+# launcher to report the step as failed, blocking downstream components.
+# Fix: call os._exit(0) immediately after writing the output metadata file,
+# bypassing the C++ destructor chain entirely.
+
+_PATCH_6_MARKER = "# [patch:force-exit-atexit]"
+
+_PATCH_6 = Patch(
+    name="6. Force-exit after executor",
+    module=_RUN_EXECUTOR,
+    anchor=(
+        "  fileio.makedirs(os.path.dirname(metadata_uri))\n"
+        "  with fileio.open(metadata_uri, 'wb') as f:\n"
+        "    f.write(json_format.MessageToJson(executor_output))"
+    ),
+    replacement=(
+        "  fileio.makedirs(os.path.dirname(metadata_uri))\n"
+        "  with fileio.open(metadata_uri, 'wb') as f:\n"
+        "    f.write(json_format.MessageToJson(executor_output))\n"
+        f"\n  {_PATCH_6_MARKER}\n"
+        "  # Force-exit to prevent C++ destructor crash\n"
+        "  # (\"pure virtual method called\") in TF/ml-metadata/protobuf\n"
+        "  # during Python shutdown. All work is done and metadata written.\n"
+        "  logging.info('Executor output metadata written — force-exiting"
+        " to avoid C++ atexit crash.')\n"
+        "  os._exit(0)"
+    ),
+    idempotency_mark=_PATCH_6_MARKER,
+)
+
 
 # ---------------------------------------------------------------------------
 # Patch registry
 # ---------------------------------------------------------------------------
 
 # Safe for all environments including Vertex AI.
-_UNIVERSAL_PATCHES = [_PATCH_1, _PATCH_2, _PATCH_3, _PATCH_4]
+_UNIVERSAL_PATCHES = [_PATCH_1, _PATCH_2, _PATCH_3, _PATCH_4, _PATCH_6]
 
 # Break Vertex AI compatibility — OSS KFP v2 only.
 _OSS_KFP_ONLY_PATCHES = [_PATCH_5]

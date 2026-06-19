@@ -9,6 +9,8 @@ dependencies = [
     "kfp>=2.6.0,<2.7.0",
     "setuptools<82",
     "tensorflow-io",
+    "boto3",
+    "grpcio<1.60.0",
 ]
 
 [tool.uv]
