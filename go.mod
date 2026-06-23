@@ -6,7 +6,6 @@ require (
 	cloud.google.com/go/aiplatform v1.125.0
 	cloud.google.com/go/pubsub/v2 v2.6.0
 	cloud.google.com/go/storage v1.62.2
-	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/argoproj/argo-workflows/v3 v3.7.13
 	github.com/distribution/reference v0.6.0
 	github.com/evanphx/json-patch/v5 v5.9.11
@@ -65,6 +64,7 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.32.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.56.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.56.0 // indirect
+	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2 // indirect
