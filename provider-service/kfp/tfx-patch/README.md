@@ -1,57 +1,57 @@
 # TFX Patch Image
 
-A lightweight `scratch`-based image containing a single Python script (`patch_tfx_kfp_v2.py`) that fixes five TFX runtime incompatibilities with the OSS KFP v2 driver/launcher.
+A `scratch`-based image containing the `tfx_kfp_v2_shim` package. It installs a PEP 451 import hook that patches TFX at runtime for OSS KFP v2 compatibility.
 
 > [!Important]
-> *Disclaimer:*
-> This patch has only been tested against the test quickstart image within this repository. It's not guaranteed to work with all tfx pipelines.
-> This provides a base setup for pipelines to run on KFP, but it is not a complete solution, and should not be relied upon.
+> Only tested against the quickstart image in this repo. Not guaranteed to work with all TFX pipelines.
 
+## How it works
+
+`install_shim.py` copies the package into site-packages and writes a `.pth` file so the hook activates on every Python invocation. When a target TFX module is imported the hook lets the real loader run, then monkey-patches the module in place.
 
 ## Patches
 
-| # | Target | Fix |
-|---|--------|-----|
-| 1 | `compiler_utils.py` | Map `system.*` schema titles to TFX artifact classes |
-| 2 | `kubeflow_v2_entrypoint_utils.py` | Handle `None` `instance_schema` from the KFP v2 driver |
-| 3 | `kubeflow_v2_entrypoint_utils.py` | Infer correct TFX artifact class from metadata keys |
-| 4 | `kubeflow_v2_run_executor.py` | Enrich input artifact types from component inputs spec |
-| 5 | `path_utils.py` | Flatten model directory to work around KFP launcher bug |
+| # | Target module | What it does |
+|---|---------------|--------------|
+| 1 | `compiler_utils` | Add `system.*` → TFX class mappings to `TITLE_TO_CLASS_PATH` |
+| 2 | `kubeflow_v2_entrypoint_utils` | Guard `None` `instance_schema` (`yaml.safe_load("")` → `None`) |
+| 3 | `kubeflow_v2_entrypoint_utils` | Infer correct TFX type from artifact metadata keys |
+| 4 | `kubeflow_v2_entrypoint_utils` | Copy artifact type schemas from `inputs_spec` into untyped artifacts |
+| 5 | `path_utils` | Flatten model directory (skip `Format-Serving/` subdirectory) |
+| 6 | `tfx.v1.orchestration.experimental` | Re-export `KubeflowV2DagRunner` removed by `kfp>=2` |
+| 7 | `kubeflow_v2_entrypoint_utils` | Delete zero-byte GCS directory markers after each executor run |
 
-Patches 1–4 are safe for all environments. Patch 5 changes the TFX model layout and is incompatible with Vertex AI Pipelines.
-There is an open issue + PR in Kubeflow to fix the launcher bug instead (Patch 5). Which will make this redundant, but until then it is required.
+Patches 1–4 and 6–7 are safe for all environments. Patch 5 changes TFX's model layout and breaks Vertex AI — use `--vertex-compatible` to skip it.
+
+Patches 5 and 7 work around a KFP launcher bug ([kubeflow/pipelines#13476](https://github.com/kubeflow/pipelines/issues/13476)). They become redundant once that is fixed upstream.
 
 ## Supported TFX versions
 
-1.15, 1.16, 1.17 — the patched files are identical across all three versions.
+1.15, 1.16, 1.17
 
 ## Usage
 
-Pipeline authors consume the patch via a Docker multi-stage build: e.g
-
-> [!NOTE]
-> The patch must be applied after the TFX image is installed / uv sync'd to take effect.
+Install via multi-stage build after TFX dependencies are in place:
 
 ```dockerfile
 FROM ghcr.io/kfp-operator/kfp-operator-tfx-patch:latest AS tfx-patch
-FROM tensorflow/tfx:1.17.3
+FROM python:3.10.12
 
-COPY --from=tfx-patch /patch_tfx_kfp_v2.py /tmp/
-RUN python /tmp/patch_tfx_kfp_v2.py && rm /tmp/patch_tfx_kfp_v2.py
-
-COPY my_pipeline/ /pipeline/
+# install TFX and dependencies first
+COPY --from=tfx-patch /tfx_kfp_v2_shim /tmp/tfx_kfp_v2_shim
+RUN python /tmp/tfx_kfp_v2_shim/install_shim.py && rm -rf /tmp/tfx_kfp_v2_shim
 ```
 
-To skip patch 5 for images that also run on Vertex AI:
+Skip patch 5 for Vertex AI compatibility:
 
 ```dockerfile
-RUN python /tmp/patch_tfx_kfp_v2.py --vertex-compatible && rm /tmp/patch_tfx_kfp_v2.py
+RUN python /tmp/tfx_kfp_v2_shim/install_shim.py --vertex-compatible && rm -rf /tmp/tfx_kfp_v2_shim
 ```
 
-You can also verify the patch can be applied without modifying files by running with `--check`:
+## Testing
 
-```dockerfile
-RUN python /tmp/patch_tfx_kfp_v2.py --check && rm /tmp/patch_tfx_kfp_v2.py
+```bash
+make test
 ```
 
 ## Build

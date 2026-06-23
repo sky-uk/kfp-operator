@@ -156,6 +156,7 @@ class TestPatchParseRawArtifact:
         mod = types.ModuleType("fake_entrypoint_utils")
         mod._parse_raw_artifact = MagicMock(return_value="parsed")
         mod.parse_raw_artifact_dict = MagicMock(return_value={})
+        mod.translate_executor_output = MagicMock(return_value={})
         return mod
 
     def test_delegates_to_original(self):
@@ -234,6 +235,7 @@ class TestPatchParseRawArtifactDict:
 
         mod._parse_raw_artifact = MagicMock(return_value="parsed")
         mod.parse_raw_artifact_dict = mock_parse
+        mod.translate_executor_output = MagicMock(return_value={})
         patch_entrypoint_utils(mod)
 
         # Build test data
@@ -253,6 +255,7 @@ class TestPatchParseRawArtifactDict:
         mod = types.ModuleType("fake_entrypoint_utils")
         mod._parse_raw_artifact = MagicMock(return_value="parsed")
         mod.parse_raw_artifact_dict = MagicMock(return_value={})
+        mod.translate_executor_output = MagicMock(return_value={})
         patch_entrypoint_utils(mod)
 
         art = FakeArtifact(FakeTypeSchema())
