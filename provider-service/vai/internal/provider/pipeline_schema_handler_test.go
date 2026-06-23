@@ -10,7 +10,7 @@ import (
 var _ = Describe("DefaultPipelineSchemaHandler", func() {
 	var handler = DefaultPipelineSchemaHandler{}
 
-	Context("wrapped IR (Vertex PipelineJob envelope)", func() {
+	Context("wrapped pipeline spec (Vertex PipelineJob wrapper)", func() {
 		var raw map[string]any
 
 		BeforeEach(func() {
@@ -42,9 +42,9 @@ var _ = Describe("DefaultPipelineSchemaHandler", func() {
 				"schema_version":     "2.0.0",
 				"sdk_version":        "tfx-1.15.1",
 			}))
-			specMap := pipelineValues.pipelineSpec.AsMap()
-			Expect(specMap["key"]).To(Equal("value"))
-			Expect(specMap).ToNot(HaveKey("pipelineSpec"))
+			pipelineSpecMap := pipelineValues.pipelineSpec.AsMap()
+			Expect(pipelineSpecMap["key"]).To(Equal("value"))
+			Expect(pipelineSpecMap).ToNot(HaveKey("pipelineSpec"))
 		})
 
 		It("uses the wrapper displayName for a wrapped 2.1 spec (regression)", func() {
@@ -76,7 +76,7 @@ var _ = Describe("DefaultPipelineSchemaHandler", func() {
 		})
 	})
 
-	Context("bare IR (kfp-sdk output)", func() {
+	Context("bare pipeline spec (kfp-sdk output)", func() {
 		var raw map[string]any
 
 		BeforeEach(func() {
@@ -106,10 +106,10 @@ var _ = Describe("DefaultPipelineSchemaHandler", func() {
 				"sdk_version":    "kfp-2.0.1",
 				"schema_version": "2.1.0",
 			}))
-			specMap := pipelineValues.pipelineSpec.AsMap()
-			Expect(specMap["components"].(map[string]any)["component1"]).To(Equal("some-component"))
-			Expect(specMap["deploymentSpec"].(map[string]any)["executors"]).To(Equal("some-executor"))
-			Expect(specMap["root"].(map[string]any)["dag"]).To(Equal("some-dag"))
+			pipelineSpecMap := pipelineValues.pipelineSpec.AsMap()
+			Expect(pipelineSpecMap["components"].(map[string]any)["component1"]).To(Equal("some-component"))
+			Expect(pipelineSpecMap["deploymentSpec"].(map[string]any)["executors"]).To(Equal("some-executor"))
+			Expect(pipelineSpecMap["root"].(map[string]any)["dag"]).To(Equal("some-dag"))
 		})
 
 		When("pipelineInfo is not set", func() {
