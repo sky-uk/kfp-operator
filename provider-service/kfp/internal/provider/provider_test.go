@@ -13,6 +13,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
@@ -50,6 +51,40 @@ var _ = Describe("Provider", func() {
 		}
 	})
 
+	Context("scopeToKfpNamespace", func() {
+		input := common.NamespacedName{Name: "Default", Namespace: "team-namespace"}
+
+		When("KFP is in multi-user mode", func() {
+			It("overrides the namespace with the configured kfpNamespace", func() {
+				provider.config = &config.Config{
+					Parameters: config.Parameters{
+						KfpNamespace:     "kubeflow",
+						KfpMultiUserMode: true,
+					},
+				}
+
+				Expect(provider.scopeToKfpNamespace(input)).To(Equal(
+					common.NamespacedName{Name: "Default", Namespace: "kubeflow"},
+				))
+			})
+		})
+
+		When("KFP is in single-user mode", func() {
+			It("clears the namespace so the bare display name resolves", func() {
+				provider.config = &config.Config{
+					Parameters: config.Parameters{
+						KfpNamespace:     "kubeflow",
+						KfpMultiUserMode: false,
+					},
+				}
+
+				Expect(provider.scopeToKfpNamespace(input)).To(Equal(
+					common.NamespacedName{Name: "Default", Namespace: ""},
+				))
+			})
+		})
+	})
+
 	Context("Run", func() {
 		Context("CreateRun", func() {
 			const (
@@ -59,6 +94,8 @@ var _ = Describe("Provider", func() {
 				experimentId      = "experiment-id"
 			)
 			rd := testutil.RandomRunDefinition()
+			// Single-user (default) config clears the experiment namespace.
+			scopedExperimentName := common.NamespacedName{Name: rd.ExperimentName.Name}
 			nsnStr, err := rd.PipelineName.SeparatedString("-")
 
 			Expect(err).ToNot(HaveOccurred())
@@ -66,7 +103,7 @@ var _ = Describe("Provider", func() {
 			It("should return run id if run is created", func() {
 				pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
 				pipelineService.On("PipelineVersionIdForDisplayName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-				experimentService.On("ExperimentIdByDisplayName", rd.ExperimentName).Return(experimentId, nil)
+				experimentService.On("ExperimentIdByDisplayName", scopedExperimentName).Return(experimentId, nil)
 				runService.On("CreateRun", rd, pipelineId, pipelineVersionId, experimentId).Return(runId, nil)
 				result, err := provider.CreateRun(ctx, rd)
 
@@ -113,7 +150,7 @@ var _ = Describe("Provider", func() {
 					expectedErr := errors.New("failed")
 					pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
 					pipelineService.On("PipelineVersionIdForDisplayName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					experimentService.On("ExperimentIdByDisplayName", rd.ExperimentName).Return("", expectedErr)
+					experimentService.On("ExperimentIdByDisplayName", scopedExperimentName).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
 					Expect(err).To(HaveOccurred())
@@ -126,7 +163,7 @@ var _ = Describe("Provider", func() {
 					expectedErr := errors.New("failed")
 					pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
 					pipelineService.On("PipelineVersionIdForDisplayName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					experimentService.On("ExperimentIdByDisplayName", rd.ExperimentName).Return(experimentId, nil)
+					experimentService.On("ExperimentIdByDisplayName", scopedExperimentName).Return(experimentId, nil)
 					runService.On("CreateRun", rd, pipelineId, pipelineVersionId, experimentId).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
@@ -288,6 +325,8 @@ var _ = Describe("Provider", func() {
 			experimentId      = "experiment-id"
 		)
 		rsd := testutil.RandomRunScheduleDefinition()
+		// Single-user (default) config clears the experiment namespace.
+		scopedExperimentName := common.NamespacedName{Name: rsd.ExperimentName.Name}
 		nsnStr, err := rsd.PipelineName.SeparatedString("-")
 
 		Expect(err).ToNot(HaveOccurred())
@@ -296,7 +335,7 @@ var _ = Describe("Provider", func() {
 			It("should return recurring run id if run schedule is created", func() {
 				pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
 				pipelineService.On("PipelineVersionIdForDisplayName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-				experimentService.On("ExperimentIdByDisplayName", rsd.ExperimentName).Return(experimentId, nil)
+				experimentService.On("ExperimentIdByDisplayName", scopedExperimentName).Return(experimentId, nil)
 				recurringRunService.On("CreateRecurringRun", rsd, pipelineId, pipelineVersionId, experimentId).Return(recurringRunId, nil)
 				result, err := provider.CreateRunSchedule(ctx, rsd)
 
@@ -343,7 +382,7 @@ var _ = Describe("Provider", func() {
 					expectedErr := errors.New("failed")
 					pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
 					pipelineService.On("PipelineVersionIdForDisplayName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					experimentService.On("ExperimentIdByDisplayName", rsd.ExperimentName).Return("", expectedErr)
+					experimentService.On("ExperimentIdByDisplayName", scopedExperimentName).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -356,7 +395,7 @@ var _ = Describe("Provider", func() {
 					expectedErr := errors.New("failed")
 					pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
 					pipelineService.On("PipelineVersionIdForDisplayName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					experimentService.On("ExperimentIdByDisplayName", rsd.ExperimentName).Return(experimentId, nil)
+					experimentService.On("ExperimentIdByDisplayName", scopedExperimentName).Return(experimentId, nil)
 					recurringRunService.On("CreateRecurringRun", rsd, pipelineId, pipelineVersionId, experimentId).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
@@ -371,7 +410,7 @@ var _ = Describe("Provider", func() {
 				recurringRunService.On("DeleteRecurringRun", recurringRunId).Return(nil)
 				pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
 				pipelineService.On("PipelineVersionIdForDisplayName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-				experimentService.On("ExperimentIdByDisplayName", rsd.ExperimentName).Return(experimentId, nil)
+				experimentService.On("ExperimentIdByDisplayName", scopedExperimentName).Return(experimentId, nil)
 				recurringRunService.On("CreateRecurringRun", rsd, pipelineId, pipelineVersionId, experimentId).Return(recurringRunId, nil)
 				result, err := provider.UpdateRunSchedule(ctx, rsd, recurringRunId)
 
@@ -425,10 +464,12 @@ var _ = Describe("Provider", func() {
 	Context("Experiment", func() {
 		const id = "experiment-id"
 		experiment := testutil.RandomExperimentDefinition()
+		// Single-user (default) config clears the experiment namespace.
+		scopedExperimentName := common.NamespacedName{Name: experiment.Name.Name}
 
 		Context("CreateExperiment", func() {
 			It("should return id if experiment is created", func() {
-				experimentService.On("CreateExperiment", experiment.Name, experiment.Description).Return(id, nil)
+				experimentService.On("CreateExperiment", scopedExperimentName, experiment.Description).Return(id, nil)
 				result, err := provider.CreateExperiment(ctx, experiment)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -438,7 +479,7 @@ var _ = Describe("Provider", func() {
 			When("experiment service CreateExperiment errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					experimentService.On("CreateExperiment", experiment.Name, experiment.Description).Return("", expectedErr)
+					experimentService.On("CreateExperiment", scopedExperimentName, experiment.Description).Return("", expectedErr)
 					result, err := provider.CreateExperiment(ctx, experiment)
 
 					Expect(err).To(Equal(expectedErr))
@@ -450,7 +491,7 @@ var _ = Describe("Provider", func() {
 		Context("UpdateExperiment", func() {
 			It("should return id if experiment is updated", func() {
 				experimentService.On("DeleteExperiment", id).Return(nil)
-				experimentService.On("CreateExperiment", experiment.Name, experiment.Description).Return(id, nil)
+				experimentService.On("CreateExperiment", scopedExperimentName, experiment.Description).Return(id, nil)
 				result, err := provider.UpdateExperiment(ctx, experiment, id)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -472,7 +513,7 @@ var _ = Describe("Provider", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
 					experimentService.On("DeleteExperiment", id).Return(nil)
-					experimentService.On("CreateExperiment", experiment.Name, experiment.Description).Return("", expectedErr)
+					experimentService.On("CreateExperiment", scopedExperimentName, experiment.Description).Return("", expectedErr)
 					result, err := provider.UpdateExperiment(ctx, experiment, id)
 
 					Expect(err).To(Equal(expectedErr))

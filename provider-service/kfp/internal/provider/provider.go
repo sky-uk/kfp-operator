@@ -107,12 +107,22 @@ func extractPipelineSpec(compiledPipeline json.RawMessage, frameworkName string)
 	return compiledPipeline, nil
 }
 
-// scopeToKfpNamespace overrides the namespace in a NamespacedName with the
-// provider's configured kfpNamespace. This ensures all KFP API calls
-// (experiments, runs, schedules) are scoped to the provider's own namespace
-// rather than the team namespace where the CR originated.
+// scopeToKfpNamespace adjusts the namespace of a NamespacedName to match the
+// experiment-scoping semantics of the backing KFP installation.
+//
+// When KFP runs in multi-user mode, every gRPC API call must carry a namespace,
+// so the namespace is overridden with the provider's configured kfpNamespace
+// (rather than the team namespace where the CR originated).
+//
+// When KFP runs in single-user (standalone) mode, experiments are namespace-less
+// and KFP rejects a namespace filter. The namespace is therefore cleared so the
+// bare display name (e.g. "Default") resolves against the built-in experiment.
 func (p *KfpProvider) scopeToKfpNamespace(name common.NamespacedName) common.NamespacedName {
-	name.Namespace = p.config.Parameters.KfpNamespace
+	if p.config.Parameters.KfpMultiUserMode {
+		name.Namespace = p.config.Parameters.KfpNamespace
+	} else {
+		name.Namespace = ""
+	}
 	return name
 }
 
