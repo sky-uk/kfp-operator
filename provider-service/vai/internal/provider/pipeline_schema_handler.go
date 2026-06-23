@@ -3,14 +3,20 @@ package provider
 import (
 	"fmt"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
+// SchemaVersion2_1 is the schemaVersion at which Vertex AI's PipelineJob
+// requires RuntimeConfig.ParameterValues instead of the deprecated Parameters.
+var SchemaVersion2_1 = semver.MustParse("2.1.0")
+
 type PipelineValues struct {
-	name         string
-	labels       map[string]string
-	pipelineSpec *structpb.Struct
+	name          string
+	labels        map[string]string
+	pipelineSpec  *structpb.Struct
+	schemaVersion *semver.Version
 }
 
 type PipelineSchemaHandler interface {
@@ -49,6 +55,10 @@ func (DefaultPipelineSchemaHandler) extract(raw map[string]any) (*PipelineValues
 			spec["schemaVersion"],
 		)
 	}
+	parsedSchemaVersion, err := semver.NewVersion(schemaVersion)
+	if err != nil {
+		return nil, fmt.Errorf("invalid 'schemaVersion' %q: %w", schemaVersion, err)
+	}
 	sdkVersion, ok := spec["sdkVersion"].(string)
 	if !ok {
 		return nil, fmt.Errorf(
@@ -72,9 +82,10 @@ func (DefaultPipelineSchemaHandler) extract(raw map[string]any) (*PipelineValues
 	}
 
 	return &PipelineValues{
-		name:         name,
-		labels:       labels,
-		pipelineSpec: pipelineSpecStruct,
+		name:          name,
+		labels:        labels,
+		pipelineSpec:  pipelineSpecStruct,
+		schemaVersion: parsedSchemaVersion,
 	}, nil
 }
 

@@ -42,6 +42,8 @@ var _ = Describe("DefaultPipelineSchemaHandler", func() {
 				"schema_version":     "2.0.0",
 				"sdk_version":        "tfx-1.15.1",
 			}))
+			Expect(pipelineValues.schemaVersion).ToNot(BeNil())
+			Expect(pipelineValues.schemaVersion.String()).To(Equal("2.0.0"))
 			pipelineSpecMap := pipelineValues.pipelineSpec.AsMap()
 			Expect(pipelineSpecMap["key"]).To(Equal("value"))
 			Expect(pipelineSpecMap).ToNot(HaveKey("pipelineSpec"))
@@ -55,6 +57,17 @@ var _ = Describe("DefaultPipelineSchemaHandler", func() {
 			Expect(pipelineValues.name).To(Equal("test-display-name"))
 			Expect(pipelineValues.labels["schema_version"]).To(Equal("2.1.0"))
 			Expect(pipelineValues.labels["sdk_version"]).To(Equal("kfp-2.0.1"))
+			Expect(pipelineValues.schemaVersion).ToNot(BeNil())
+			Expect(pipelineValues.schemaVersion.String()).To(Equal("2.1.0"))
+		})
+
+		When("schemaVersion is not a valid semver", func() {
+			It("should return error", func() {
+				raw["pipelineSpec"].(map[string]any)["schemaVersion"] = "not-a-version"
+
+				_, err := handler.extract(raw)
+				Expect(err).To(HaveOccurred())
+			})
 		})
 
 		When("schemaVersion in the inner spec is not a string", func() {
@@ -106,6 +119,8 @@ var _ = Describe("DefaultPipelineSchemaHandler", func() {
 				"sdk_version":    "kfp-2.0.1",
 				"schema_version": "2.1.0",
 			}))
+			Expect(pipelineValues.schemaVersion).ToNot(BeNil())
+			Expect(pipelineValues.schemaVersion.String()).To(Equal("2.1.0"))
 			pipelineSpecMap := pipelineValues.pipelineSpec.AsMap()
 			Expect(pipelineSpecMap["components"].(map[string]any)["component1"]).To(Equal("some-component"))
 			Expect(pipelineSpecMap["deploymentSpec"].(map[string]any)["executors"]).To(Equal("some-executor"))

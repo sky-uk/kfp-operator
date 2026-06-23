@@ -91,9 +91,8 @@ func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 		}
 	}
 
-	// Note: unable to migrate from `Parameters` to `ParameterValues` at this
-	// point as `PipelineJob.pipeline_spec.schema_version` used by TFX
-	// is 2.0.0 see deprecated comment.
+	// Populated on the deprecated Parameters field; the enricher promotes
+	// to ParameterValues when schemaVersion >= 2.1.0.
 	templateUri, err := util.PipelineUri(
 		rsd.PipelineName,
 		rsd.PipelineVersion,
