@@ -4,8 +4,10 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/stretchr/testify/mock"
 
@@ -495,6 +497,37 @@ var _ = Describe("Provider", func() {
 					Expect(err).To(Equal(expectedErr))
 				})
 			})
+		})
+	})
+
+	Context("extractPipelineSpec", func() {
+		It("should extract pipelineSpec from wrapper for TFX framework (case-insensitive)", func() {
+			innerSpec := map[string]any{
+				"pipelineInfo": map[string]any{"name": "test-pipeline"},
+				"root":         map[string]any{},
+			}
+			wrapper := map[string]any{
+				"displayName":   "test-pipeline",
+				"pipelineSpec":  innerSpec,
+				"runtimeConfig": map[string]any{},
+			}
+			compiled, _ := json.Marshal(wrapper)
+			expected, _ := json.Marshal(innerSpec)
+
+			result, err := extractPipelineSpec(compiled, "TfX")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(MatchJSON(expected))
+		})
+
+		It("should return compiled pipeline unchanged for non-TFX frameworks", func() {
+			pipelineSpec := map[string]any{
+				"pipelineInfo": map[string]any{"name": "test"},
+			}
+			compiled, _ := json.Marshal(pipelineSpec)
+
+			result, err := extractPipelineSpec(compiled, "kfpsdk")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(MatchJSON(compiled))
 		})
 	})
 })

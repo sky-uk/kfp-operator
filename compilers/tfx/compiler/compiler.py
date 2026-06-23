@@ -1,4 +1,5 @@
 import click
+import inspect
 import yaml
 import sys
 import importlib
@@ -22,13 +23,22 @@ def compile(pipeline_config: str, output_file: str):
         pipeline_beam_args = framework_parameters.get('beamArgs', [])
         beam_cli_args = name_values_to_cli_args(pipeline_beam_args)
 
+        use_pipeline_spec_2_1 = framework_parameters.get('usePipelineSpec2_1', True)
+
         components = load_fn(framework_parameters.get('components', ""), pipeline_config_contents.get('env', []))()
 
+        runner_config_kwargs = dict(
+            display_name=pipeline_config_contents['name'],
+            default_image=pipeline_config_contents['image'],
+        )
+
+        # use_pipeline_spec_2_1 is only available in TFX >= 1.15
+        config_params = inspect.signature(kubeflow_dag_runner.KubeflowV2DagRunnerConfig.__init__).parameters
+        if 'use_pipeline_spec_2_1' in config_params:
+            runner_config_kwargs['use_pipeline_spec_2_1'] = use_pipeline_spec_2_1
+
         dag_runner = kubeflow_dag_runner.KubeflowV2DagRunner(
-            config=kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
-                display_name=pipeline_config_contents['name'],
-                default_image=pipeline_config_contents['image']
-            ),
+            config=kubeflow_dag_runner.KubeflowV2DagRunnerConfig(**runner_config_kwargs),
             output_filename=output_file
         )
 
