@@ -1,174 +1,102 @@
 package provider
 
 import (
-	"errors"
 	"fmt"
+
 	"github.com/Masterminds/semver/v3"
+	"github.com/samber/lo"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-var (
-	SchemaVersionNotFound = errors.New("expected 'schemaVersion' or 'pipelineSpec' in the pipeline values")
-	SemVerV2              = semver.MustParse("2.0")
-)
+// SchemaVersion2_1 is the schemaVersion at which Vertex AI's PipelineJob
+// requires RuntimeConfig.ParameterValues instead of the deprecated Parameters.
+var SchemaVersion2_1 = semver.MustParse("2.1.0")
 
 type PipelineValues struct {
-	name         string
-	labels       map[string]string
-	pipelineSpec *structpb.Struct
+	name          string
+	labels        map[string]string
+	pipelineSpec  *structpb.Struct
+	schemaVersion *semver.Version
 }
 
 type PipelineSchemaHandler interface {
 	extract(raw map[string]any) (*PipelineValues, error)
 }
 
-type DefaultPipelineSchemaHandler struct {
-	schema2Handler   PipelineSchemaHandler
-	schema2_1Handler PipelineSchemaHandler
-}
+// DefaultPipelineSchemaHandler handles both the bare KFP pipeline spec and the
+// TFX PipelineJob wrapper, for either schemaVersion 2.0 or 2.1.
+type DefaultPipelineSchemaHandler struct{}
 
-type Schema2Handler struct{}
-type Schema2_1Handler struct{}
+func (DefaultPipelineSchemaHandler) extract(raw map[string]any) (*PipelineValues, error) {
+	spec, name, wrapperLabels := unwrap(raw)
 
-func extractSchemaVersion(raw map[string]any) (*semver.Version, error) {
-	// 2.1 location of schemaVersion
-	schemaVersion, ok := raw["schemaVersion"].(string)
-	if !ok {
-		// 2.0 location of schemaVersion
-		pipelineSpec, ok := raw["pipelineSpec"].(map[string]any)
+	// An empty name means the spec is not wrapped, so take the name from pipelineInfo.
+	if name == "" {
+		pipelineInfo, ok := spec["pipelineInfo"].(map[string]any)
 		if !ok {
-			return nil, SchemaVersionNotFound
+			return nil, fmt.Errorf(
+				"expected map for 'pipelineInfo', got %T",
+				spec["pipelineInfo"],
+			)
 		}
-		schemaVersion, ok = pipelineSpec["schemaVersion"].(string)
+		name, ok = pipelineInfo["name"].(string)
 		if !ok {
-			return nil, SchemaVersionNotFound
+			return nil, fmt.Errorf(
+				"expected string for 'pipelineInfo.name', got %T",
+				pipelineInfo["name"],
+			)
 		}
 	}
-	version, err := semver.NewVersion(schemaVersion)
-	if err != nil {
-		return nil, err
-	}
-	return version, nil
-}
 
-func (dps DefaultPipelineSchemaHandler) extract(raw map[string]any) (*PipelineValues, error) {
-	version, err := extractSchemaVersion(raw)
-
-	if err != nil {
-		return nil, err
-	}
-	if version.GreaterThan(SemVerV2) {
-		return dps.schema2_1Handler.extract(raw)
-	} else {
-		return dps.schema2Handler.extract(raw)
-	}
-}
-
-func (sv2 Schema2Handler) extract(raw map[string]any) (*PipelineValues, error) {
-	displayName, ok := raw["displayName"].(string)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected string for 'displayName', got %T",
-			raw["displayName"],
-		)
-	}
-
-	pipelineSpec, ok := raw["pipelineSpec"].(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected map for 'pipelineSpec', got %T",
-			raw["pipelineSpec"],
-		)
-	}
-
-	pipelineSpecStruct, err := structpb.NewStruct(pipelineSpec)
-	if err != nil {
-		return nil, err
-	}
-
-	schemaVersion, ok := pipelineSpec["schemaVersion"].(string)
+	schemaVersion, ok := spec["schemaVersion"].(string)
 	if !ok {
 		return nil, fmt.Errorf(
 			"expected string for 'schemaVersion', got %T",
-			raw["schemaVersion"],
+			spec["schemaVersion"],
 		)
 	}
-	sdkVersion, ok := pipelineSpec["sdkVersion"].(string)
+	parsedSchemaVersion, err := semver.NewVersion(schemaVersion)
+	if err != nil {
+		return nil, fmt.Errorf("invalid 'schemaVersion' %q: %w", schemaVersion, err)
+	}
+	sdkVersion, ok := spec["sdkVersion"].(string)
 	if !ok {
 		return nil, fmt.Errorf(
 			"expected string for 'sdkVersion', got %T",
-			raw["sdkVersion"],
+			spec["sdkVersion"],
 		)
 	}
 
-	labels, ok := raw["labels"].(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected map for 'labels', got %T",
-			raw["labels"],
-		)
-	}
-	labels["schema_version"] = schemaVersion
-	labels["sdk_version"] = sdkVersion
-
-	convertedLabels := make(map[string]string)
-	for k, v := range labels {
-		if strVal, ok := v.(string); ok {
-			convertedLabels[k] = strVal
-		} else {
-			convertedLabels[k] = fmt.Sprintf("%v", v)
+	labels := lo.MapValues(wrapperLabels, func(value any, _ string) string {
+		if stringValue, ok := value.(string); ok {
+			return stringValue
 		}
-	}
-
-	return &PipelineValues{
-		name:         displayName,
-		labels:       convertedLabels,
-		pipelineSpec: pipelineSpecStruct,
-	}, nil
-}
-
-func (sv21 Schema2_1Handler) extract(raw map[string]any) (*PipelineValues, error) {
-	pipelineInfo, ok := raw["pipelineInfo"].(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected map for 'pipelineInfo', got %T",
-			raw["pipelineInfo"],
-		)
-	}
-	displayName, ok := pipelineInfo["name"].(string)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected string for 'pipelineInfo.name', got %T",
-			pipelineInfo["name"],
-		)
-	}
-
-	schemaVersion, ok := raw["schemaVersion"].(string)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected string for 'schemaVersion', got %T",
-			raw["schemaVersion"],
-		)
-	}
-	sdkVersion, ok := raw["sdkVersion"].(string)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected string for 'sdkVersion', got %T",
-			raw["sdkVersion"],
-		)
-	}
-	labels := make(map[string]string)
+		return fmt.Sprintf("%v", value)
+	})
 	labels["schema_version"] = schemaVersion
 	labels["sdk_version"] = sdkVersion
 
-	pipelineSpecStruct, err := structpb.NewStruct(raw)
+	pipelineSpecStruct, err := structpb.NewStruct(spec)
 	if err != nil {
 		return nil, err
 	}
 
 	return &PipelineValues{
-		name:         displayName,
-		labels:       labels,
-		pipelineSpec: pipelineSpecStruct,
+		name:          name,
+		labels:        labels,
+		pipelineSpec:  pipelineSpecStruct,
+		schemaVersion: parsedSchemaVersion,
 	}, nil
+}
+
+// unwrap returns the inner spec plus the wrapper's displayName and labels when
+// raw is a TFX PipelineJob wrapper, otherwise raw itself with no wrapper values.
+func unwrap(raw map[string]any) (spec map[string]any, displayName string, labels map[string]any) {
+	pipelineSpec, isWrapped := raw["pipelineSpec"].(map[string]any)
+	if !isWrapped {
+		return raw, "", nil
+	}
+	displayName, _ = raw["displayName"].(string)
+	labels, _ = raw["labels"].(map[string]any)
+	return pipelineSpec, displayName, labels
 }

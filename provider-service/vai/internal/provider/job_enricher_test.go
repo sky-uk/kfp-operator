@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
+	"github.com/Masterminds/semver/v3"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
@@ -41,7 +42,8 @@ var _ = Describe("DefaultJobEnricher", func() {
 				"sdk_version":      "kfp-2.12.2",
 				"Other&%":          "someVAl!ue",
 			},
-			pipelineSpec: &structpb.Struct{},
+			pipelineSpec:  &structpb.Struct{},
+			schemaVersion: semver.MustParse("2.1.0"),
 		}
 
 		BeforeEach(func() {
@@ -94,6 +96,46 @@ var _ = Describe("DefaultJobEnricher", func() {
 			job := aiplatformpb.PipelineJob{}
 			_, err := defaultJobEnricher.Enrich(&job, input)
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("keeps RuntimeConfig.Parameters for a 2.0.0 schema spec", func() {
+			pv := pipelineValues
+			pv.schemaVersion = semver.MustParse("2.0.0")
+			pv.labels = map[string]string{"schema_version": "2.0.0"}
+			pipelineSchemaHandler.On("extract", input).Return(&pv, nil)
+			labelSanitizer.On("Sanitize", pv.labels).Return(pv.labels)
+
+			job := aiplatformpb.PipelineJob{
+				RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+					Parameters: map[string]*aiplatformpb.Value{
+						"foo": {Value: &aiplatformpb.Value_StringValue{StringValue: "bar"}},
+					},
+				},
+			}
+			_, err := defaultJobEnricher.Enrich(&job, input)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(job.RuntimeConfig.Parameters).To(HaveKey("foo"))
+			Expect(job.RuntimeConfig.ParameterValues).To(BeEmpty())
+		})
+
+		It("promotes RuntimeConfig.Parameters to ParameterValues for a 2.1.0 schema spec", func() {
+			pipelineSchemaHandler.On("extract", input).Return(&pipelineValues, nil)
+			labelSanitizer.On("Sanitize", pipelineValues.labels).Return(pipelineValues.labels)
+
+			job := aiplatformpb.PipelineJob{
+				RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+					Parameters: map[string]*aiplatformpb.Value{
+						"str": {Value: &aiplatformpb.Value_StringValue{StringValue: "bar"}},
+						"num": {Value: &aiplatformpb.Value_IntValue{IntValue: 7}},
+					},
+				},
+			}
+			_, err := defaultJobEnricher.Enrich(&job, input)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(job.RuntimeConfig.Parameters).To(BeEmpty())
+			Expect(job.RuntimeConfig.ParameterValues).To(HaveKey("str"))
+			Expect(job.RuntimeConfig.ParameterValues["str"].GetStringValue()).To(Equal("bar"))
+			Expect(job.RuntimeConfig.ParameterValues["num"].GetNumberValue()).To(Equal(float64(7)))
 		})
 	})
 })
