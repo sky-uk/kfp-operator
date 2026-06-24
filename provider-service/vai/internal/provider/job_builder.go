@@ -91,8 +91,6 @@ func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 		}
 	}
 
-	// Populated on the deprecated Parameters field; the enricher promotes
-	// to ParameterValues when schemaVersion >= 2.1.0.
 	templateUri, err := util.PipelineUri(
 		rsd.PipelineName,
 		rsd.PipelineVersion,
@@ -159,6 +157,8 @@ func (jb DefaultJobBuilder) newPipelineJob(labels map[string]string, params map[
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels: labels,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+			// Populated on the deprecated Parameters field; the enricher promotes
+			// to ParameterValues when schemaVersion >= 2.1.0.
 			Parameters:         params,
 			GcsOutputDirectory: fmt.Sprintf("%s/%s", jb.pipelineRootStorage, resourceName),
 		},

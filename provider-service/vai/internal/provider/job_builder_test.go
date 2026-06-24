@@ -27,6 +27,7 @@ var _ = Describe("JobBuilder", func() {
 		When("templateUri is valid", func() {
 			It("should make a run pipeline job", func() {
 				rd := testutil.RandomRunDefinition()
+				rd.Parameters = map[string]string{"foo": "bar", "baz": "qux"}
 				job, err := jb.MkRunPipelineJob(rd, "")
 				expectedTemplateUri := fmt.Sprintf(
 					"gs://%s/%s/%s/%s",
@@ -38,8 +39,9 @@ var _ = Describe("JobBuilder", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(job.Labels).To(Equal(map[string]string{"rd-key": "rd-value"}))
+				Expect(job.RuntimeConfig.Parameters).To(HaveLen(len(rd.Parameters)))
 				for k, v := range job.RuntimeConfig.Parameters {
-					Expect(v.GetStringValue).To(Equal(rd.Parameters[k]))
+					Expect(v.GetStringValue()).To(Equal(rd.Parameters[k]))
 				}
 				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
 				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
@@ -88,6 +90,7 @@ var _ = Describe("JobBuilder", func() {
 		When("templateUri is valid", func() {
 			It("should make a run schedule pipeline job", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
+				rsd.Parameters = map[string]string{"foo": "bar", "baz": "qux"}
 				job, err := jb.MkRunSchedulePipelineJob(rsd, "")
 				expectedTemplateUri := fmt.Sprintf(
 					"gs://%s/%s/%s/%s",
@@ -99,8 +102,9 @@ var _ = Describe("JobBuilder", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(job.Labels).To(Equal(map[string]string{"rsd-key": "rsd-value"}))
+				Expect(job.RuntimeConfig.Parameters).To(HaveLen(len(rsd.Parameters)))
 				for k, v := range job.RuntimeConfig.Parameters {
-					Expect(v.GetStringValue).To(Equal(rsd.Parameters[k]))
+					Expect(v.GetStringValue()).To(Equal(rsd.Parameters[k]))
 				}
 				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
 				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
