@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib
 import importlib.abc
 import importlib.machinery
 import importlib.util
 import logging
 import sys
-from typing import Callable, Dict, Optional, Sequence
+from collections.abc import Callable, Sequence
 
 log = logging.getLogger(__name__)
 
@@ -16,11 +17,20 @@ log = logging.getLogger(__name__)
 class TfxShimFinder(importlib.abc.MetaPathFinder):
     """Meta-path finder: intercepts registered modules and delegates to _ShimLoader."""
 
-    def __init__(self, patches: Dict[str, Callable]) -> None:
+    def __init__(self, patches: dict[str, Callable]) -> None:
         self._patches = dict(patches)
         self._in_progress: set[str] = set()
 
-    def find_spec(self, fullname: str, path: Optional[Sequence[str]] = None, target=None):
+    @contextlib.contextmanager
+    def _bypass(self, fullname: str):
+        """Temporarily bypass the hook for a module to prevent infinite recursion."""
+        self._in_progress.add(fullname)
+        try:
+            yield
+        finally:
+            self._in_progress.discard(fullname)
+
+    def find_spec(self, fullname: str, path: Sequence[str] | None = None, target=None):
         if fullname in self._patches and fullname not in self._in_progress:
             return importlib.machinery.ModuleSpec(
                 fullname, _ShimLoader(self, fullname), origin="tfx-kfp-v2-shim",
@@ -33,10 +43,8 @@ class TfxShimFinder(importlib.abc.MetaPathFinder):
             log.info("TfxShimFinder registered for %s", list(self._patches))
 
     def unregister(self) -> None:
-        try:
+        with contextlib.suppress(ValueError):
             sys.meta_path.remove(self)
-        except ValueError:
-            pass
 
 
 class _ShimLoader(importlib.abc.Loader):
@@ -53,11 +61,8 @@ class _ShimLoader(importlib.abc.Loader):
         fullname = self._fullname
         sys.modules.pop(fullname, None)
 
-        self._finder._in_progress.add(fullname)
-        try:
+        with self._finder._bypass(fullname):
             real_module = importlib.import_module(fullname)
-        finally:
-            self._finder._in_progress.discard(fullname)
 
         # Patch the real module first — its functions hold __globals__ refs
         # to real_module.__dict__, so patches must land there.
@@ -69,11 +74,8 @@ class _ShimLoader(importlib.abc.Loader):
 
     def get_code(self, fullname: str):
         """Required by runpy (``python -m``)."""
-        self._finder._in_progress.add(fullname)
-        try:
+        with self._finder._bypass(fullname):
             real_spec = importlib.util.find_spec(fullname)
-        finally:
-            self._finder._in_progress.discard(fullname)
 
         if real_spec and real_spec.loader and hasattr(real_spec.loader, "get_code"):
             return real_spec.loader.get_code(fullname)

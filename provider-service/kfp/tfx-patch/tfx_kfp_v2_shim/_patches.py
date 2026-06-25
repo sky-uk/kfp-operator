@@ -12,36 +12,33 @@ log = logging.getLogger(__name__)
 
 # TFX 1.15 removed simple_artifacts.File but artifact.Artifact can't be
 # instantiated without TYPE_NAME. This lazy subclass fills the gap.
-_GenericArtifact = None
 
-
+@functools.lru_cache(maxsize=1)
 def _get_generic_artifact_class():
     """Return a concrete Artifact subclass usable as a system.Artifact stand-in."""
-    global _GenericArtifact  # noqa: PLW0603
-    if _GenericArtifact is None:
-        from tfx.types import artifact as _artifact_mod
-        _GenericArtifact = type(
-            "GenericArtifact",
-            (_artifact_mod.Artifact,),
-            {"TYPE_NAME": "GenericArtifact"},
-        )
-        _GenericArtifact.__module__ = __name__
-        _GenericArtifact.__qualname__ = "GenericArtifact"
-        import sys
-        sys.modules[__name__].GenericArtifact = _GenericArtifact
-    return _GenericArtifact
+    from tfx.types import artifact as _artifact_mod
+
+    cls = type(
+        "GenericArtifact",
+        (_artifact_mod.Artifact,),
+        {"TYPE_NAME": "GenericArtifact"},
+    )
+    cls.__module__ = __name__
+    cls.__qualname__ = "GenericArtifact"
+    return cls
 
 
-# KFP v2 collapses multiple TFX types into the same system.* title.
-# These rules disambiguate by checking which metadata keys are present.
+# KFP v2 collapses multiple TFX types into the same system.* title. These
+# rules disambiguate by checking which metadata keys are present. Matching is
+# by subset (see _patch_parse_raw_artifact), so only the minimal distinguishing
+# key set is listed — a larger key set on the artifact still matches.
 TYPE_INFERENCE_RULES: dict[str, list[tuple[frozenset, str]]] = {
+    # Examples carry split_names (alongside span/version); other Datasets do not.
     "system.Dataset": [
-        (frozenset({"split_names", "span", "version"}), "tfx.Examples"),
-        (frozenset({"split_names", "span"}), "tfx.Examples"),
         (frozenset({"split_names"}), "tfx.Examples"),
     ],
+    # PushedModel carries pushed and/or pushed_destination; plain Models do not.
     "system.Model": [
-        (frozenset({"pushed_destination", "pushed"}), "tfx.PushedModel"),
         (frozenset({"pushed_destination"}), "tfx.PushedModel"),
         (frozenset({"pushed"}), "tfx.PushedModel"),
     ],
@@ -88,21 +85,24 @@ def patch_compiler_utils(mod: ModuleType) -> None:
 # ── Patches 2, 3, 4, 7 ──────────────────────────────────────────────────
 
 def patch_entrypoint_utils(mod: ModuleType) -> None:
-    """Apply patches 2, 3, 4, and 7 to kubeflow_v2_entrypoint_utils."""
+    """Apply all entrypoint_utils patches."""
     _patch_parse_raw_artifact(mod)
     _patch_parse_raw_artifact_dict(mod)
     _patch_translate_executor_output(mod)
 
 
+# ── Patch 2 ──────────────────────────────────────────────────────────────
 # Issue:   KFP v2 driver passes artifacts with empty instance_schema.
 #          yaml.safe_load("") returns None, causing TypeError on .get("title").
 # Solution: Guard with ``or {}`` so None becomes an empty dict.
 #
+# ── Patch 3 ──────────────────────────────────────────────────────────────
 # Issue:   KFP v2 collapses distinct TFX types to the same system.* title
 #          (e.g. Examples and Dataset both become system.Dataset).
 # Solution: Inspect artifact metadata keys to infer the correct TFX type.
+
 def _patch_parse_raw_artifact(mod: ModuleType) -> None:
-    """Wrap _parse_raw_artifact: guard null schema (2) and infer types from keys (3)."""
+    """Wrap _parse_raw_artifact: guard null schema and infer types from keys."""
     import yaml
 
     original = mod._parse_raw_artifact
@@ -139,13 +139,15 @@ def _patch_parse_raw_artifact(mod: ModuleType) -> None:
     mod._parse_raw_artifact = _patched
 
 
+# ── Patch 4 ──────────────────────────────────────────────────────────────
 # Issue:   KFP v2 driver resolves input artifacts from MLMD but does not
 #          populate their type schema. TFX creates generic Artifact objects
 #          that lack type-specific properties (e.g. split_names).
 # Solution: Read inputs_spec from the caller's frame and copy artifact type
 #           schemas into untyped artifacts before TFX parses them.
+
 def _patch_parse_raw_artifact_dict(mod: ModuleType) -> None:
-    """Wrap parse_raw_artifact_dict: enrich untyped artifacts from inputs_spec (4)."""
+    """Wrap parse_raw_artifact_dict: enrich untyped artifacts from inputs_spec."""
     original = mod.parse_raw_artifact_dict
 
     def _patched(artifact_dict, name_from_id):
@@ -164,13 +166,15 @@ def _patch_parse_raw_artifact_dict(mod: ModuleType) -> None:
     mod.parse_raw_artifact_dict = _patched
 
 
+# ── Patch 7 ──────────────────────────────────────────────────────────────
 # Issue:   TF's legacy GCS filesystem (≤2.16) creates zero-byte directory
 #          marker blobs. The KFP launcher downloads them as files, blocking
 #          os.MkdirAll for child paths in downstream components.
 # Solution: After each executor run, list output artifact URIs and delete
 #           any zero-byte blobs whose name ends with "/".
+
 def _patch_translate_executor_output(mod: ModuleType) -> None:
-    """Wrap translate_executor_output: delete GCS directory markers from outputs (7)."""
+    """Wrap translate_executor_output: delete GCS directory markers from outputs."""
     original = mod.translate_executor_output
 
     @functools.lru_cache(maxsize=1)
@@ -250,12 +254,13 @@ def _delete_gcs_directory_markers(uri: str, client) -> None:
 def _collect_artifact_keys(artifact_pb) -> set:
     """Return all metadata + property keys from a RuntimeArtifact."""
     keys: set = set()
-    if hasattr(artifact_pb, "metadata") and artifact_pb.metadata:
-        fields = getattr(artifact_pb.metadata, "fields", None)
-        if fields:
-            keys.update(fields.keys())
-    if hasattr(artifact_pb, "properties") and artifact_pb.properties:
-        keys.update(artifact_pb.properties.keys())
+    metadata = getattr(artifact_pb, "metadata", None)
+    if metadata and getattr(metadata, "fields", None):
+        keys.update(metadata.fields.keys())
+
+    properties = getattr(artifact_pb, "properties", None)
+    if properties:
+        keys.update(properties.keys())
     return keys
 
 
