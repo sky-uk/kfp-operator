@@ -217,9 +217,9 @@ def patch_experimental(mod: ModuleType) -> None:
         from tfx.orchestration.kubeflow.v2 import kubeflow_v2_dag_runner
         mod.KubeflowV2DagRunner = kubeflow_v2_dag_runner.KubeflowV2DagRunner
         mod.KubeflowV2DagRunnerConfig = kubeflow_v2_dag_runner.KubeflowV2DagRunnerConfig
-        log.info("Patch 6: re-exported KubeflowV2DagRunner")
+        log.info("Re-exported KubeflowV2DagRunner")
     except (ImportError, AttributeError) as exc:
-        log.warning("Patch 6: KubeflowV2DagRunner unavailable: %s", exc)
+        log.warning("KubeflowV2DagRunner unavailable: %s", exc)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
@@ -233,17 +233,18 @@ def _delete_gcs_directory_markers(uri: str, client) -> None:
             prefix += "/"
 
         bucket = client.bucket(bucket_name)
+        markers = [
+            blob for blob in bucket.list_blobs(prefix=prefix)
+            if blob.size == 0 and blob.name.endswith("/")
+        ]
 
-        deleted = 0
-        for blob in bucket.list_blobs(prefix=prefix):
-            if blob.size == 0 and blob.name.endswith("/"):
-                blob.delete()
-                deleted += 1
-
-        if deleted:
-            log.info("Patch 7: deleted %d marker(s) under %s", deleted, uri)
+        if markers:
+            with client.batch():
+                for blob in markers:
+                    blob.delete()
+            log.info("Deleted %d GCS directory marker(s) under %s", len(markers), uri)
     except Exception as exc:
-        log.warning("Patch 7: marker cleanup failed for %s: %s", uri, exc)
+        log.warning("GCS marker cleanup failed for %s: %s", uri, exc)
 
 
 def _collect_artifact_keys(artifact_pb) -> set:
