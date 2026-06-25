@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import inspect
 import logging
 from types import ModuleType
@@ -172,11 +173,16 @@ def _patch_translate_executor_output(mod: ModuleType) -> None:
     """Wrap translate_executor_output: delete GCS directory markers from outputs (7)."""
     original = mod.translate_executor_output
 
+    @functools.lru_cache(maxsize=1)
+    def _get_client():
+        from google.cloud import storage as gcs_storage
+        return gcs_storage.Client()
+
     def _patched(output_dict, name_from_id):
         for _key, artifacts in output_dict.items():
             for art in artifacts:
                 if art.uri and art.uri.startswith("gs://"):
-                    _delete_gcs_directory_markers(art.uri)
+                    _delete_gcs_directory_markers(art.uri, _get_client())
         return original(output_dict, name_from_id)
 
     mod.translate_executor_output = _patched
@@ -218,17 +224,14 @@ def patch_experimental(mod: ModuleType) -> None:
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 
-def _delete_gcs_directory_markers(uri: str) -> None:
+def _delete_gcs_directory_markers(uri: str, client) -> None:
     """Delete zero-byte blobs ending with ``/`` under *uri*."""
     try:
-        from google.cloud import storage as gcs_storage
-
         path = uri[5:]
         bucket_name, _, prefix = path.partition("/")
         if prefix and not prefix.endswith("/"):
             prefix += "/"
 
-        client = gcs_storage.Client()
         bucket = client.bucket(bucket_name)
 
         deleted = 0
