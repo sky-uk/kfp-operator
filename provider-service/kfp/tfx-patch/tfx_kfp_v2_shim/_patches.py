@@ -244,7 +244,16 @@ def patch_experimental(mod: ModuleType) -> None:
 # (Ported from the 711 exploration branch, where it was "Patch 6".)
 
 def patch_run_executor(mod: ModuleType) -> None:
-    """Wrap _run_executor to force-exit(0) after it completes."""
+    """Wrap _run_executor to force-exit(0) after it completes.
+
+    NOTE: the executor container runs this module via
+    ``python -m ...kubeflow_v2_run_executor`` (i.e. as ``__main__``), which the
+    import hook cannot patch — runpy loads it through the loader's ``get_code``,
+    bypassing ``exec_module``. The effective force-exit for that entry path is a
+    source edit applied at install time (see install_shim.patch_run_executor_source).
+    This runtime wrapper only covers the (rare) case where the module is imported
+    and ``_run_executor`` is called directly.
+    """
     original = mod._run_executor
 
     @functools.wraps(original)

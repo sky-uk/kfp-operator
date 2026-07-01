@@ -326,6 +326,61 @@ class TestPatchRunExecutor:
         assert order == ["ran", "exit:0"]
 
 
+# ── Tests: force-exit source patch (install_shim) ────────────────────────
+
+
+class TestForceExitSourcePatch:
+    _REL = "tfx/orchestration/kubeflow/v2/container/kubeflow_v2_run_executor.py"
+    _ANCHOR = (
+        "  fileio.makedirs(os.path.dirname(metadata_uri))\n"
+        "  with fileio.open(metadata_uri, 'wb') as f:\n"
+        "    f.write(json_format.MessageToJson(executor_output))"
+    )
+
+    def _write_target(self, root, body):
+        from pathlib import Path
+
+        p = Path(root) / self._REL
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(body)
+        return p
+
+    def test_inserts_force_exit_after_metadata_write(self, tmp_path):
+        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
+
+        target = self._write_target(
+            tmp_path, "import os\n\ndef _run_executor(a, b):\n" + self._ANCHOR + "\n  return\n"
+        )
+        assert patch_run_executor_source(tmp_path) is True
+        out = target.read_text()
+        assert "# [tfx-kfp-v2-shim:force-exit]" in out
+        assert "os._exit(0)" in out
+        assert out.index("MessageToJson") < out.index("os._exit(0)")
+
+    def test_idempotent(self, tmp_path):
+        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
+
+        target = self._write_target(
+            tmp_path, "def _run_executor(a, b):\n" + self._ANCHOR + "\n  return\n"
+        )
+        assert patch_run_executor_source(tmp_path) is True
+        first = target.read_text()
+        assert patch_run_executor_source(tmp_path) is True
+        assert target.read_text() == first
+
+    def test_missing_anchor_returns_false(self, tmp_path):
+        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
+
+        target = self._write_target(tmp_path, "def _run_executor(a, b):\n  return\n")
+        assert patch_run_executor_source(tmp_path) is False
+        assert "os._exit(0)" not in target.read_text()
+
+    def test_missing_file_returns_false(self, tmp_path):
+        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
+
+        assert patch_run_executor_source(tmp_path) is False
+
+
 # ── Tests: Import hook mechanism ─────────────────────────────────────────
 
 
