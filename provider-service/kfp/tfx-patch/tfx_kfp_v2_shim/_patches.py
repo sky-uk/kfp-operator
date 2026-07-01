@@ -5,6 +5,7 @@ from __future__ import annotations
 import functools
 import inspect
 import logging
+import os
 from types import ModuleType
 
 log = logging.getLogger(__name__)
@@ -224,6 +225,30 @@ def patch_experimental(mod: ModuleType) -> None:
         log.info("Re-exported KubeflowV2DagRunner")
     except (ImportError, AttributeError) as exc:
         log.warning("KubeflowV2DagRunner unavailable: %s", exc)
+
+
+# ── Patch 8 ──────────────────────────────────────────────────────────────
+# Issue:   On container exit after a TFX component runs, the interpreter
+#          shutdown sequence triggers C++ destructors in protobuf/MLMD that
+#          crash with "pure virtual method called" (seen on TFX 1.17.3 / S3).
+# Solution: Wrap _run_executor to call os._exit(0) once it returns, bypassing
+#           the shutdown that provokes the crash. The metadata write is the
+#           final statement of _run_executor, so exiting after it returns is
+#           behaviourally identical to exiting immediately after the write.
+# (Ported from the 711 exploration branch, where it was "Patch 6".)
+
+def patch_run_executor(mod: ModuleType) -> None:
+    """Wrap _run_executor to force-exit(0) after it completes."""
+    original = mod._run_executor
+
+    @functools.wraps(original)
+    def _patched(*args, **kwargs):
+        result = original(*args, **kwargs)
+        log.info("Executor complete; forcing os._exit(0) to avoid shutdown crash")
+        os._exit(0)
+        return result
+
+    mod._run_executor = _patched
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
