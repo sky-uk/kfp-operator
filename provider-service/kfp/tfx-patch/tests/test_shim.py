@@ -20,6 +20,7 @@ from tfx_kfp_v2_shim._patches import (
     patch_compiler_utils,
     patch_entrypoint_utils,
     patch_path_utils,
+    patch_run_executor,
 )
 
 
@@ -132,7 +133,7 @@ class TestPatchCompilerUtils:
         # We need the real TFX imports to work; if TFX is not installed, skip.
         try:
             from tfx.types import simple_artifacts, standard_artifacts
-            from tfx.utils import name_utils
+            from tfx.utils import import_utils, name_utils
         except ImportError:
             pytest.skip("TFX not installed")
 
@@ -145,6 +146,13 @@ class TestPatchCompilerUtils:
         assert "system.Statistics" in mod.TITLE_TO_CLASS_PATH
         # Original entry preserved
         assert "tfx.Model" in mod.TITLE_TO_CLASS_PATH
+
+        # Regression: every stored path must round-trip through TFX's import
+        # machinery. system.Artifact previously mapped to a dynamically created
+        # class that was not bound to its declared module, so import_class_by_path
+        # raised "not importable" at compile time.
+        for title in ("system.Artifact", "system.Model"):
+            import_utils.import_class_by_path(mod.TITLE_TO_CLASS_PATH[title])
 
 
 # ── Tests: Patch 2+3 (_parse_raw_artifact wrapper) ──────────────────────
@@ -279,6 +287,98 @@ class TestPatchPathUtils:
         patch_path_utils(mod)
 
         assert mod.serving_model_dir("gs://bucket/model") == "gs://bucket/model"
+
+
+# ── Tests: Patch 8 (run_executor force-exit) ─────────────────────────────
+
+
+class TestPatchRunExecutor:
+    def test_forces_exit_after_run(self, monkeypatch):
+        """Patch 8: _run_executor should call os._exit(0) after completing."""
+        import os as _os
+
+        mod = types.ModuleType("fake_run_executor")
+        original = MagicMock(return_value=None)
+        mod._run_executor = original
+        patch_run_executor(mod)
+
+        exit_calls = []
+        monkeypatch.setattr(_os, "_exit", lambda code: exit_calls.append(code))
+
+        mod._run_executor("args", ["beam"])
+
+        original.assert_called_once_with("args", ["beam"])
+        assert exit_calls == [0]
+
+    def test_runs_original_before_exit(self, monkeypatch):
+        """Patch 8: the original _run_executor must run before force-exit."""
+        import os as _os
+
+        order = []
+        mod = types.ModuleType("fake_run_executor")
+        mod._run_executor = lambda *a, **k: order.append("ran")
+        patch_run_executor(mod)
+
+        monkeypatch.setattr(_os, "_exit", lambda code: order.append(f"exit:{code}"))
+
+        mod._run_executor("args", ["beam"])
+
+        assert order == ["ran", "exit:0"]
+
+
+# ── Tests: force-exit source patch (install_shim) ────────────────────────
+
+
+class TestForceExitSourcePatch:
+    _REL = "tfx/orchestration/kubeflow/v2/container/kubeflow_v2_run_executor.py"
+    _ANCHOR = (
+        "  fileio.makedirs(os.path.dirname(metadata_uri))\n"
+        "  with fileio.open(metadata_uri, 'wb') as f:\n"
+        "    f.write(json_format.MessageToJson(executor_output))"
+    )
+
+    def _write_target(self, root, body):
+        from pathlib import Path
+
+        p = Path(root) / self._REL
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(body)
+        return p
+
+    def test_inserts_force_exit_after_metadata_write(self, tmp_path):
+        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
+
+        target = self._write_target(
+            tmp_path, "import os\n\ndef _run_executor(a, b):\n" + self._ANCHOR + "\n  return\n"
+        )
+        assert patch_run_executor_source(tmp_path) is True
+        out = target.read_text()
+        assert "# [tfx-kfp-v2-shim:force-exit]" in out
+        assert "os._exit(0)" in out
+        assert out.index("MessageToJson") < out.index("os._exit(0)")
+
+    def test_idempotent(self, tmp_path):
+        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
+
+        target = self._write_target(
+            tmp_path, "def _run_executor(a, b):\n" + self._ANCHOR + "\n  return\n"
+        )
+        assert patch_run_executor_source(tmp_path) is True
+        first = target.read_text()
+        assert patch_run_executor_source(tmp_path) is True
+        assert target.read_text() == first
+
+    def test_missing_anchor_returns_false(self, tmp_path):
+        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
+
+        target = self._write_target(tmp_path, "def _run_executor(a, b):\n  return\n")
+        assert patch_run_executor_source(tmp_path) is False
+        assert "os._exit(0)" not in target.read_text()
+
+    def test_missing_file_returns_false(self, tmp_path):
+        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
+
+        assert patch_run_executor_source(tmp_path) is False
 
 
 # ── Tests: Import hook mechanism ─────────────────────────────────────────
