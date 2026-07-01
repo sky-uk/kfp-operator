@@ -20,6 +20,7 @@ from tfx_kfp_v2_shim._patches import (
     patch_compiler_utils,
     patch_entrypoint_utils,
     patch_path_utils,
+    patch_run_executor,
 )
 
 
@@ -279,6 +280,43 @@ class TestPatchPathUtils:
         patch_path_utils(mod)
 
         assert mod.serving_model_dir("gs://bucket/model") == "gs://bucket/model"
+
+
+# ── Tests: Patch 8 (run_executor force-exit) ─────────────────────────────
+
+
+class TestPatchRunExecutor:
+    def test_forces_exit_after_run(self, monkeypatch):
+        """Patch 8: _run_executor should call os._exit(0) after completing."""
+        import os as _os
+
+        mod = types.ModuleType("fake_run_executor")
+        original = MagicMock(return_value=None)
+        mod._run_executor = original
+        patch_run_executor(mod)
+
+        exit_calls = []
+        monkeypatch.setattr(_os, "_exit", lambda code: exit_calls.append(code))
+
+        mod._run_executor("args", ["beam"])
+
+        original.assert_called_once_with("args", ["beam"])
+        assert exit_calls == [0]
+
+    def test_runs_original_before_exit(self, monkeypatch):
+        """Patch 8: the original _run_executor must run before force-exit."""
+        import os as _os
+
+        order = []
+        mod = types.ModuleType("fake_run_executor")
+        mod._run_executor = lambda *a, **k: order.append("ran")
+        patch_run_executor(mod)
+
+        monkeypatch.setattr(_os, "_exit", lambda code: order.append(f"exit:{code}"))
+
+        mod._run_executor("args", ["beam"])
+
+        assert order == ["ran", "exit:0"]
 
 
 # ── Tests: Import hook mechanism ─────────────────────────────────────────
