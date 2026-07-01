@@ -110,8 +110,17 @@ def main() -> None:
     log.info("Shim will activate on every Python invocation.")
 
     # Apply the force-exit as a source edit (see patch_run_executor_source).
-    # The runtime hook cannot patch the `python -m` executor entry module.
-    patch_run_executor_source(site_packages)
+    # The runtime hook cannot patch the `python -m` executor entry module, so
+    # this source edit is the real fix for the shutdown crash. A failed patch
+    # must fail the build loudly, otherwise the image ships without the fix and
+    # the executor still aborts on shutdown.
+    if not patch_run_executor_source(site_packages):
+        log.error(
+            "force-exit source patch was not applied to %s; refusing to install "
+            "a shim that leaves the executor shutdown crash unfixed",
+            site_packages / _RUN_EXECUTOR_REL,
+        )
+        sys.exit(1)
 
 
 def _get_site_packages() -> Path:
