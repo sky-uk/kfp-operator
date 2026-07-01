@@ -13,4 +13,4 @@ include ../../../../docker-targets.mk
 IMG ?= kfp-operator-quickstart
 WHEEL_VERSION=$(shell uv run python -c "import importlib.metadata; print(importlib.metadata.version('penguin_pipeline'))" 2>/dev/null || echo "0.1.0")
 UV_VERSION=$(shell grep '^uv ' ../../../../.tool-versions | awk '{print $$2}')
-DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-arg UV_VERSION=${UV_VERSION}
+DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-arg UV_VERSION=${UV_VERSION} --build-context tfx-shim=../../../../provider-service/kfp/tfx-patch/tfx_kfp_v2_shim
