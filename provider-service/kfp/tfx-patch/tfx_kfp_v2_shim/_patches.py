@@ -6,6 +6,7 @@ import functools
 import inspect
 import logging
 import os
+import sys
 from types import ModuleType
 
 log = logging.getLogger(__name__)
@@ -26,6 +27,11 @@ def _get_generic_artifact_class():
     )
     cls.__module__ = __name__
     cls.__qualname__ = "GenericArtifact"
+    # Register on this module so name_utils.get_full_name() can resolve it and
+    # import_utils.import_class_by_path() can re-import it at executor runtime;
+    # otherwise the synthetic class is not reachable as an attribute of its
+    # declared module and TFX rejects it as "not importable".
+    setattr(sys.modules[__name__], "GenericArtifact", cls)
     return cls
 
 
