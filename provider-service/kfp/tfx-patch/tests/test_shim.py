@@ -133,7 +133,7 @@ class TestPatchCompilerUtils:
         # We need the real TFX imports to work; if TFX is not installed, skip.
         try:
             from tfx.types import simple_artifacts, standard_artifacts
-            from tfx.utils import name_utils
+            from tfx.utils import import_utils, name_utils
         except ImportError:
             pytest.skip("TFX not installed")
 
@@ -146,6 +146,13 @@ class TestPatchCompilerUtils:
         assert "system.Statistics" in mod.TITLE_TO_CLASS_PATH
         # Original entry preserved
         assert "tfx.Model" in mod.TITLE_TO_CLASS_PATH
+
+        # Regression: every stored path must round-trip through TFX's import
+        # machinery. system.Artifact previously mapped to a dynamically created
+        # class that was not bound to its declared module, so import_class_by_path
+        # raised "not importable" at compile time.
+        for title in ("system.Artifact", "system.Model"):
+            import_utils.import_class_by_path(mod.TITLE_TO_CLASS_PATH[title])
 
 
 # ── Tests: Patch 2+3 (_parse_raw_artifact wrapper) ──────────────────────
