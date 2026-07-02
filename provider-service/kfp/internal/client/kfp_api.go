@@ -14,10 +14,6 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 )
 
-type KfpApi interface {
-	GetResourceReferences(ctx context.Context, runId string) (resource.References, error)
-}
-
 type GrpcKfpApi struct {
 	RunServiceClient
 }
@@ -73,7 +69,7 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	return resourceReferences, nil
 }
 
-func CreateKfpApi(ctx context.Context, config config.Config) (KfpApi, error) {
+func CreateKfpApi(ctx context.Context, config config.Config) (*GrpcKfpApi, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
 	if err != nil {

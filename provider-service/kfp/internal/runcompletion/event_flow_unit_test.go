@@ -78,8 +78,8 @@ var _ = Context("Eventing Flow", func() {
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
-				MetadataStore: &mockMetadataStore,
-				KfpApi:        &mockKfpApi,
+				metadataStore: &mockMetadataStore,
+				kfpApi:        &mockKfpApi,
 			}
 
 			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
@@ -100,8 +100,8 @@ var _ = Context("Eventing Flow", func() {
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
-				MetadataStore: &mockMetadataStore,
-				KfpApi:        &mockKfpApi,
+				metadataStore: &mockMetadataStore,
+				kfpApi:        &mockKfpApi,
 			}
 
 			mockKfpApi.On("GetResourceReferences", runId).Return(resource.RandomReferences(), nil)
@@ -126,8 +126,8 @@ var _ = Context("Eventing Flow", func() {
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
-				MetadataStore: &mockMetadataStore,
-				KfpApi:        &mockKfpApi,
+				metadataStore: &mockMetadataStore,
+				kfpApi:        &mockKfpApi,
 			}
 
 			expectedError := errors.New("an error occurred")
@@ -172,8 +172,8 @@ var _ = Context("Eventing Flow", func() {
 
 		eventingServer := EventFlow{
 			Logger:        logr.Discard(),
-			MetadataStore: &mockMetadataStore,
-			KfpApi:        &mockKfpApi,
+			metadataStore: &mockMetadataStore,
+			kfpApi:        &mockKfpApi,
 			ProviderConfig: config.Config{
 				ProviderName: common.NamespacedName{Namespace: "default", Name: "kfp"},
 			},
