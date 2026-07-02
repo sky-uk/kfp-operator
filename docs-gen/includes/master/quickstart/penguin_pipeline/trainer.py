@@ -111,26 +111,3 @@ def run_fn(fn_args: tfx.components.FnArgs):
 
   # Save model to serving_model_dir as TFX expects
   tf.saved_model.save(model, fn_args.serving_model_dir)
-
-  # Clean up GCS directory marker blobs that confuse KFP v2 launcher.
-  # The launcher downloads all blobs under the artifact URI, but when a
-  # zero-byte marker blob exists at the same path as a "directory", the
-  # launcher creates a local file first, then fails to mkdir for subdirs.
-  if fn_args.serving_model_dir.startswith('gs://'):
-    _cleanup_gcs_markers(fn_args.serving_model_dir)
-
-
-def _cleanup_gcs_markers(gcs_uri: str):
-  """Remove zero-byte GCS directory marker blobs under the given URI."""
-  import re
-  from google.cloud import storage
-  match = re.match(r'gs://([^/]+)/(.*)', gcs_uri.rstrip('/'))
-  if not match:
-    return
-  bucket_name, prefix = match.groups()
-  client = storage.Client()
-  bucket = client.bucket(bucket_name)
-  # List all blobs and remove zero-byte markers that end with '/'
-  for blob in bucket.list_blobs(prefix=prefix):
-    if blob.name.endswith('/') and blob.size == 0:
-      blob.delete()
