@@ -61,7 +61,7 @@ var _ = Context("VaiEventingServer", func() {
 			ProviderConfig: config.VAIProviderConfig{
 				ProviderName: common.RandomNamespacedName(),
 			},
-			PipelineJobClient: mockPipelineJobClient,
+			pipelineJobClient: mockPipelineJobClient,
 			in:                inChan,
 			out:               outChan,
 			errorOut:          errChan,
@@ -139,7 +139,7 @@ var _ = Context("VaiEventingServer", func() {
 							Artifacts: []common.ComponentArtifactInstance{
 								{
 									Uri: "gs://some/where",
-									Metadata: map[string]interface{}{
+									Metadata: map[string]any{
 										"pushed_destination": "gs://some/where",
 										"pushed":             float64(1),
 									},
