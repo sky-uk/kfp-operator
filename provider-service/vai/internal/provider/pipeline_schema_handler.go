@@ -19,10 +19,6 @@ type PipelineValues struct {
 	schemaVersion *semver.Version
 }
 
-type PipelineSchemaHandler interface {
-	extract(raw map[string]any) (*PipelineValues, error)
-}
-
 // DefaultPipelineSchemaHandler handles both the bare KFP pipeline spec and the
 // TFX PipelineJob wrapper, for either schemaVersion 2.0 or 2.1.
 type DefaultPipelineSchemaHandler struct{}
