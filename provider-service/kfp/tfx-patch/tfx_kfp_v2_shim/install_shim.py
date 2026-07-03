@@ -4,8 +4,8 @@ This script:
   1. Copies the shim package to site-packages.
   2. Installs a .pth file that auto-activates the import hook on Python startup.
 
-Usage (in a Dockerfile):
-    COPY --from=tfx-patch /tfx_kfp_v2_shim /tmp/tfx_kfp_v2_shim
+Usage (in a Dockerfile), sourcing the shim via the `tfx-shim` build context:
+    COPY --from=tfx-shim . /tmp/tfx_kfp_v2_shim/
     RUN python /tmp/tfx_kfp_v2_shim/install_shim.py && rm -rf /tmp/tfx_kfp_v2_shim
 
 Flags:
