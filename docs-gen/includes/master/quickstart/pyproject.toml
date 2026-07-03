@@ -3,7 +3,7 @@ name = "penguin_pipeline"
 version = "0.1.0"
 description = ""
 authors = []
-requires-python = ">3.10.19,<3.11"
+requires-python = ">=3.10.19,<3.11"
 dependencies = [
     "tfx==1.16.0",
     "kfp>=2,<2.6",

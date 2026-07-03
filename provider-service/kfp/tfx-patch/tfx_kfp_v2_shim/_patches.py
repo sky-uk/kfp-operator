@@ -241,7 +241,6 @@ def patch_experimental(mod: ModuleType) -> None:
 #           the shutdown that provokes the crash. The metadata write is the
 #           final statement of _run_executor, so exiting after it returns is
 #           behaviourally identical to exiting immediately after the write.
-# (Ported from the 711 exploration branch, where it was "Patch 6".)
 
 def patch_run_executor(mod: ModuleType) -> None:
     """Wrap _run_executor to force-exit(0) after it completes.
@@ -258,10 +257,9 @@ def patch_run_executor(mod: ModuleType) -> None:
 
     @functools.wraps(original)
     def _patched(*args, **kwargs):
-        result = original(*args, **kwargs)
+        original(*args, **kwargs)
         log.info("Executor complete; forcing os._exit(0) to avoid shutdown crash")
         os._exit(0)
-        return result
 
     mod._run_executor = _patched
 

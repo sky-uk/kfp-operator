@@ -34,14 +34,21 @@ Patches 5 and 7 work around a KFP launcher bug ([kubeflow/pipelines#13476](https
 
 ## Usage
 
-Install via multi-stage build after TFX dependencies are in place:
+Source the shim directly via a named build context so the image is
+self-contained (no prebuilt patch image to pull). Point the `tfx-shim` context
+at this `tfx_kfp_v2_shim` directory when building:
+
+```bash
+docker build --build-context tfx-shim=path/to/provider-service/kfp/tfx-patch/tfx_kfp_v2_shim ...
+```
+
+Then install it in a multi-stage build after TFX dependencies are in place:
 
 ```dockerfile
-FROM ghcr.io/kfp-operator/kfp-operator-tfx-patch:latest AS tfx-patch
-FROM python:3.10.12
+FROM python:3.10.19
 
 # install TFX and dependencies first
-COPY --from=tfx-patch /tfx_kfp_v2_shim /tmp/tfx_kfp_v2_shim
+COPY --from=tfx-shim . /tmp/tfx_kfp_v2_shim/
 RUN python /tmp/tfx_kfp_v2_shim/install_shim.py && rm -rf /tmp/tfx_kfp_v2_shim
 ```
 
