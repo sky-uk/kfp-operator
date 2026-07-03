@@ -23,15 +23,14 @@ const (
 	DisplayName                = "display_name"
 )
 
-type MetadataStore interface {
-	GetArtifactsForRun(ctx context.Context, runId string) ([]common.PipelineComponent, error)
-}
-
 type GrpcMetadataStore struct {
 	MetadataStoreServiceClient MetadataStoreServiceClient
 }
 
-func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId string) ([]common.PipelineComponent, error) {
+func (gms *GrpcMetadataStore) GetArtifactsForRun(
+	ctx context.Context,
+	runId string,
+) ([]common.PipelineComponent, error) {
 	// Resolve run context
 	typeName := PipelineRunTypeName
 	ctxResp, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx,
@@ -142,7 +141,7 @@ func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]any {
 	return out
 }
 
-func CreateMetadataStore(ctx context.Context, config config.Config) (MetadataStore, error) {
+func CreateMetadataStore(ctx context.Context, config config.Config) (*GrpcMetadataStore, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	metadataStore, err := ConnectToMetadataStore(config.Parameters.GrpcMetadataStoreAddress)
 	if err != nil {

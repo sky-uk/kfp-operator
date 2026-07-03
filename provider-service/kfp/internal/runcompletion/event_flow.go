@@ -8,15 +8,29 @@ import (
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
+type kfpApi interface {
+	GetResourceReferences(
+		ctx context.Context,
+		runId string,
+	) (resource.References, error)
+}
+
+type metadataStore interface {
+	GetArtifactsForRun(
+		ctx context.Context,
+		runId string,
+	) ([]common.PipelineComponent, error)
+}
+
 type EventFlow struct {
 	ProviderConfig config.Config
-	MetadataStore  client.MetadataStore
-	KfpApi         client.KfpApi
+	metadataStore  metadataStore
+	kfpApi         kfpApi
 	Logger         logr.Logger
 	in             chan StreamMessage[*unstructured.Unstructured]
 	out            chan StreamMessage[*common.RunCompletionEventData]
@@ -68,13 +82,18 @@ func (ef *EventFlow) Error(inlet Inlet[error]) {
 	}
 }
 
-func NewEventFlow(ctx context.Context, config config.Config, kfpApi client.KfpApi, metadataStore client.MetadataStore) (*EventFlow, error) {
+func NewEventFlow(
+	ctx context.Context,
+	config config.Config,
+	kfpApiClient kfpApi,
+	metadataStore metadataStore,
+) (*EventFlow, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 
 	flow := &EventFlow{
 		ProviderConfig: config,
-		MetadataStore:  metadataStore,
-		KfpApi:         kfpApi,
+		metadataStore:  metadataStore,
+		kfpApi:         kfpApiClient,
 		Logger:         logger,
 		in:             make(chan StreamMessage[*unstructured.Unstructured]),
 		out:            make(chan StreamMessage[*common.RunCompletionEventData]),
@@ -122,13 +141,13 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 	}
 
 	runId := workflow.GetLabels()[pipelineRunIdLabel]
-	resourceReferences, err := ef.KfpApi.GetResourceReferences(ctx, runId)
+	resourceReferences, err := ef.kfpApi.GetResourceReferences(ctx, runId)
 	if err != nil {
 		ef.Logger.Error(err, "failed to retrieve resource references")
 		return nil, err
 	}
 
-	pipelineComponents, err := ef.MetadataStore.GetArtifactsForRun(ctx, runId)
+	pipelineComponents, err := ef.metadataStore.GetArtifactsForRun(ctx, runId)
 	if err != nil {
 		ef.Logger.Error(err, "failed to retrieve pipeline components")
 		return nil, err
