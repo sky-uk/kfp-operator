@@ -99,5 +99,5 @@ func (p *Provider) StatusWithCondition(state apis.SynchronizationState, message 
 }
 
 func init() {
-	SchemeBuilder.Register(&Provider{}, &ProviderList{})
+	SchemeBuilder.Register(addKnownTypes(&Provider{}, &ProviderList{}))
 }
