@@ -7,13 +7,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-type JobEnricher interface {
-	Enrich(
-		job *aiplatformpb.PipelineJob,
-		raw map[string]any,
-	) (*aiplatformpb.PipelineJob, error)
-}
-
 type DefaultJobEnricher struct {
 	pipelineSchemaHandler PipelineSchemaHandler
 	labelSanitizer        LabelSanitizer
