@@ -100,5 +100,5 @@ type RunScheduleList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&RunSchedule{}, &RunScheduleList{})
+	SchemeBuilder.Register(addKnownTypes(&RunSchedule{}, &RunScheduleList{}))
 }

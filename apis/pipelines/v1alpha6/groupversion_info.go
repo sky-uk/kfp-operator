@@ -5,8 +5,9 @@ package v1alpha6
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/controller-runtime/pkg/scheme"
 )
 
 var (
@@ -14,8 +15,18 @@ var (
 	GroupVersion = schema.GroupVersion{Group: apis.Group, Version: "v1alpha6"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
-	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
+	SchemeBuilder = &runtime.SchemeBuilder{}
 
 	// AddToScheme adds the types in this group-version to the given scheme.
 	AddToScheme = SchemeBuilder.AddToScheme
 )
+
+// addKnownTypes registers the given objects with the GroupVersion and adds the
+// common meta types to it.
+func addKnownTypes(objs ...runtime.Object) func(*runtime.Scheme) error {
+	return func(scheme *runtime.Scheme) error {
+		scheme.AddKnownTypes(GroupVersion, objs...)
+		metav1.AddToGroupVersion(scheme, GroupVersion)
+		return nil
+	}
+}
