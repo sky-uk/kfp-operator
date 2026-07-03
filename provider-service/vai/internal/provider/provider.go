@@ -47,13 +47,20 @@ type scheduleClient interface {
 	) (*aiplatformpb.Schedule, error)
 }
 
+type jobEnricher interface {
+	Enrich(
+		job *aiplatformpb.PipelineJob,
+		raw map[string]any,
+	) (*aiplatformpb.PipelineJob, error)
+}
+
 type VAIProvider struct {
 	config         *config.VAIProviderConfig
 	fileHandler    FileHandler
 	pipelineClient pipelineJobCreator
 	scheduleClient scheduleClient
 	jobBuilder     JobBuilder
-	jobEnricher    JobEnricher
+	jobEnricher    jobEnricher
 }
 
 func NewVAIProvider(
