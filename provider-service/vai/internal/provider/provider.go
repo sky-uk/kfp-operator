@@ -6,13 +6,13 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"github.com/googleapis/gax-go/v2"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/util"
 	"google.golang.org/api/option"
@@ -21,11 +21,37 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
+type pipelineJobCreator interface {
+	CreatePipelineJob(
+		ctx context.Context,
+		req *aiplatformpb.CreatePipelineJobRequest,
+		opts ...gax.CallOption,
+	) (*aiplatformpb.PipelineJob, error)
+}
+
+type scheduleClient interface {
+	CreateSchedule(
+		ctx context.Context,
+		req *aiplatformpb.CreateScheduleRequest,
+		opts ...gax.CallOption,
+	) (*aiplatformpb.Schedule, error)
+	DeleteSchedule(
+		ctx context.Context,
+		req *aiplatformpb.DeleteScheduleRequest,
+		opts ...gax.CallOption,
+	) (*aiplatform.DeleteScheduleOperation, error)
+	UpdateSchedule(
+		ctx context.Context,
+		req *aiplatformpb.UpdateScheduleRequest,
+		opts ...gax.CallOption,
+	) (*aiplatformpb.Schedule, error)
+}
+
 type VAIProvider struct {
 	config         *config.VAIProviderConfig
 	fileHandler    FileHandler
-	pipelineClient client.PipelineJobClient
-	scheduleClient client.ScheduleClient
+	pipelineClient pipelineJobCreator
+	scheduleClient scheduleClient
 	jobBuilder     JobBuilder
 	jobEnricher    JobEnricher
 }
