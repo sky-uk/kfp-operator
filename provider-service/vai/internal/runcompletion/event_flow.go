@@ -8,11 +8,11 @@ import (
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/go-logr/logr"
+	"github.com/googleapis/gax-go/v2"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,9 +22,17 @@ const (
 	PipelineJobNotFinishedErr = "expected pipeline job to have finished"
 )
 
+type pipelineJobGetter interface {
+	GetPipelineJob(
+		ctx context.Context,
+		req *aiplatformpb.GetPipelineJobRequest,
+		opts ...gax.CallOption,
+	) (*aiplatformpb.PipelineJob, error)
+}
+
 type EventFlow struct {
 	ProviderConfig    config.VAIProviderConfig
-	PipelineJobClient client.PipelineJobClient
+	pipelineJobClient pipelineJobGetter
 	in                chan StreamMessage[string]
 	out               chan StreamMessage[*common.RunCompletionEventData]
 	errorOut          chan error
@@ -68,7 +76,7 @@ func (vef *EventFlow) Error(inlet streams.Inlet[error]) {
 func NewEventFlow(config *config.VAIProviderConfig, pipelineJobClient *aiplatform.PipelineClient) *EventFlow {
 	vaiEventFlow := EventFlow{
 		ProviderConfig:    *config,
-		PipelineJobClient: pipelineJobClient,
+		pipelineJobClient: pipelineJobClient,
 		in:                make(chan StreamMessage[string]),
 		out:               make(chan StreamMessage[*common.RunCompletionEventData]),
 		errorOut:          make(chan error),
@@ -103,8 +111,11 @@ func (vef *EventFlow) Start(ctx context.Context) {
 	}()
 }
 
-func (vef *EventFlow) runCompletionEventDataForRun(ctx context.Context, runId string) (*common.RunCompletionEventData, error) {
-	job, err := vef.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
+func (vef *EventFlow) runCompletionEventDataForRun(
+	ctx context.Context,
+	runId string,
+) (*common.RunCompletionEventData, error) {
+	job, err := vef.pipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
 		Name: vef.ProviderConfig.PipelineJobName(runId),
 	})
 	if err != nil {
