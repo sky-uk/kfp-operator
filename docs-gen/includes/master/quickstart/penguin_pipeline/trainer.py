@@ -109,6 +109,5 @@ def run_fn(fn_args: tfx.components.FnArgs):
       validation_data=eval_dataset,
       validation_steps=fn_args.eval_steps)
 
-  # The result of the training should be saved in `fn_args.serving_model_dir`
-  # directory.
-  model.save(fn_args.serving_model_dir, save_format='tf')
+  # Save model to serving_model_dir as TFX expects
+  tf.saved_model.save(model, fn_args.serving_model_dir)

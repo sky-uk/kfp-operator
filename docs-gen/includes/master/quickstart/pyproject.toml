@@ -3,18 +3,25 @@ name = "penguin_pipeline"
 version = "0.1.0"
 description = ""
 authors = []
-requires-python = "==3.10.12"
+requires-python = ">=3.10.19,<3.11"
 dependencies = [
-    "tfx==1.15.1",
-    "shapely<2",
-    "kfp==1.8.22",
-    "setuptools~=82.0",
-    "dill==0.3.1.1",
+    "tfx==1.16.0",
+    "kfp>=2,<2.6",
+    "setuptools<82",
+    "tensorflow-io",
+    "boto3",
+    "grpcio<1.60.0",
+    "dill",
+]
+
+[tool.uv]
+required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'"
 ]
 
 [tool.setuptools]
 packages = ["penguin_pipeline"]
 
 [build-system]
-requires = ["setuptools>=82.0.1", "wheel"]
+requires = ["setuptools>=61,<82", "wheel"]
 build-backend = "setuptools.build_meta"

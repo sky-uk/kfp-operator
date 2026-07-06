@@ -20,8 +20,11 @@ A `scratch`-based image containing the `tfx_kfp_v2_shim` package. It installs a 
 | 5 | `path_utils` | Flatten model directory (skip `Format-Serving/` subdirectory) |
 | 6 | `tfx.v1.orchestration.experimental` | Re-export `KubeflowV2DagRunner` removed by `kfp>=2` |
 | 7 | `kubeflow_v2_entrypoint_utils` | Delete zero-byte GCS directory markers after each executor run |
+| 8 | `kubeflow_v2_run_executor` | Force-exit(0) after output metadata is written, to bypass a C++ destructor crash ("pure virtual method called") during interpreter shutdown |
 
-Patches 1–4 and 6–7 are safe for all environments. Patch 5 changes TFX's model layout and breaks Vertex AI — use `--vertex-compatible` to skip it.
+Patches 1–4 and 6–8 are safe for all environments. Patch 5 changes TFX's model layout and breaks Vertex AI — use `--vertex-compatible` to skip it.
+
+Patch 8 is applied as a **source edit** at install time (`install_shim.patch_run_executor_source`), not via the runtime hook: the executor container runs `python -m ...kubeflow_v2_run_executor`, i.e. as `__main__`, which the import hook cannot patch (runpy uses the loader's `get_code`, bypassing `exec_module`).
 
 Patches 5 and 7 work around a KFP launcher bug ([kubeflow/pipelines#13476](https://github.com/kubeflow/pipelines/issues/13476)). They become redundant once that is fixed upstream.
 
@@ -31,14 +34,21 @@ Patches 5 and 7 work around a KFP launcher bug ([kubeflow/pipelines#13476](https
 
 ## Usage
 
-Install via multi-stage build after TFX dependencies are in place:
+Source the shim directly via a named build context so the image is
+self-contained (no prebuilt patch image to pull). Point the `tfx-shim` context
+at this `tfx_kfp_v2_shim` directory when building:
+
+```bash
+docker build --build-context tfx-shim=path/to/provider-service/kfp/tfx-patch/tfx_kfp_v2_shim ...
+```
+
+Then install it in a multi-stage build after TFX dependencies are in place:
 
 ```dockerfile
-FROM ghcr.io/kfp-operator/kfp-operator-tfx-patch:latest AS tfx-patch
-FROM python:3.10.12
+FROM python:3.10.19
 
 # install TFX and dependencies first
-COPY --from=tfx-patch /tfx_kfp_v2_shim /tmp/tfx_kfp_v2_shim
+COPY --from=tfx-shim . /tmp/tfx_kfp_v2_shim/
 RUN python /tmp/tfx_kfp_v2_shim/install_shim.py && rm -rf /tmp/tfx_kfp_v2_shim
 ```
 
