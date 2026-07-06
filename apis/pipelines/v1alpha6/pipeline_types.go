@@ -127,5 +127,5 @@ func (pipeline *Pipeline) VersionedIdentifier() PipelineIdentifier {
 }
 
 func init() {
-	SchemeBuilder.Register(&Pipeline{}, &PipelineList{})
+	SchemeBuilder.Register(addKnownTypes(&Pipeline{}, &PipelineList{}))
 }

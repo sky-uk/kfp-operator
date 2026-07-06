@@ -7,10 +7,6 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 )
 
-type LabelSanitizer interface {
-	Sanitize(labels map[string]string) map[string]string
-}
-
 type DefaultLabelSanitizer struct{}
 
 // Vertex AI PipelineJob label keys and values can be no longer than 63 chars,

@@ -166,5 +166,5 @@ type RunConfigurationList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&RunConfiguration{}, &RunConfigurationList{})
+	SchemeBuilder.Register(addKnownTypes(&RunConfiguration{}, &RunConfigurationList{}))
 }

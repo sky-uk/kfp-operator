@@ -78,5 +78,5 @@ func (p *Provider) StatusWithCondition(message string) {
 }
 
 func init() {
-	SchemeBuilder.Register(&Provider{}, &ProviderList{})
+	SchemeBuilder.Register(addKnownTypes(&Provider{}, &ProviderList{}))
 }

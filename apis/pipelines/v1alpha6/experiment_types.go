@@ -67,5 +67,5 @@ type ExperimentList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&Experiment{}, &ExperimentList{})
+	SchemeBuilder.Register(addKnownTypes(&Experiment{}, &ExperimentList{}))
 }

@@ -269,5 +269,5 @@ type RunList struct {
 }
 
 func init() {
-	SchemeBuilder.Register(&Run{}, &RunList{})
+	SchemeBuilder.Register(addKnownTypes(&Run{}, &RunList{}))
 }
