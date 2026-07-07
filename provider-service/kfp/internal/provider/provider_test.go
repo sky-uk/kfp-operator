@@ -13,6 +13,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
@@ -528,6 +529,30 @@ var _ = Describe("Provider", func() {
 			result, err := extractPipelineSpec(compiled, "kfpsdk")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(MatchJSON(compiled))
+		})
+	})
+
+	Context("resolveExperimentName", func() {
+		It("substitutes the configured default when experiment name is empty", func() {
+			provider.config = &config.Config{
+				Parameters: config.Parameters{DefaultExperiment: "Default"},
+			}
+			resolved := provider.resolveExperimentName(common.NamespacedName{})
+			Expect(resolved).To(Equal(common.NamespacedName{Name: "Default"}))
+		})
+
+		It("passes a specified experiment name through unchanged", func() {
+			provider.config = &config.Config{
+				Parameters: config.Parameters{DefaultExperiment: "Default"},
+			}
+			in := common.NamespacedName{Name: "exp", Namespace: "ns"}
+			Expect(provider.resolveExperimentName(in)).To(Equal(in))
+		})
+
+		It("yields an empty name when no default is configured", func() {
+			provider.config = &config.Config{}
+			Expect(provider.resolveExperimentName(common.NamespacedName{})).
+				To(Equal(common.NamespacedName{Name: ""}))
 		})
 	})
 })

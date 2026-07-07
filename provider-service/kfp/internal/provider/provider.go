@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -183,6 +184,15 @@ func (p *KfpProvider) DeletePipeline(
 	return p.pipelineService.DeletePipeline(ctx, id)
 }
 
+func (p *KfpProvider) resolveExperimentName(
+	name common.NamespacedName,
+) common.NamespacedName {
+	if name.Name == "" {
+		return common.NamespacedName{Name: p.config.Parameters.DefaultExperiment}
+	}
+	return name
+}
+
 func (p *KfpProvider) CreateRun(
 	ctx context.Context,
 	rd base.RunDefinition,
@@ -206,7 +216,8 @@ func (p *KfpProvider) CreateRun(
 		return "", err
 	}
 
-	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, rd.ExperimentName)
+	experimentName := p.resolveExperimentName(rd.ExperimentName)
+	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, experimentName)
 	if err != nil {
 		return "", err
 	}
@@ -255,7 +266,8 @@ func (p *KfpProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, rsd.ExperimentName)
+	experimentName := p.resolveExperimentName(rsd.ExperimentName)
+	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, experimentName)
 	if err != nil {
 		return "", err
 	}
