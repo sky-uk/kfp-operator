@@ -24,6 +24,10 @@ data:
         podTemplateSpec:
           metadata:
             labels: {{- if .Values.provider.podTemplateLabels }}{{- toYaml .Values.provider.podTemplateLabels | nindent 16 }}{{ else }} {}{{ end }}
+            {{- with .Values.provider.podTemplateAnnotations }}
+            annotations:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
           spec:
             volumes: {{- if .Values.provider.volumes }}{{- toYaml .Values.provider.volumes | nindent 12 }}{{ else }} []{{ end }}
             securityContext:

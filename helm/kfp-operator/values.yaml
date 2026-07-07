@@ -78,6 +78,7 @@ logging:
 
 provider:
   replicas: 1
+  podTemplateAnnotations: {}
   resources:
     requests:
       cpu: 250m
