@@ -75,6 +75,24 @@ var _ = Describe("Provider", func() {
 				Expect(result).To(Equal(runId))
 			})
 
+			When("the run omits an experiment and a default is configured", func() {
+				It("resolves the configured default experiment", func() {
+					provider.config = &config.Config{
+						Parameters: config.Parameters{DefaultExperiment: "Default"},
+					}
+					emptyExpRd := rd
+					emptyExpRd.ExperimentName = common.NamespacedName{}
+					pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					pipelineService.On("PipelineVersionIdForDisplayName", emptyExpRd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					experimentService.On("ExperimentIdByDisplayName", common.NamespacedName{Name: "Default"}).Return(experimentId, nil)
+					runService.On("CreateRun", emptyExpRd, pipelineId, pipelineVersionId, experimentId).Return(runId, nil)
+					result, err := provider.CreateRun(ctx, emptyExpRd)
+
+					Expect(err).ToNot(HaveOccurred())
+					Expect(result).To(Equal(runId))
+				})
+			})
+
 			When("pipeline has invalid namespace name", func() {
 				It("should return error", func() {
 					copyRd := rd
@@ -303,6 +321,24 @@ var _ = Describe("Provider", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result).To(Equal(recurringRunId))
+			})
+
+			When("the run schedule omits an experiment and a default is configured", func() {
+				It("resolves the configured default experiment", func() {
+					provider.config = &config.Config{
+						Parameters: config.Parameters{DefaultExperiment: "Default"},
+					}
+					emptyExpRsd := rsd
+					emptyExpRsd.ExperimentName = common.NamespacedName{}
+					pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					pipelineService.On("PipelineVersionIdForDisplayName", emptyExpRsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					experimentService.On("ExperimentIdByDisplayName", common.NamespacedName{Name: "Default"}).Return(experimentId, nil)
+					recurringRunService.On("CreateRecurringRun", emptyExpRsd, pipelineId, pipelineVersionId, experimentId).Return(recurringRunId, nil)
+					result, err := provider.CreateRunSchedule(ctx, emptyExpRsd)
+
+					Expect(err).ToNot(HaveOccurred())
+					Expect(result).To(Equal(recurringRunId))
+				})
 			})
 
 			When("pipeline has invalid namespace name", func() {
