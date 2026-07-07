@@ -16,7 +16,6 @@ manager:
       name: kfp-operator-argo
       create: true
   configuration:
-    defaultExperiment: Default
     runCompletionTTL: 30s
   monitoring:
     create: false

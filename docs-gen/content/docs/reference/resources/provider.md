@@ -89,6 +89,7 @@ spec:
 | `parameters.grpcMetadataStoreAddress` | The exposed grpc endpoint used for metadata store with Kubeflow pipelines |
 | `parameters.kfpNamespace`             | The namespace where Kubeflow is deployed                                  |
 | `parameters.restKfpApiUrl`            | The exposed restful endpoint used to interact with Kubeflow pipelines     |
+| `parameters.defaultExperiment`        | Experiment name used for runs and run-schedules that do not specify one   |
 
 ### Vertex AI
 
