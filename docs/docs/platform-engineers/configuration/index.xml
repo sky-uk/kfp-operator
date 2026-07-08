@@ -65,11 +65,6 @@
  &lt;/thead&gt;
  &lt;tbody&gt;
  &lt;tr&gt;
- &lt;td&gt;&lt;code&gt;defaultExperiment&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;Default Experiment name to be used for creating pipeline runs&lt;/td&gt;
- &lt;td&gt;&lt;code&gt;Default&lt;/code&gt;&lt;/td&gt;
- &lt;/tr&gt;
- &lt;tr&gt;
  &lt;td&gt;&lt;code&gt;defaultTfxImage&lt;/code&gt;&lt;/td&gt;
  &lt;td&gt;Default TFX image to be used when converting provider resource from v1alpha6 to v1beta1&lt;/td&gt;
  &lt;td&gt;&lt;code&gt;gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code&gt;&lt;/td&gt;
