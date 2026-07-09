@@ -114,6 +114,7 @@ func (dm DeploymentManager) Construct(provider *pipelineshub.Provider) (*appsv1.
 	podTemplate = *populatedPodTemplate
 	podTemplate.Spec.ServiceAccountName = provider.Spec.ServiceAccount
 	podTemplate.ObjectMeta.Labels = lo.Assign(podTemplate.ObjectMeta.Labels, matchLabels)
+	podTemplate.ObjectMeta.Annotations = lo.Assign(podTemplate.ObjectMeta.Annotations, provider.Spec.PodTemplateAnnotations)
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{

@@ -97,6 +97,9 @@ func RandomProviderSpec() ProviderSpec {
 		Frameworks:          RandomList(RandomFramework),
 		Parameters:          randomParameters,
 		AllowedNamespaces:   RandomList(RandomString),
+		PodTemplateAnnotations: map[string]string{
+			RandomString(): RandomString(),
+		},
 	}
 }
 

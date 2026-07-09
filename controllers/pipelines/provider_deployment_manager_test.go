@@ -219,6 +219,26 @@ var _ = Context("Provider Deployment Manager", func() {
 			Expect(deployment.Namespace).To(Equal(provider.Namespace))
 		})
 
+		Specify("Should merge provider PodTemplateAnnotations over the default pod template annotations", func() {
+			deploymentManager.config.DefaultProviderValues.PodTemplateSpec.ObjectMeta.Annotations = map[string]string{
+				"default-only": "keep",
+				"shared":       "default",
+			}
+			provider.Spec.PodTemplateAnnotations = map[string]string{
+				"shared":        "override",
+				"provider-only": "add",
+			}
+
+			deployment, err := deploymentManager.Construct(provider)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.Spec.Template.ObjectMeta.Annotations).To(Equal(map[string]string{
+				"default-only":  "keep",
+				"shared":        "override",
+				"provider-only": "add",
+			}))
+		})
+
 		Specify("Should return an error if the no container with matching ServiceContainerName exists", func() {
 			deploymentManager.config.DefaultProviderValues.PodTemplateSpec.Spec.Containers = []corev1.Container{}
 			_, err := deploymentManager.Construct(provider)

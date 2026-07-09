@@ -42,6 +42,10 @@ type ProviderSpec struct {
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Frameworks          []Framework                      `json:"frameworks,omitempty" yaml:"frameworks,omitempty"`
 	AllowedNamespaces   []string                         `json:"allowedNamespaces,omitempty" yaml:"allowedNamespaces,omitempty"`
+	// +kubebuilder:validation:Optional
+	// Annotations applied to the generated provider-service pod template, merged
+	// over the operator's defaultProviderValues.podTemplateSpec annotations.
+	PodTemplateAnnotations map[string]string `json:"podTemplateAnnotations,omitempty" yaml:"podTemplateAnnotations,omitempty"`
 }
 
 type Framework struct {
