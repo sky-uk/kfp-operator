@@ -22,9 +22,12 @@ type RunDefinitionCreator struct {
 }
 
 func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipelineshub.Run) ([]pipelineshub.Patch, providers.RunDefinition, error) {
-	experimentName := common.NamespacedName{
-		Name:      run.Spec.ExperimentName,
-		Namespace: run.Namespace,
+	var experimentName common.NamespacedName
+	if run.Spec.ExperimentName != "" {
+		experimentName = common.NamespacedName{
+			Name:      run.Spec.ExperimentName,
+			Namespace: run.Namespace,
+		}
 	}
 
 	if run.Status.Dependencies.Pipeline.Version == "" {
