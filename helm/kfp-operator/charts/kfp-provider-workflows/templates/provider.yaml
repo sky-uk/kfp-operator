@@ -1,0 +1,26 @@
+{{- if .Values.provider.create }}
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Provider
+metadata:
+  name: {{ include "kfp-provider-workflows.providerName" . }}
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
+{{- with .Values.provider.metadata }}
+  {{- . | toYaml | nindent 2 }}
+{{- end }}
+spec:
+  serviceImage: {{ required "provider.serviceImage is required when provider.create is true" .Values.provider.serviceImage | quote }}
+  serviceAccount: {{ required "provider.serviceAccount is required when provider.create is true" .Values.provider.serviceAccount | quote }}
+  pipelineRootStorage: {{ required "provider.pipelineRootStorage is required when provider.create is true" .Values.provider.pipelineRootStorage | quote }}
+  {{- with .Values.provider.parameters }}
+  parameters:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  {{- with .Values.provider.frameworks }}
+  frameworks:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  {{- with .Values.provider.allowedNamespaces }}
+  allowedNamespaces:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+{{- end }}

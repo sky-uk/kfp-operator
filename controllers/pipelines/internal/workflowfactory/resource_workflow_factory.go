@@ -57,16 +57,18 @@ const (
 // Template name methods - create and update operations use suffixed templates to differentiate
 // between resource types (e.g., "compiled" for pipelines, "simple" for basic resources).
 // Delete operations use a single shared template since deletion is generic across all resource types.
+// Templates are provisioned per-provider-namespace by the kfp-provider-workflows Helm chart under
+// fixed names, so the operator references them by their static names.
 func (rwf ResourceWorkflowFactory[R, ResourceDefinition]) createTemplateName() string {
-	return fmt.Sprintf("%screate-%s", rwf.Config.WorkflowTemplatePrefix, rwf.TemplateSuffix)
+	return fmt.Sprintf("create-%s", rwf.TemplateSuffix)
 }
 
 func (rwf ResourceWorkflowFactory[R, ResourceDefinition]) updateTemplateName() string {
-	return fmt.Sprintf("%supdate-%s", rwf.Config.WorkflowTemplatePrefix, rwf.TemplateSuffix)
+	return fmt.Sprintf("update-%s", rwf.TemplateSuffix)
 }
 
 func (rwf ResourceWorkflowFactory[R, ResourceDefinition]) deleteTemplateName() string {
-	return fmt.Sprintf("%sdelete", rwf.Config.WorkflowTemplatePrefix)
+	return "delete"
 }
 
 func WorkflowParamsCreatorNoop[R any](provider pipelineshub.Provider, _ R) ([]argo.Parameter, error) {
