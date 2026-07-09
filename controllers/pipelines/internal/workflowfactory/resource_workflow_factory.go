@@ -75,10 +75,11 @@ func WorkflowParamsCreatorNoop[R any](provider pipelineshub.Provider, _ R) ([]ar
 
 func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
 	owner pipelineshub.Resource,
+	provider pipelineshub.Provider,
 ) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", owner.GetKind(), owner.GetName()),
-		Namespace:    workflows.Config.WorkflowNamespace,
+		Namespace:    provider.Namespace,
 		Labels:       workflowconstants.CommonWorkflowLabels(owner),
 	}
 }
@@ -162,7 +163,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	params = append(params, additionalParams...)
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource, provider),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: params,
@@ -228,7 +229,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	params = append(params, additionalParams...)
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource, provider),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: params,
@@ -256,7 +257,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource, provider),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{

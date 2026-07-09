@@ -46,7 +46,7 @@ func (st *StateHandler[R]) stateTransition(
 			commands = st.onCreating(
 				ctx,
 				resource,
-				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)),
+				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource), provider.Namespace),
 				transitionTime,
 			)
 		case apis.Succeeded, apis.Failed:
@@ -59,14 +59,14 @@ func (st *StateHandler[R]) stateTransition(
 			commands = st.onUpdating(
 				ctx,
 				resource,
-				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)),
+				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource), provider.Namespace),
 				transitionTime,
 			)
 		case apis.Deleting:
 			commands = st.onDeleting(
 				ctx,
 				resource,
-				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)),
+				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource), provider.Namespace),
 				transitionTime,
 			)
 		case apis.Deleted:
