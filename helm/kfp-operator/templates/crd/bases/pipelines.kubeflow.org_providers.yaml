@@ -244,6 +244,13 @@ spec:
                 type: object
               pipelineRootStorage:
                 type: string
+              podTemplateAnnotations:
+                additionalProperties:
+                  type: string
+                description: |-
+                  Annotations applied to the generated provider-service pod template, merged
+                  over the operator's defaultProviderValues.podTemplateSpec annotations.
+                type: object
               serviceAccount:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                 type: string
