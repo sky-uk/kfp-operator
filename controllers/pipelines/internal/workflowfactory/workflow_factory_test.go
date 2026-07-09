@@ -5,7 +5,6 @@ package workflowfactory
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	. "github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/internal/config"
@@ -15,15 +14,11 @@ import (
 var _ = Describe("CommonWorkflowMeta", func() {
 	It("creates metadata", func() {
 		owner := pipelineshub.RandomResource()
-		namespace := RandomString()
-		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
-			Config: config.ConfigSpec{
-				WorkflowNamespace: namespace,
-			},
-		}
-		meta := w.CommonWorkflowMeta(owner)
+		provider := pipelineshub.RandomProvider()
+		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{}
+		meta := w.CommonWorkflowMeta(owner, *provider)
 
-		Expect(meta.Namespace).To(Equal(namespace))
+		Expect(meta.Namespace).To(Equal(provider.Namespace))
 		Expect(meta.GetGenerateName()).To(Equal(owner.GetKind() + "-" + owner.GetName() + "-"))
 
 		Expect(meta.Labels[workflowconstants.OwnerKindLabelKey]).To(Equal(owner.GetKind()))
@@ -31,17 +26,18 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		Expect(meta.Labels[workflowconstants.OwnerNamespaceLabelKey]).To(Equal(owner.GetNamespace()))
 	})
 
-	It("uses config.WorkflowNamespace if set", func() {
+	It("uses the provider namespace regardless of config", func() {
 		owner := pipelineshub.RandomResource()
-		configuredNamespace := "configuredNamespace"
+		provider := pipelineshub.RandomProvider()
+		provider.Namespace = "provider-namespace"
 		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
 			Config: config.ConfigSpec{
-				WorkflowNamespace: configuredNamespace,
+				WorkflowNamespace: "ignored-legacy-namespace",
 			},
 		}
-		meta := w.CommonWorkflowMeta(owner)
+		meta := w.CommonWorkflowMeta(owner, *provider)
 
-		Expect(meta.Namespace).To(Equal(configuredNamespace))
+		Expect(meta.Namespace).To(Equal("provider-namespace"))
 	})
 })
 
