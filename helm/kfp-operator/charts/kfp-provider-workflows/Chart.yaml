@@ -1,0 +1,13 @@
+apiVersion: v2
+name: kfp-provider-workflows
+description: >-
+  Per-provider Argo WorkflowTemplates, execution RBAC and (optionally) the
+  Provider resource for kfp-operator. Install one release per provider namespace.
+
+type: application
+
+# Set at packaging time
+version: 0.0.0
+
+# Set at packaging time
+appVersion: "latest"

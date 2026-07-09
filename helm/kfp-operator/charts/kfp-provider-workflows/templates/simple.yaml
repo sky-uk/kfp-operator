@@ -2,10 +2,10 @@ apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: create-simple
-  namespace: kfp-operator-system
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   ttlStrategy:
-    secondsAfterCompletion: 3600
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-name
@@ -13,42 +13,42 @@ spec:
     - name: resource-kind
     - name: resource-definition
   entrypoint: main
-  serviceAccountName: kfp-operator-argo
+  serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
+  {{- with .Values.manager.argo.securityContext }}
   securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    fsGroup: 1000
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
   templates:
   - name: main
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
+          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: provider
         templateRef:
-          name: kfp-operator-common-steps
+          name: common-steps
           template: create
         arguments:
           artifacts:
           - name: body
             raw:
               data: |
-                {{workflow.parameters.resource-definition}}
+                {{`{{workflow.parameters.resource-definition}}`}}
             path: /body.json
           parameters:
           - name: provider-service-url
-            value: '{{workflow.parameters.provider-service-url}}'
+            value: '{{`{{workflow.parameters.provider-service-url}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: update-simple
-  namespace: kfp-operator-system
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   ttlStrategy:
-    secondsAfterCompletion: 3600
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-name
@@ -57,40 +57,40 @@ spec:
     - name: resource-id
     - name: resource-definition
   entrypoint: main
-  serviceAccountName: kfp-operator-argo
+  serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
+  {{- with .Values.manager.argo.securityContext }}
   securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    fsGroup: 1000
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
   templates:
   - name: main
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
+          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: url-encode-resource-id
         templateRef:
-          name: kfp-operator-common-steps
+          name: common-steps
           template: url-encode
         arguments:
           parameters:
           - name: unencoded
-            value: '{{workflow.parameters.resource-id}}'
+            value: '{{`{{workflow.parameters.resource-id}}`}}'
     - - name: provider
         templateRef:
-          name: kfp-operator-common-steps
+          name: common-steps
           template: update
         arguments:
           artifacts:
           - name: body
             raw:
               data: |
-                {{workflow.parameters.resource-definition}}
+                {{`{{workflow.parameters.resource-definition}}`}}
             path: /body.json
           parameters:
           - name: url-encoded-resource-id
-            value: '{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}'
+            value: '{{`{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}`}}'
           - name: provider-service-url
-            value: '{{workflow.parameters.provider-service-url}}'
+            value: '{{`{{workflow.parameters.provider-service-url}}`}}'

@@ -1,8 +1,8 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
-  namespace: {{ include "kfp-operator.argoNamespace" . }}
+  name: compiled-workflow-steps
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   templates:
   - name: compile
@@ -36,7 +36,7 @@ spec:
       - /tmp/resource.json
       - --{{`{{workflow.parameters.resource-kind}}`}}_config
       - /resource-definition.json
-      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+      {{- include "kfp-provider-workflows.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared
     initContainers:
@@ -45,7 +45,7 @@ spec:
       image: "{{`{{workflow.parameters.pipeline-framework-image}}`}}"
       mirrorVolumeMounts: true
       name: compile
-      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+      {{- include "kfp-provider-workflows.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: combine-files
     inputs:
       artifacts:
@@ -76,8 +76,8 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-create-compiled
-  namespace: {{ include "kfp-operator.argoNamespace" . }}
+  name: create-compiled
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
@@ -104,11 +104,11 @@ spec:
     steps:
     - - name: select-resource-image
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          name: common-steps
           template: select-resource-image
     - - name: compile
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          name: compiled-workflow-steps
           template: compile
         arguments:
           parameters:
@@ -118,7 +118,7 @@ spec:
             value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
     - - name: combine-files
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          name: compiled-workflow-steps
           template: combine-files
         arguments:
           artifacts:
@@ -131,7 +131,7 @@ spec:
             path: /resource-definition.json
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          name: common-steps
           template: create
         arguments:
           artifacts:
@@ -144,8 +144,8 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-update-compiled
-  namespace: {{ include "kfp-operator.argoNamespace" . }}
+  name: update-compiled
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
@@ -173,11 +173,11 @@ spec:
     steps:
     - - name: select-resource-image
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          name: common-steps
           template: select-resource-image
     - - name: compile
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          name: compiled-workflow-steps
           template: compile
         arguments:
           parameters:
@@ -187,7 +187,7 @@ spec:
             value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
     - - name: combine-files
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          name: compiled-workflow-steps
           template: combine-files
         arguments:
           artifacts:
@@ -200,7 +200,7 @@ spec:
             path: /resource-definition.json
     - - name: url-encode-resource-id
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          name: common-steps
           template: url-encode
         arguments:
           parameters:
@@ -208,7 +208,7 @@ spec:
               value: '{{`{{workflow.parameters.resource-id}}`}}'
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          name: common-steps
           template: update
         arguments:
           artifacts:
