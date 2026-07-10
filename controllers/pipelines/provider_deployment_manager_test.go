@@ -191,7 +191,10 @@ var _ = Context("Provider Deployment Manager", func() {
 
 			providerSuffixedName := fmt.Sprintf("provider-%s", provider.Name)
 
-			providerNamespacedName, err := common.NamespacedName{Namespace: provider.Namespace, Name: provider.Name}.String()
+			providerNamespacedName, err := common.NamespacedName{
+				Namespace: provider.Namespace,
+				Name:      provider.Name,
+			}.String()
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(Equal([]corev1.EnvVar{
@@ -231,21 +234,26 @@ var _ = Context("Provider Deployment Manager", func() {
 			}
 			provider.Spec.PodTemplateEnv = []corev1.EnvVar{
 				{Name: "SHARED", Value: "per-provider"},
-				{Name: ProviderNameEnvVar, Value: "overridden"},
 				{Name: "CUSTOM", Value: "x"},
 			}
 
 			deployment, err := deploymentManager.Construct(provider)
 			Expect(err).ToNot(HaveOccurred())
 
-			// GLOBAL untouched; SHARED overridden in place; derived appended (with
-			// PROVIDERNAME overridden in place by the per-provider value); CUSTOM appended.
+			providerNamespacedName, err := common.NamespacedName{
+				Namespace: provider.Namespace,
+				Name:      provider.Name,
+			}.String()
+			Expect(err).ToNot(HaveOccurred())
+
+			// GLOBAL untouched; SHARED overridden in place; derived appended
+			// untouched; CUSTOM appended.
 			Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(Equal([]corev1.EnvVar{
 				{Name: "GLOBAL", Value: "base"},
 				{Name: "SHARED", Value: "per-provider"},
 				{Name: "PARAMETERS_KEY1", Value: "value1"},
 				{Name: "PIPELINEROOTSTORAGE", Value: provider.Spec.PipelineRootStorage},
-				{Name: ProviderNameEnvVar, Value: "overridden"},
+				{Name: ProviderNameEnvVar, Value: providerNamespacedName},
 				{Name: "CUSTOM", Value: "x"},
 			}))
 		})
