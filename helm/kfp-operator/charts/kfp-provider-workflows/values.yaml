@@ -10,9 +10,15 @@ namespace: ""
 # chart so provider-namespace templates stay consistent with the operator.
 manager:
   argo:
+    # Gates the workflow-executor Role and its RoleBinding. Set to false to
+    # manage these namespace-scoped resources externally.
+    rbac:
+      create: true
     serviceAccount:
       # ServiceAccount workflows run as. Created in the provider namespace.
       name: "kfp-operator-argo"
+      # Whether to create the ServiceAccount. Set to false to reuse an
+      # existing one.
       create: true
       metadata: {}
     containerDefaults: {}
