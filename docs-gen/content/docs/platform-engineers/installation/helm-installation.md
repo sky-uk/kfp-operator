@@ -313,6 +313,7 @@ The most relevant values are:
 | `namespace` | Namespace the `WorkflowTemplate`s, RBAC and `Provider` are created in. Must match the `Provider` namespace. Defaults to the release namespace when empty. | `""` |
 | `manager.argo.serviceAccount.name` | `ServiceAccount` the workflows run as. Created in the provider namespace. | `kfp-operator-argo` |
 | `manager.argo.serviceAccount.create` | Whether to create the `ServiceAccount`. Set to `false` to reuse an existing one. | `true` |
+| `manager.argo.rbac.create` | Whether to create the namespace-scoped `workflow-executor` `Role` and its `RoleBinding`. Set to `false` to manage these resources externally. | `true` |
 | `provider.create` | Whether the chart also renders the `Provider` resource. | `true` |
 | `provider.name` | `Provider` resource name. Defaults to the release name when empty. | `""` |
 | `provider.serviceImage` | Provider service image. Required when `provider.create` is `true`. | `""` |

@@ -5,6 +5,8 @@ namespace: argo
 
 manager:
   argo:
+    rbac:
+      create: false
     serviceAccount:
       name: default
       create: false
