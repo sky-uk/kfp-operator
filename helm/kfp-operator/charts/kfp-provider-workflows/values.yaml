@@ -39,9 +39,19 @@ provider:
   create: true
   # Provider resource name. Defaults to the release name when left empty.
   name: ""
+  # The provider service ServiceAccount, created in the provider namespace.
+  # The cluster-scoped bindings this account needs (run/runconfiguration
+  # viewer and, for KFP, eventing) are managed externally by the platform.
+  serviceAccount:
+    # ServiceAccount name. Defaults to kfp-provider-<provider-name> when
+    # left empty.
+    name: ""
+    # Whether to create the ServiceAccount. Set to false to reuse an
+    # existing one.
+    create: true
+    metadata: {}
   # Provider spec fields (see the Provider CRD reference).
   serviceImage: ""
-  serviceAccount: ""
   pipelineRootStorage: ""
   # Free-form provider parameters (map of name -> value).
   parameters: {}
