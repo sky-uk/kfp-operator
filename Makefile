@@ -70,7 +70,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
 	kubectl apply -n argo -f config/testing/provider-deployment.yaml
 	kubectl wait -n argo deployment/provider-test --for condition=available --timeout=5m
 	kubectl apply -n argo -f config/testing/provider-service.yaml
-	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
+	$(HELM) template kfp-operator-integration-tests helm/kfp-operator/charts/kfp-provider-workflows --values config/testing/integration-test-workflows-values.yaml | \
  		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
  		kubectl apply -f -
 	go test ./controllers/pipelines/internal/workflowfactory/... -tags=integration --timeout 20m
