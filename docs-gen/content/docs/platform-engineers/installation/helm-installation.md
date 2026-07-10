@@ -282,6 +282,45 @@ Please refer to your chosen provider instructions before proceeding. Supported p
 
 To install your chosen provider, create a [Provider resource](../../reference/resources/provider) in a namespace that the operator can access (see the [rbac setup below]({{< ref "#provider-rbac" >}}) for reference). Once it is applied the Provider controller will reconcile and create the Provider Deployment and Provider Service within the same namespace that the Provider resource was applied.
 
+### Provider workflows {#provider-workflows}
+
+The operator runs resource-management Argo `Workflow`s in the **same namespace as the `Provider`** they belong to, so that each provider is isolated from the others. Argo cannot reference a `WorkflowTemplate` across namespaces, therefore every provider namespace must contain its own copy of the `WorkflowTemplate`s and the execution RBAC (`ServiceAccount`, `Role` and `RoleBinding`) the workflows run with.
+
+These per-namespace resources are provisioned by the `kfp-provider-workflows` chart, which is installed **once per provider namespace**. Install one release for each namespace in which you create a `Provider`:
+
+```sh
+helm install <release-name> ./helm/kfp-operator/charts/kfp-provider-workflows \
+  --namespace <provider-namespace> \
+  --set namespace=<provider-namespace>
+```
+
+By default the chart also creates the `Provider` resource. Provide its required spec fields, or set `provider.create=false` to manage the `Provider` yourself:
+
+```sh
+helm install <release-name> ./helm/kfp-operator/charts/kfp-provider-workflows \
+  --namespace <provider-namespace> \
+  --set namespace=<provider-namespace> \
+  --set provider.name=<provider-name> \
+  --set provider.serviceImage=<provider-service-image> \
+  --set provider.serviceAccount=<provider-service-account> \
+  --set provider.pipelineRootStorage=<pipeline-root-storage>
+```
+
+The most relevant values are:
+
+| Value | Description | Default |
+|-------|-------------|---------|
+| `namespace` | Namespace the `WorkflowTemplate`s, RBAC and `Provider` are created in. Must match the `Provider` namespace. Defaults to the release namespace when empty. | `""` |
+| `manager.argo.serviceAccount.name` | `ServiceAccount` the workflows run as. Created in the provider namespace. | `kfp-operator-argo` |
+| `manager.argo.serviceAccount.create` | Whether to create the `ServiceAccount`. Set to `false` to reuse an existing one. | `true` |
+| `provider.create` | Whether the chart also renders the `Provider` resource. | `true` |
+| `provider.name` | `Provider` resource name. Defaults to the release name when empty. | `""` |
+| `provider.serviceImage` | Provider service image. Required when `provider.create` is `true`. | `""` |
+| `provider.serviceAccount` | Provider service account. Required when `provider.create` is `true`. | `""` |
+| `provider.pipelineRootStorage` | Pipeline root storage location. Required when `provider.create` is `true`. | `""` |
+
+The Argo execution values (`manager.argo.ttlStrategy`, `manager.argo.stepTimeoutSeconds`, `manager.argo.securityContext`, `manager.argo.containerDefaults` and `manager.argo.metadata`) mirror those of the operator chart and default to the same values. Override them per release if a provider namespace needs different workflow behaviour.
+
 ## Role-based access control (RBAC) for providers {#provider-rbac}
 When using a provider, you should create the necessary `ServiceAccount`, `RoleBinding` and `ClusterRoleBinding` resources required for the providers being used.
 

@@ -1,0 +1,17 @@
+# Values for the kfp-provider-workflows subchart when running integration tests.
+# Renders the WorkflowTemplates into the argo namespace, reusing the argo
+# ServiceAccount that already exists in the test cluster.
+namespace: argo
+
+manager:
+  argo:
+    serviceAccount:
+      name: default
+      create: false
+    containerDefaults:
+      imagePullPolicy: Never
+
+# The integration test suite creates its own Provider resource, so the
+# subchart must not render one.
+provider:
+  create: false
