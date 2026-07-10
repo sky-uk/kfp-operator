@@ -9,7 +9,7 @@ metadata:
 {{- end }}
 spec:
   serviceImage: {{ required "provider.serviceImage is required when provider.create is true" .Values.provider.serviceImage | quote }}
-  serviceAccount: {{ required "provider.serviceAccount is required when provider.create is true" .Values.provider.serviceAccount | quote }}
+  serviceAccount: {{ include "kfp-provider-workflows.providerServiceAccountName" . | quote }}
   pipelineRootStorage: {{ required "provider.pipelineRootStorage is required when provider.create is true" .Values.provider.pipelineRootStorage | quote }}
   {{- with .Values.provider.parameters }}
   parameters:

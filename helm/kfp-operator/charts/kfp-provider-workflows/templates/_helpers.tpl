@@ -14,6 +14,14 @@ Name of the Provider resource. Defaults to the release name.
 {{- end -}}
 
 {{/*
+Name of the provider service ServiceAccount. Defaults to
+kfp-provider-<provider-name>.
+*/}}
+{{- define "kfp-provider-workflows.providerServiceAccountName" -}}
+{{- default (printf "kfp-provider-%s" (include "kfp-provider-workflows.providerName" .)) .Values.provider.serviceAccount.name -}}
+{{- end -}}
+
+{{/*
 Only render object if not empty.
 */}}
 {{- define "kfp-provider-workflows.notEmptyYaml" -}}

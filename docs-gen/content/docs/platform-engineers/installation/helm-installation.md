@@ -302,7 +302,6 @@ helm install <release-name> ./helm/kfp-operator/charts/kfp-provider-workflows \
   --set namespace=<provider-namespace> \
   --set provider.name=<provider-name> \
   --set provider.serviceImage=<provider-service-image> \
-  --set provider.serviceAccount=<provider-service-account> \
   --set provider.pipelineRootStorage=<pipeline-root-storage>
 ```
 
@@ -317,7 +316,8 @@ The most relevant values are:
 | `provider.create` | Whether the chart also renders the `Provider` resource. | `true` |
 | `provider.name` | `Provider` resource name. Defaults to the release name when empty. | `""` |
 | `provider.serviceImage` | Provider service image. Required when `provider.create` is `true`. | `""` |
-| `provider.serviceAccount` | Provider service account. Required when `provider.create` is `true`. | `""` |
+| `provider.serviceAccount.name` | Provider service `ServiceAccount`, created in the provider namespace and referenced by the `Provider` spec. Defaults to `kfp-provider-<provider-name>` when empty. Its cluster-scoped viewer/eventing bindings are managed externally. | `""` |
+| `provider.serviceAccount.create` | Whether to create the provider service `ServiceAccount`. Set to `false` to reuse an existing one. | `true` |
 | `provider.pipelineRootStorage` | Pipeline root storage location. Required when `provider.create` is `true`. | `""` |
 
 The Argo execution values (`manager.argo.ttlStrategy`, `manager.argo.stepTimeoutSeconds`, `manager.argo.securityContext`, `manager.argo.containerDefaults` and `manager.argo.metadata`) mirror those of the operator chart and default to the same values. Override them per release if a provider namespace needs different workflow behaviour.
