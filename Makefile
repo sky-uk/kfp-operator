@@ -155,8 +155,8 @@ helm-package-operator: helm-cmd helm-test-operator ## Package and test operator 
 
 helm-package: helm-package-operator ## Package operator helm-chart
 
-helm-install-operator: helm-package-operator values.yaml ## Install operator
-	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+helm-install-operator: helm-package-operator values.yaml ## Install operator (upgrades if already installed)
+	$(HELM) upgrade --install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
 helm-uninstall-operator: ## Uninstall operator
 	$(HELM) uninstall kfp-operator
