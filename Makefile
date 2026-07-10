@@ -164,6 +164,23 @@ helm-uninstall-operator: ## Uninstall operator
 helm-upgrade-operator: helm-package-operator values.yaml ## Upgrade operator with helm chart
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
+# Per-provider workflows chart. Installed as an independent release, one per
+# provider namespace. Override on the command line, e.g.:
+#   make helm-install-workflows WORKFLOWS_RELEASE=kfp WORKFLOWS_NAMESPACE=kfp WORKFLOWS_VALUES=my-values.yaml
+WORKFLOWS_RELEASE ?= kfp-provider-workflows
+WORKFLOWS_NAMESPACE ?= $(WORKFLOWS_RELEASE)
+WORKFLOWS_VALUES ?=
+helm-package-workflows: helm-cmd ## Package the per-provider workflows helm-chart
+	$(HELM) package helm/kfp-operator/charts/kfp-provider-workflows --version $(VERSION) --app-version $(VERSION) -d dist
+
+helm-install-workflows: helm-package-workflows ## Install the workflows chart into a provider namespace
+	$(HELM) upgrade --install $(WORKFLOWS_RELEASE) dist/kfp-provider-workflows-$(VERSION).tgz \
+		--namespace $(WORKFLOWS_NAMESPACE) --create-namespace \
+		$(if $(WORKFLOWS_VALUES),-f $(WORKFLOWS_VALUES),)
+
+helm-uninstall-workflows: ## Uninstall the workflows chart from a provider namespace
+	$(HELM) uninstall $(WORKFLOWS_RELEASE) --namespace $(WORKFLOWS_NAMESPACE)
+
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
 helm-publish:
 	$(error OSS_HELM_REPOSITORIES or HELM_REPOSITORIES must be provided as space-separated lists of URLs)
