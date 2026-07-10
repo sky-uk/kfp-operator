@@ -7,6 +7,7 @@ package v1alpha6
 import (
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -349,6 +350,13 @@ func (in *ProviderConversionRemainder) DeepCopyInto(out *ProviderConversionRemai
 		in, out := &in.AllowedNamespaces, &out.AllowedNamespaces
 		*out = make([]string, len(*in))
 		copy(*out, *in)
+	}
+	if in.PodTemplateEnv != nil {
+		in, out := &in.PodTemplateEnv, &out.PodTemplateEnv
+		*out = make([]corev1.EnvVar, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 }
 

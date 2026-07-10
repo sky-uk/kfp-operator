@@ -184,6 +184,7 @@ var _ = Context("Provider Deployment Manager", func() {
 				"key1": {Raw: []byte(`"value1"`)},
 				"key2": {Raw: []byte(`1`)},
 			}
+			provider.Spec.PodTemplateEnv = nil
 
 			deployment, err := deploymentManager.Construct(provider)
 			Expect(err).ToNot(HaveOccurred())
@@ -217,6 +218,89 @@ var _ = Context("Provider Deployment Manager", func() {
 			}))
 			Expect(deployment.GenerateName).To(Equal(providerSuffixedName + "-"))
 			Expect(deployment.Namespace).To(Equal(provider.Namespace))
+		})
+
+		Specify("Should merge PodTemplateEnv with per-provider precedence over global and derived env", func() {
+			deploymentManager.config.DefaultProviderValues.PodTemplateSpec.Spec.Containers[0].Env = []corev1.EnvVar{
+				{Name: "GLOBAL", Value: "base"},
+				{Name: "SHARED", Value: "global"},
+			}
+
+			provider.Spec.Parameters = map[string]*apiextensionsv1.JSON{
+				"key1": {Raw: []byte(`"value1"`)},
+			}
+			provider.Spec.PodTemplateEnv = []corev1.EnvVar{
+				{Name: "SHARED", Value: "per-provider"},
+				{Name: ProviderNameEnvVar, Value: "overridden"},
+				{Name: "CUSTOM", Value: "x"},
+			}
+
+			deployment, err := deploymentManager.Construct(provider)
+			Expect(err).ToNot(HaveOccurred())
+
+			// GLOBAL untouched; SHARED overridden in place; derived appended (with
+			// PROVIDERNAME overridden in place by the per-provider value); CUSTOM appended.
+			Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(Equal([]corev1.EnvVar{
+				{Name: "GLOBAL", Value: "base"},
+				{Name: "SHARED", Value: "per-provider"},
+				{Name: "PARAMETERS_KEY1", Value: "value1"},
+				{Name: "PIPELINEROOTSTORAGE", Value: provider.Spec.PipelineRootStorage},
+				{Name: ProviderNameEnvVar, Value: "overridden"},
+				{Name: "CUSTOM", Value: "x"},
+			}))
+		})
+
+		Specify("Should replace whole EnvVar so PodTemplateEnv valueFrom overrides a base value", func() {
+			deploymentManager.config.DefaultProviderValues.PodTemplateSpec.Spec.Containers[0].Env = []corev1.EnvVar{
+				{Name: "SECRET_VALUE", Value: "plain-base"},
+			}
+
+			provider.Spec.Parameters = nil
+			provider.Spec.PodTemplateEnv = []corev1.EnvVar{
+				{
+					Name: "SECRET_VALUE",
+					ValueFrom: &corev1.EnvVarSource{
+						SecretKeyRef: &corev1.SecretKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "my-secret"},
+							Key:                  "token",
+						},
+					},
+				},
+				{
+					Name: "CONFIG_VALUE",
+					ValueFrom: &corev1.EnvVarSource{
+						ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+							LocalObjectReference: corev1.LocalObjectReference{Name: "my-config"},
+							Key:                  "setting",
+						},
+					},
+				},
+			}
+
+			deployment, err := deploymentManager.Construct(provider)
+			Expect(err).ToNot(HaveOccurred())
+
+			envByName := map[string]corev1.EnvVar{}
+			for _, e := range deployment.Spec.Template.Spec.Containers[0].Env {
+				envByName[e.Name] = e
+			}
+
+			// SECRET_VALUE replaced wholesale: valueFrom set, stale Value cleared
+			// (guards against the invalid both-value-and-valueFrom state).
+			secretEnv, found := envByName["SECRET_VALUE"]
+			Expect(found).To(BeTrue())
+			Expect(secretEnv.Value).To(BeEmpty())
+			Expect(secretEnv.ValueFrom).ToNot(BeNil())
+			Expect(secretEnv.ValueFrom.SecretKeyRef.Name).To(Equal("my-secret"))
+			Expect(secretEnv.ValueFrom.SecretKeyRef.Key).To(Equal("token"))
+
+			// CONFIG_VALUE appended as a new valueFrom entry.
+			configEnv, found := envByName["CONFIG_VALUE"]
+			Expect(found).To(BeTrue())
+			Expect(configEnv.Value).To(BeEmpty())
+			Expect(configEnv.ValueFrom).ToNot(BeNil())
+			Expect(configEnv.ValueFrom.ConfigMapKeyRef.Name).To(Equal("my-config"))
+			Expect(configEnv.ValueFrom.ConfigMapKeyRef.Key).To(Equal("setting"))
 		})
 
 		Specify("Should return an error if the no container with matching ServiceContainerName exists", func() {

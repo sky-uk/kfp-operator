@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,6 +43,11 @@ type ProviderSpec struct {
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Frameworks          []Framework                      `json:"frameworks,omitempty" yaml:"frameworks,omitempty"`
 	AllowedNamespaces   []string                         `json:"allowedNamespaces,omitempty" yaml:"allowedNamespaces,omitempty"`
+	// +kubebuilder:validation:Optional
+	// Environment variables applied to the generated provider-service container,
+	// merged over the operator's defaultProviderValues env; per-provider values
+	// take precedence on name collision.
+	PodTemplateEnv []corev1.EnvVar `json:"podTemplateEnv,omitempty" yaml:"podTemplateEnv,omitempty"`
 }
 
 type Framework struct {
