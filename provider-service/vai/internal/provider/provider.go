@@ -60,12 +60,29 @@ type jobEnricher interface {
 	) (*aiplatformpb.PipelineJob, error)
 }
 
+type jobBuilder interface {
+	MkRunPipelineJob(
+		rd base.RunDefinition,
+		networkAttachment string,
+	) (*aiplatformpb.PipelineJob, error)
+	MkRunSchedulePipelineJob(
+		rsd base.RunScheduleDefinition,
+		networkAttachment string,
+	) (*aiplatformpb.PipelineJob, error)
+	MkSchedule(
+		rsd base.RunScheduleDefinition,
+		pipelineJob *aiplatformpb.PipelineJob,
+		parent string,
+		maxConcurrentRunCount int64,
+	) (*aiplatformpb.Schedule, error)
+}
+
 type VAIProvider struct {
 	config         *config.VAIProviderConfig
 	fileHandler    fileHandler
 	pipelineClient pipelineJobCreator
 	scheduleClient scheduleClient
-	jobBuilder     JobBuilder
+	jobBuilder     jobBuilder
 	jobEnricher    jobEnricher
 }
 

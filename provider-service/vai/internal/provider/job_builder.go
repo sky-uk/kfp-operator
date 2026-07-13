@@ -13,23 +13,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type JobBuilder interface {
-	MkRunPipelineJob(
-		rd base.RunDefinition,
-		networkAttachment string,
-	) (*aiplatformpb.PipelineJob, error)
-	MkRunSchedulePipelineJob(
-		rsd base.RunScheduleDefinition,
-		networkAttachment string,
-	) (*aiplatformpb.PipelineJob, error)
-	MkSchedule(
-		rsd base.RunScheduleDefinition,
-		pipelineJob *aiplatformpb.PipelineJob,
-		parent string,
-		maxConcurrentRunCount int64,
-	) (*aiplatformpb.Schedule, error)
-}
-
 type DefaultJobBuilder struct {
 	serviceAccount      string
 	pipelineBucket      string
