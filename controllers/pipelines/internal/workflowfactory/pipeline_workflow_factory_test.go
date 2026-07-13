@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-var _ = Describe("PipelineParamsCreator", func() {
+var _ = Describe("pipelineWorkflowFactory", func() {
 	expectedEnv := []apis.NamedValue{
 		{Name: "a", Value: "b"},
 	}
@@ -32,7 +32,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 	expectedPatches := []pipelineshub.Patch{
 		{
 			Type:    "json",
-			Payload: `{"op": "add", "path": "/spec/parameters", "value": {"a": "b"}}`,
+			Payload: `[{"op": "replace", "path": "/image", "value": "patchedImage"}]`,
 		},
 	}
 
@@ -68,85 +68,83 @@ var _ = Describe("PipelineParamsCreator", func() {
 	pipelineIncorrectFramework.Spec.Framework.Name = "invalidFramework"
 
 	Context("pipelineDefinition", func() {
-		creator := PipelineParamsCreator{}
+		compilerConfig := pipelineDefinition(pipeline)
 
-		When("given a Pipeline resource with invalid framework", func() {
-			_, _, err := creator.pipelineDefinition(provider, pipelineIncorrectFramework)
-			It("returns an error", func() {
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("error in workflow: [invalidFramework] framework not support by provider"))
-			})
+		It("creates a valid PipelineDefinition", func() {
+			Expect(compilerConfig.Name).To(Equal(common.NamespacedName{
+				Name:      "pipelineName",
+				Namespace: "pipelineNamespace",
+			}))
+			Expect(compilerConfig.Image).To(Equal("pipelineImage"))
+			Expect(compilerConfig.Framework).To(Equal(expectedFramework))
+			Expect(compilerConfig.Env).To(Equal(expectedEnv))
 		})
 
-		When("given a Pipeline resource with valid framework", func() {
-			patches, compilerConfig, _ := creator.pipelineDefinition(provider, pipeline)
-			It("creates a valid PipelineDefinition", func() {
-				Expect(compilerConfig.Name).To(Equal(common.NamespacedName{
-					Name:      "pipelineName",
-					Namespace: "pipelineNamespace",
-				}))
-				Expect(compilerConfig.Image).To(Equal("pipelineImage"))
-				Expect(compilerConfig.Framework).To(Equal(expectedFramework))
-				Expect(compilerConfig.Env).To(Equal(expectedEnv))
-				Expect(patches).To(Equal(expectedPatches))
-			})
+		It("creates valid JSON", func() {
+			configYaml, err := json.Marshal(compilerConfig)
+			Expect(err).NotTo(HaveOccurred())
 
-			It("creates valid JSON", func() {
-				configYaml, err := json.Marshal(compilerConfig)
-				Expect(err).NotTo(HaveOccurred())
+			var result any
+			err = json.Unmarshal(configYaml, &result)
+			Expect(err).NotTo(HaveOccurred())
+			resultMap, ok := result.(map[string]any)
+			Expect(ok).To(BeTrue())
 
-				var result interface{}
-				err = json.Unmarshal(configYaml, &result)
-				Expect(err).NotTo(HaveOccurred())
-				resultMap, ok := result.(map[string]interface{})
-				Expect(ok).To(BeTrue())
+			Expect(resultMap["name"]).To(Equal("pipelineNamespace/pipelineName"))
+			Expect(resultMap["image"]).To(Equal("pipelineImage"))
 
-				Expect(resultMap["name"]).To(Equal("pipelineNamespace/pipelineName"))
-				Expect(resultMap["image"]).To(Equal("pipelineImage"))
+			Expect(resultMap["framework"]).NotTo(BeNil())
 
-				Expect(resultMap["framework"]).NotTo(BeNil())
+			framework, ok := resultMap["framework"].(map[string]any)
+			Expect(ok).To(BeTrue())
 
-				framework, ok := resultMap["framework"].(map[string]interface{})
-				Expect(ok).To(BeTrue())
+			Expect(framework["name"]).To(Equal(expectedFramework.Name))
 
-				Expect(framework["name"]).To(Equal(expectedFramework.Name))
+			parameters := framework["parameters"].(map[string]any)
+			Expect(parameters["a"]).To(Equal("b"))
+			Expect(parameters["c"]).To(Equal("d"))
 
-				parameters := framework["parameters"].(map[string]interface{})
-				Expect(parameters["a"]).To(Equal("b"))
-				Expect(parameters["c"]).To(Equal("d"))
-
-				env := resultMap["env"].([]interface{})
-				Expect(env[0]).To(Equal(map[string]interface{}{
-					"name":  "a",
-					"value": "b",
-				}))
-			})
+			env := resultMap["env"].([]any)
+			Expect(env[0]).To(Equal(map[string]any{
+				"name":  "a",
+				"value": "b",
+			}))
 		})
 	})
 
-	Context("additionalParams", func() {
-		When("the Pipeline resource specifies a framework", func() {
-			It("returns additional pipeline framework image parameter for the framework requested", func() {
+	Context("creationParams", func() {
+		factory := pipelineWorkflowFactory{}
+
+		When("the Pipeline resource specifies a valid framework", func() {
+			It("returns the definition and framework image parameters", func() {
 				expectedImage := "registry/pipelineFramework"
-				creator := PipelineParamsCreator{}
-				params, err := creator.additionalParams(provider, pipeline)
+				params, err := factory.creationParams(provider, pipeline)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(params).To(Equal([]argo.Parameter{
-					{
-						Name:  workflowconstants.PipelineFrameworkImageParameterName,
-						Value: argo.AnyStringPtr(expectedImage),
-					},
+
+				Expect(params).To(HaveLen(2))
+				Expect(params[0].Name).To(Equal(workflowconstants.ResourceDefinitionParameterName))
+				Expect(params[1]).To(Equal(argo.Parameter{
+					Name:  workflowconstants.PipelineFrameworkImageParameterName,
+					Value: argo.AnyStringPtr(expectedImage),
 				}))
 			})
 
-			It("returns an error if the requested framework is not found", func() {
-				creator := PipelineParamsCreator{}
-				_, err := creator.additionalParams(provider, pipelineIncorrectFramework)
+			It("applies the framework patches to the definition", func() {
+				params, err := factory.creationParams(provider, pipeline)
+				Expect(err).NotTo(HaveOccurred())
 
+				var definition map[string]interface{}
+				Expect(json.Unmarshal([]byte(params[0].Value.String()), &definition)).To(Succeed())
+				Expect(definition["image"]).To(Equal("patchedImage"))
+			})
+		})
+
+		When("the requested framework is not found", func() {
+			It("returns an error", func() {
+				_, err := factory.creationParams(provider, pipelineIncorrectFramework)
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(Equal("error in workflow: [invalidFramework] framework not support by provider"))
 			})
 		})
-
 	})
 })
