@@ -47,6 +47,12 @@ type scheduleClient interface {
 	) (*aiplatformpb.Schedule, error)
 }
 
+type fileHandler interface {
+	Write(ctx context.Context, content []byte, bucket string, filePath string) error
+	Delete(ctx context.Context, id string, bucket string) error
+	Read(ctx context.Context, bucket string, filePath string) (map[string]any, error)
+}
+
 type jobEnricher interface {
 	Enrich(
 		job *aiplatformpb.PipelineJob,
@@ -56,7 +62,7 @@ type jobEnricher interface {
 
 type VAIProvider struct {
 	config         *config.VAIProviderConfig
-	fileHandler    FileHandler
+	fileHandler    fileHandler
 	pipelineClient pipelineJobCreator
 	scheduleClient scheduleClient
 	jobBuilder     JobBuilder
