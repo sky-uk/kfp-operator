@@ -2,6 +2,7 @@ package workflowfactory
 
 import (
 	"fmt"
+	"slices"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/sky-uk/kfp-operator/internal/config"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // workflowAssembler builds the resource-agnostic parts of an argo Workflow:
@@ -17,6 +19,22 @@ import (
 // service URL, workflow metadata and template names.
 type workflowAssembler struct {
 	config config.ConfigSpec
+}
+
+func checkResourceNamespaceAllowed(
+	resourceNamespacedName types.NamespacedName,
+	provider pipelineshub.Provider,
+) error {
+	if len(provider.Spec.AllowedNamespaces) > 0 &&
+		!slices.Contains(provider.Spec.AllowedNamespaces, resourceNamespacedName.Namespace) {
+		return fmt.Errorf(
+			"resource %s in namespace %s is not allowed by provider %s",
+			resourceNamespacedName.Name,
+			resourceNamespacedName.Namespace,
+			provider.Name,
+		)
+	}
+	return nil
 }
 
 func (a workflowAssembler) commonWorkflowMeta(owner pipelineshub.Resource) *metav1.ObjectMeta {
