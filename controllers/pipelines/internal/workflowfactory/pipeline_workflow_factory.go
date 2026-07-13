@@ -1,10 +1,12 @@
 package workflowfactory
 
 import (
+	"encoding/json"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/samber/lo"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/jsonutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
@@ -60,13 +62,18 @@ func (f pipelineWorkflowFactory) creationParams(
 		}
 	}
 
-	definitionJson, err := marshalDefinition(pipelineDefinition(pipeline), framework.Patches)
+	definitionJson, err := json.Marshal(pipelineDefinition(pipeline))
+	if err != nil {
+		return nil, err
+	}
+
+	patchedJson, err := jsonutil.PatchJson(framework.Patches, definitionJson)
 	if err != nil {
 		return nil, err
 	}
 
 	return []argo.Parameter{
-		definitionParam(definitionJson),
+		definitionParam(patchedJson),
 		{
 			Name:  workflowconstants.PipelineFrameworkImageParameterName,
 			Value: argo.AnyStringPtr(framework.Image),

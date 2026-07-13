@@ -1,6 +1,8 @@
 package workflowfactory
 
 import (
+	"encoding/json"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -21,12 +23,12 @@ func (f simpleWorkflowFactory[R, D]) definitionParam(resource R) (argo.Parameter
 		return argo.Parameter{}, err
 	}
 
-	definitionJson, err := marshalDefinition(definition, nil)
+	definitionJson, err := json.Marshal(definition)
 	if err != nil {
 		return argo.Parameter{}, err
 	}
 
-	return definitionParam(definitionJson), nil
+	return definitionParam(string(definitionJson)), nil
 }
 
 func (f simpleWorkflowFactory[R, D]) ConstructCreationWorkflow(
