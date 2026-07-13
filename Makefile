@@ -153,7 +153,7 @@ kustomize: ## Download kustomize locally if necessary.
 helm-package-operator: helm-cmd helm-test-operator ## Package and test operator helm-chart
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-package: helm-package-operator ## Package operator helm-chart
+helm-package: helm-package-operator helm-package-workflows ## Package operator and per-provider workflows helm-charts
 
 helm-install-operator: helm-package-operator values.yaml ## Install operator (upgrades if already installed)
 	$(HELM) upgrade --install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
@@ -193,13 +193,15 @@ helm-publish:: helm-package ## Publish Helm chart to repositories
 	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES),$(call helm-upload,$(url)))
 
 define helm-upload
-@echo "Publishing Helm chart to $(1)"
+@echo "Publishing Helm charts to $(1)"
 @if echo "$(1)" | grep -q "^oci://"; then \
 	echo "Using Helm OCI push"; \
 	helm push dist/kfp-operator-$(VERSION).tgz $(1); \
+	helm push dist/kfp-provider-workflows-$(VERSION).tgz $(1); \
 else \
 	echo "Using curl upload"; \
 	curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz "$(1)"; \
+	curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-provider-workflows-$(VERSION).tgz "$(1)"; \
 fi
 $(NEWLINE)
 endef
