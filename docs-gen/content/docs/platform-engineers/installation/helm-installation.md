@@ -322,6 +322,8 @@ The most relevant values are:
 
 The Argo execution values (`manager.argo.ttlStrategy`, `manager.argo.stepTimeoutSeconds`, `manager.argo.securityContext`, `manager.argo.containerDefaults` and `manager.argo.metadata`) mirror those of the operator chart and default to the same values. Override them per release if a provider namespace needs different workflow behaviour.
 
+**Note:** because workflows now run in the provider namespace, the artifact-repository credentials `Secret` that your Argo `workflow-controller` references (the `accessKeySecret`/`secretKeySecret` in its `artifactRepository` configuration — for example the MinIO/S3 secret) **must exist in each provider namespace**. Argo resolves that `Secret` in the namespace the workflow pods run in, so a copy that only lives in the Argo or operator namespace is not sufficient. The `kfp-provider-workflows` chart does **not** manage this `Secret` — it holds credentials owned by the platform team — so you must create it in every provider namespace yourself.
+
 #### What the chart provisions {#provider-workflows-resources}
 
 The `kfp-provider-workflows` chart provisions **only namespace-scoped resources** — everything a provider needs to operate *inside its own namespace*. Cluster-scoped resources are deliberately left to the platform team (see [Cluster-scoped RBAC](#provider-rbac) below). A single release renders:
@@ -444,6 +446,7 @@ These are the resources the chart would otherwise create. All of them live in th
 | `workflow-executor` | `RoleBinding` | Binds the `workflow-executor` `Role` to the Argo workflow `ServiceAccount`. |
 | Provider service `ServiceAccount` | `ServiceAccount` | The account the provider service runs as; referenced by the `Provider` spec. |
 | `Provider` | `Provider` | The provider custom resource. |
+| Artifact-repository credentials | `Secret` | The `accessKeySecret`/`secretKeySecret` referenced by the Argo `workflow-controller`'s `artifactRepository` configuration (for example the MinIO/S3 secret). Argo resolves it in the namespace the workflow pods run in, so a copy must exist in each provider namespace. Not managed by the chart in the Helm path either. |
 
 Example of the namespace-scoped RBAC (replace `argo-workflow-sa`, `kfp-provider-example` and `kfp-namespace` with your values):
 

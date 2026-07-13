@@ -234,7 +234,7 @@
  &lt;/tr&gt;
  &lt;tr&gt;
  &lt;td&gt;&lt;code&gt;workflowNamespace&lt;/code&gt;&lt;/td&gt;
- &lt;td&gt;Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td&gt;
+ &lt;td&gt;&lt;strong&gt;Deprecated.&lt;/strong&gt; Argo workflows now run in the namespace of the &lt;a href="providers/overview"&gt;Provider&lt;/a&gt; resource they belong to, so this no longer controls where resource-management workflows run. It is still used as the namespace for the operator-scoped run-completion &lt;code&gt;EventBus&lt;/code&gt;. Defaults to the operator&amp;rsquo;s namespace. See &lt;a href="../installation/helm-installation/#provider-workflows"&gt;Provider workflows&lt;/a&gt;.&lt;/td&gt;
  &lt;td&gt;&lt;code&gt;kfp-operator-workflows&lt;/code&gt;&lt;/td&gt;
  &lt;/tr&gt;
  &lt;tr&gt;
