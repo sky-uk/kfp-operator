@@ -13,12 +13,6 @@ import (
 	"google.golang.org/api/option"
 )
 
-type FileHandler interface {
-	Write(ctx context.Context, content []byte, bucket string, filePath string) error
-	Delete(ctx context.Context, id string, bucket string) error
-	Read(ctx context.Context, bucket string, filePath string) (map[string]any, error)
-}
-
 type GcsFileHandler struct {
 	gcsClient storage.Client
 }

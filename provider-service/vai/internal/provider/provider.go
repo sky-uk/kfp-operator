@@ -47,6 +47,12 @@ type scheduleClient interface {
 	) (*aiplatformpb.Schedule, error)
 }
 
+type fileHandler interface {
+	Write(ctx context.Context, content []byte, bucket string, filePath string) error
+	Delete(ctx context.Context, id string, bucket string) error
+	Read(ctx context.Context, bucket string, filePath string) (map[string]any, error)
+}
+
 type jobEnricher interface {
 	Enrich(
 		job *aiplatformpb.PipelineJob,
@@ -54,12 +60,29 @@ type jobEnricher interface {
 	) (*aiplatformpb.PipelineJob, error)
 }
 
+type jobBuilder interface {
+	MkRunPipelineJob(
+		rd base.RunDefinition,
+		networkAttachment string,
+	) (*aiplatformpb.PipelineJob, error)
+	MkRunSchedulePipelineJob(
+		rsd base.RunScheduleDefinition,
+		networkAttachment string,
+	) (*aiplatformpb.PipelineJob, error)
+	MkSchedule(
+		rsd base.RunScheduleDefinition,
+		pipelineJob *aiplatformpb.PipelineJob,
+		parent string,
+		maxConcurrentRunCount int64,
+	) (*aiplatformpb.Schedule, error)
+}
+
 type VAIProvider struct {
 	config         *config.VAIProviderConfig
-	fileHandler    FileHandler
+	fileHandler    fileHandler
 	pipelineClient pipelineJobCreator
 	scheduleClient scheduleClient
-	jobBuilder     JobBuilder
+	jobBuilder     jobBuilder
 	jobEnricher    jobEnricher
 }
 
