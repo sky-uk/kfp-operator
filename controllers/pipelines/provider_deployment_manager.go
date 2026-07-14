@@ -168,11 +168,36 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 		if c.Name == serviceContainerName {
 			c.Image = provider.Spec.ServiceImage
 			c.Env = append(c.Env, envVars...)
+			c.Env = mergeEnvByName(c.Env, provider.Spec.PodTemplateEnv)
 		}
 		return c
 	})
 
 	return &podTemplate, nil
+}
+
+// mergeEnvByName merges overrides into base, keyed on env var Name. Entries in
+// overrides replace base entries with the same name (preserving position) and are
+// otherwise appended, so per-provider env takes precedence on name collision.
+func mergeEnvByName(base []corev1.EnvVar, overrides []corev1.EnvVar) []corev1.EnvVar {
+	merged := make([]corev1.EnvVar, len(base))
+	copy(merged, base)
+
+	indexByName := make(map[string]int, len(merged))
+	for i, e := range merged {
+		indexByName[e.Name] = i
+	}
+
+	for _, e := range overrides {
+		if i, ok := indexByName[e.Name]; ok {
+			merged[i] = e
+		} else {
+			indexByName[e.Name] = len(merged)
+			merged = append(merged, e)
+		}
+	}
+
+	return merged
 }
 
 func jsonToString(jsonValue *apiextensionsv1.JSON) string {

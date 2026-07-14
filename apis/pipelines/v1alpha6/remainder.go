@@ -2,6 +2,7 @@ package v1alpha6
 
 import (
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	corev1 "k8s.io/api/core/v1"
 )
 
 type RunConversionRemainder struct {
@@ -71,12 +72,13 @@ func (ExperimentConversionRemainder) ConversionAnnotation() string {
 }
 
 type ProviderConversionRemainder struct {
-	Image             string   `json:"image"`
-	AllowedNamespaces []string `json:"allowedNamespaces"`
+	Image             string          `json:"image"`
+	AllowedNamespaces []string        `json:"allowedNamespaces"`
+	PodTemplateEnv    []corev1.EnvVar `json:"podTemplateEnv"`
 }
 
 func (pcr ProviderConversionRemainder) Empty() bool {
-	return pcr.Image == "" && len(pcr.AllowedNamespaces) == 0
+	return pcr.Image == "" && len(pcr.AllowedNamespaces) == 0 && len(pcr.PodTemplateEnv) == 0
 }
 
 func (ProviderConversionRemainder) ConversionAnnotation() string {

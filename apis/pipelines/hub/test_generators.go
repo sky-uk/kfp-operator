@@ -10,6 +10,7 @@ import (
 
 	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -97,6 +98,10 @@ func RandomProviderSpec() ProviderSpec {
 		Frameworks:          RandomList(RandomFramework),
 		Parameters:          randomParameters,
 		AllowedNamespaces:   RandomList(RandomString),
+		PodTemplateEnv: []corev1.EnvVar{{
+			Name:  RandomString(),
+			Value: RandomString(),
+		}},
 	}
 }
 

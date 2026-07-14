@@ -26,6 +26,7 @@ as updates are not propagated or checked and will result in runtime errors on th
 | `spec.parameters`          | Parameters specific to each provider, i.e. [KFP](#kubeflow-specific-parameters) and [VAI](#vertex-ai-specific-parameters)                                                                                                                                                                                     | `gcs://kubeflow-pipelines-bucket`         |
 | `spec.frameworks[]`        | A list of [frameworks](#framework) supported by the provider.                                                                                                                                                                                                                                                 |                                           |
 | `spec.allowedNamespaces[]` | A list of namespaces that resources can reference this provider from. If a resource tries to reference this provider from a namespace not in the `allowedNamespaces` list, the resource will fail. If no allowedNamespaces list is configured, then resources can reference this provider from any namespace. | ```- default ```                          |
+| `spec.podTemplateEnv[]`    | A list of [environment variables](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#envvar-v1-core) applied to this provider's service container. These merge over the global `defaultProviderValues.podTemplateSpec` env with per-provider precedence (an entry replaces a global entry of the same name; new names are appended). | ```- name: KUBE_FEATURE_WatchListClient```<br>```  value: "false" ``` |
 
 ### Framework
 
@@ -79,6 +80,9 @@ spec:
   allowedNamespaces:
   - default
   - my-namespace
+  podTemplateEnv:
+  - name: KUBE_FEATURE_WatchListClient
+    value: "false"
 ```
 
 #### Kubeflow Pipelines Specific Parameters
