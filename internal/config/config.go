@@ -44,7 +44,6 @@ type ConfigSpec struct {
 	WorkflowTemplatePrefix string                `yaml:"workflowTemplatePrefix,omitempty"`
 	WorkflowNamespace      string                `yaml:"workflowNamespace,omitempty"`
 	Multiversion           bool                  `yaml:"multiversion,omitempty"`
-	DefaultExperiment      string                `yaml:"defaultExperiment,omitempty"`
 	RunCompletionTTL       *metav1.Duration      `yaml:"runCompletionTTL,omitempty"`
 	RunCompletionFeed      ServiceConfig         `yaml:"runCompletionFeed,omitempty"`
 }

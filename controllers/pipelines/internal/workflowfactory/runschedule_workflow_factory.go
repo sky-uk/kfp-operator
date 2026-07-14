@@ -23,11 +23,7 @@ func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
 	rs *pipelineshub.RunSchedule,
 ) ([]pipelineshub.Patch, providers.RunScheduleDefinition, error) {
 	var experimentName common.NamespacedName
-	if rs.Spec.ExperimentName == "" {
-		experimentName = common.NamespacedName{
-			Name: rsdc.Config.DefaultExperiment,
-		}
-	} else {
+	if rs.Spec.ExperimentName != "" {
 		experimentName = common.NamespacedName{
 			Name:      rs.Spec.ExperimentName,
 			Namespace: rs.Namespace,

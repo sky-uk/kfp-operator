@@ -112,7 +112,6 @@ var _ = BeforeSuite(func() {
 		DefaultProviderValues: config.DefaultProviderValues{
 			ServicePort: 8080,
 		},
-		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
 	}

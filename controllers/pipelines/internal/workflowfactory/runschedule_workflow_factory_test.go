@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
@@ -49,5 +50,47 @@ var _ = Context("runConfigurationNameForRunSchedule", func() {
 		)
 
 		Expect(runConfigurationNameForRunSchedule(&runSchedule).Empty()).To(BeTrue())
+	})
+})
+
+var _ = Describe("RunScheduleDefinitionCreator", func() {
+	provider := *pipelineshub.RandomProvider()
+
+	newRunSchedule := func() *pipelineshub.RunSchedule {
+		rs := pipelineshub.RandomRunSchedule(common.RandomNamespacedName())
+		rs.ObjectMeta = metav1.ObjectMeta{
+			Name:      "runScheduleName",
+			Namespace: "runScheduleNamespace",
+		}
+		return rs
+	}
+
+	Context("runScheduleDefinition", func() {
+		creator := RunScheduleDefinitionCreator{Config: config.ConfigSpec{}}
+
+		When("the RunSchedule specifies an experiment name", func() {
+			It("sets the run schedule namespace on the experiment name", func() {
+				rs := newRunSchedule()
+				rs.Spec.ExperimentName = "myExperiment"
+
+				_, definition, err := creator.runScheduleDefinition(provider, rs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(definition.ExperimentName).To(Equal(common.NamespacedName{
+					Name:      "myExperiment",
+					Namespace: "runScheduleNamespace",
+				}))
+			})
+		})
+
+		When("the RunSchedule does not specify an experiment name", func() {
+			It("leaves the experiment name empty, without a namespace", func() {
+				rs := newRunSchedule()
+				rs.Spec.ExperimentName = ""
+
+				_, definition, err := creator.runScheduleDefinition(provider, rs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(definition.ExperimentName).To(Equal(common.NamespacedName{}))
+			})
+		})
 	})
 })

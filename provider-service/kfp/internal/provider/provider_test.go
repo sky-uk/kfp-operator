@@ -13,6 +13,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
@@ -72,6 +73,24 @@ var _ = Describe("Provider", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result).To(Equal(runId))
+			})
+
+			When("the run omits an experiment and a default is configured", func() {
+				It("resolves the configured default experiment", func() {
+					provider.config = &config.Config{
+						Parameters: config.Parameters{DefaultExperiment: "Default"},
+					}
+					emptyExpRd := rd
+					emptyExpRd.ExperimentName = common.NamespacedName{}
+					pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					pipelineService.On("PipelineVersionIdForDisplayName", emptyExpRd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					experimentService.On("ExperimentIdByDisplayName", common.NamespacedName{Name: "Default"}).Return(experimentId, nil)
+					runService.On("CreateRun", emptyExpRd, pipelineId, pipelineVersionId, experimentId).Return(runId, nil)
+					result, err := provider.CreateRun(ctx, emptyExpRd)
+
+					Expect(err).ToNot(HaveOccurred())
+					Expect(result).To(Equal(runId))
+				})
 			})
 
 			When("pipeline has invalid namespace name", func() {
@@ -304,6 +323,24 @@ var _ = Describe("Provider", func() {
 				Expect(result).To(Equal(recurringRunId))
 			})
 
+			When("the run schedule omits an experiment and a default is configured", func() {
+				It("resolves the configured default experiment", func() {
+					provider.config = &config.Config{
+						Parameters: config.Parameters{DefaultExperiment: "Default"},
+					}
+					emptyExpRsd := rsd
+					emptyExpRsd.ExperimentName = common.NamespacedName{}
+					pipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					pipelineService.On("PipelineVersionIdForDisplayName", emptyExpRsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					experimentService.On("ExperimentIdByDisplayName", common.NamespacedName{Name: "Default"}).Return(experimentId, nil)
+					recurringRunService.On("CreateRecurringRun", emptyExpRsd, pipelineId, pipelineVersionId, experimentId).Return(recurringRunId, nil)
+					result, err := provider.CreateRunSchedule(ctx, emptyExpRsd)
+
+					Expect(err).ToNot(HaveOccurred())
+					Expect(result).To(Equal(recurringRunId))
+				})
+			})
+
 			When("pipeline has invalid namespace name", func() {
 				It("should return error", func() {
 					copyRsd := rsd
@@ -528,6 +565,30 @@ var _ = Describe("Provider", func() {
 			result, err := extractPipelineSpec(compiled, "kfpsdk")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(MatchJSON(compiled))
+		})
+	})
+
+	Context("resolveExperimentName", func() {
+		It("substitutes the configured default when experiment name is empty", func() {
+			provider.config = &config.Config{
+				Parameters: config.Parameters{DefaultExperiment: "Default"},
+			}
+			resolved := provider.resolveExperimentName(common.NamespacedName{})
+			Expect(resolved).To(Equal(common.NamespacedName{Name: "Default"}))
+		})
+
+		It("passes a specified experiment name through unchanged", func() {
+			provider.config = &config.Config{
+				Parameters: config.Parameters{DefaultExperiment: "Default"},
+			}
+			in := common.NamespacedName{Name: "exp", Namespace: "ns"}
+			Expect(provider.resolveExperimentName(in)).To(Equal(in))
+		})
+
+		It("yields an empty name when no default is configured", func() {
+			provider.config = &config.Config{}
+			Expect(provider.resolveExperimentName(common.NamespacedName{})).
+				To(Equal(common.NamespacedName{Name: ""}))
 		})
 	})
 })
