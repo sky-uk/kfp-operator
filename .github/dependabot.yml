@@ -16,7 +16,26 @@ updates:
   - dependency-type: "direct"
   commit-message:
     prefix: "chore(deps)"
-  open-pull-requests-limit: 3
+  open-pull-requests-limit: 10
+  groups:
+    go-minor-and-patch:
+      applies-to: version-updates
+      update-types:
+      - "minor"
+      - "patch"
+    go-major:
+      applies-to: version-updates
+      update-types:
+      - "major"
+    go-security-minor-and-patch:
+      applies-to: security-updates
+      update-types:
+      - "minor"
+      - "patch"
+    go-security-major:
+      applies-to: security-updates
+      update-types:
+      - "major"
 
 - package-ecosystem: "uv"
   directories:
@@ -31,7 +50,26 @@ updates:
     prefix: "chore(deps)"
   exclude-paths:
   - "docs-gen/includes/versions/**"
-  open-pull-requests-limit: 3
+  open-pull-requests-limit: 10
+  groups:
+    uv-minor-and-patch:
+      applies-to: version-updates
+      update-types:
+      - "minor"
+      - "patch"
+    uv-major:
+      applies-to: version-updates
+      update-types:
+      - "major"
+    uv-security-minor-and-patch:
+      applies-to: security-updates
+      update-types:
+      - "minor"
+      - "patch"
+    uv-security-major:
+      applies-to: security-updates
+      update-types:
+      - "major"
 
 - package-ecosystem: "pip"
   directory: "/"
