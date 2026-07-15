@@ -30,5 +30,5 @@ local_scheme = "dirty-tag"
 select = ["E", "F", "UP", "B", "SIM", "I"]
 
 [build-system]
-requires = ["setuptools>=82.0.1", "setuptools-scm"]
+requires = ["setuptools>=83.0.0", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
