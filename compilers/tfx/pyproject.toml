@@ -7,7 +7,7 @@ requires-python = ">=3.9,<3.11"
 dependencies = [
     "click>=8.1.8,<9",
     "PyYAML>=5.4.1",
-    "setuptools~=70.0",
+    "setuptools~=83.0",
 ]
 
 [project.optional-dependencies]
@@ -29,5 +29,5 @@ version_scheme = "post-release"
 local_scheme = "dirty-tag"
 
 [build-system]
-requires = ["setuptools>=61", "setuptools-scm"]
+requires = ["setuptools>=83.0.0", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
