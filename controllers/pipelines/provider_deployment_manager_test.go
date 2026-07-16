@@ -211,7 +211,7 @@ var _ = Context("Provider Deployment Manager", func() {
 					Value: provider.Spec.PipelineRootStorage,
 				},
 				{
-					Name:  ProviderNameEnvVar,
+					Name:  common.ProviderNameEnvVar,
 					Value: providerNamespacedName,
 				},
 			}))
@@ -253,7 +253,7 @@ var _ = Context("Provider Deployment Manager", func() {
 				{Name: "SHARED", Value: "per-provider"},
 				{Name: "PARAMETERS_KEY1", Value: "value1"},
 				{Name: "PIPELINEROOTSTORAGE", Value: provider.Spec.PipelineRootStorage},
-				{Name: ProviderNameEnvVar, Value: providerNamespacedName},
+				{Name: common.ProviderNameEnvVar, Value: providerNamespacedName},
 				{Name: "CUSTOM", Value: "x"},
 			}))
 		})

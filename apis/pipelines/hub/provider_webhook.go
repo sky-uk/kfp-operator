@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -15,17 +16,6 @@ func (p *Provider) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr, p).
 		Complete()
 }
-
-// Reserved env var names derived by the operator in
-// controllers/pipelines.populateServiceContainer. Keep this list in sync with
-// the ProviderNameEnvVar/PipelineRootStorageEnvVar constants and the
-// PARAMETERS_ prefix defined there; they cannot be imported here without an
-// import cycle (controllers depend on this API package).
-const (
-	reservedProviderNameEnvVar        = "PROVIDERNAME"
-	reservedPipelineRootStorageEnvVar = "PIPELINEROOTSTORAGE"
-	reservedParametersPrefix          = "PARAMETERS_"
-)
 
 func NewProviderValidatorWebhook(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr, &Provider{}).
@@ -62,9 +52,9 @@ func (v *ProviderValidator) ValidateDelete(
 
 func isReservedEnvVar(name string) bool {
 	upper := strings.ToUpper(name)
-	return upper == reservedProviderNameEnvVar ||
-		upper == reservedPipelineRootStorageEnvVar ||
-		strings.HasPrefix(upper, reservedParametersPrefix)
+	return upper == common.ProviderNameEnvVar ||
+		upper == common.PipelineRootStorageEnvVar ||
+		strings.HasPrefix(upper, common.ParametersEnvVarPrefix)
 }
 
 func (v *ProviderValidator) validate(
