@@ -124,6 +124,27 @@ var _ = BeforeSuite(func() {
 	Expect(pipelineshub.NewPipelineValidatorWebhook(k8sManager)).To(Succeed())
 	Expect(pipelineshub.NewRunConfigurationValidatorWebhook(k8sManager)).To(Succeed())
 	Expect(pipelineshub.NewRunValidatorWebhook(k8sManager)).To(Succeed())
+	Expect(pipelineshub.NewProviderValidatorWebhook(k8sManager)).To(Succeed())
+
+	var managerCtx context.Context
+	managerCtx, cancel = context.WithCancel(ctrl.SetupSignalHandler())
+
+	go func() {
+		defer GinkgoRecover()
+		Expect(k8sManager.Start(managerCtx)).To(Succeed())
+	}()
+
+	// Wait for webhook server to be ready
+	dialer := &net.Dialer{Timeout: time.Second}
+	addrPort := fmt.Sprintf("%s:%d", webhookInstallOptions.LocalServingHost, webhookInstallOptions.LocalServingPort)
+	Eventually(func() error {
+		conn, err := tls.DialWithDialer(dialer, "tcp", addrPort, &tls.Config{InsecureSkipVerify: true})
+		if err != nil {
+			return err
+		}
+		conn.Close()
+		return nil
+	}).Should(Succeed())
 
 	Provider = pipelineshub.RandomProvider()
 	Provider.Name = apis.RandomLowercaseString()
@@ -150,26 +171,6 @@ var _ = BeforeSuite(func() {
 		},
 	)
 	Expect(K8sClient.Create(Ctx, &providerSvc)).To(Succeed())
-
-	var managerCtx context.Context
-	managerCtx, cancel = context.WithCancel(ctrl.SetupSignalHandler())
-
-	go func() {
-		defer GinkgoRecover()
-		Expect(k8sManager.Start(managerCtx)).To(Succeed())
-	}()
-
-	// Wait for webhook server to be ready
-	dialer := &net.Dialer{Timeout: time.Second}
-	addrPort := fmt.Sprintf("%s:%d", webhookInstallOptions.LocalServingHost, webhookInstallOptions.LocalServingPort)
-	Eventually(func() error {
-		conn, err := tls.DialWithDialer(dialer, "tcp", addrPort, &tls.Config{InsecureSkipVerify: true})
-		if err != nil {
-			return err
-		}
-		conn.Close()
-		return nil
-	}).Should(Succeed())
 })
 
 var _ = BeforeEach(func() {
