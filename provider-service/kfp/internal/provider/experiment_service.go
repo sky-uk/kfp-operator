@@ -36,8 +36,7 @@ type DefaultExperimentService struct {
 // The namespace sent on experiment requests is fixed for the lifetime of the
 // service. KFP multi-user mode requires every experiment request to be scoped
 // to a namespace, so requests are pinned to providerNamespace; single-user mode
-// requires the namespace to be empty. This is resolved once here rather than per
-// request because it never varies with the incoming request.
+// requires the namespace to be empty.
 func NewExperimentService(
 	conn *grpc.ClientConn,
 	multiUserMode bool,
