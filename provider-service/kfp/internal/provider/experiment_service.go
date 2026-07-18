@@ -26,10 +26,22 @@ type ExperimentService interface {
 
 type DefaultExperimentService struct {
 	client client.ExperimentServiceClient
+	// requestNamespace scopes experiment requests to a KFP namespace: the
+	// provider namespace in multi-user mode, empty in single-user mode.
+	requestNamespace string
 }
 
+// NewExperimentService returns an ExperimentService backed by the KFP gRPC API.
+//
+// The namespace sent on experiment requests is fixed for the lifetime of the
+// service. KFP multi-user mode requires every experiment request to be scoped
+// to a namespace, so requests are pinned to providerNamespace; single-user mode
+// requires the namespace to be empty. This is resolved once here rather than per
+// request because it never varies with the incoming request.
 func NewExperimentService(
 	conn *grpc.ClientConn,
+	multiUserMode bool,
+	providerNamespace string,
 ) (ExperimentService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
@@ -37,8 +49,14 @@ func NewExperimentService(
 		)
 	}
 
+	requestNamespace := ""
+	if multiUserMode {
+		requestNamespace = providerNamespace
+	}
+
 	return &DefaultExperimentService{
-		client: go_client.NewExperimentServiceClient(conn),
+		client:           go_client.NewExperimentServiceClient(conn),
+		requestNamespace: requestNamespace,
 	}, nil
 }
 
@@ -59,6 +77,7 @@ func (es *DefaultExperimentService) CreateExperiment(
 			Experiment: &go_client.Experiment{
 				DisplayName: experimentName,
 				Description: description,
+				Namespace:   es.requestNamespace,
 			},
 		},
 	)
@@ -96,7 +115,8 @@ func (es *DefaultExperimentService) ExperimentIdByDisplayName(
 	experimentResult, err := es.client.ListExperiments(
 		ctx,
 		&go_client.ListExperimentsRequest{
-			Filter: kfpUtil.ByDisplayNameFilter(experimentName),
+			Filter:    kfpUtil.ByDisplayNameFilter(experimentName),
+			Namespace: es.requestNamespace,
 		},
 	)
 	if err != nil {

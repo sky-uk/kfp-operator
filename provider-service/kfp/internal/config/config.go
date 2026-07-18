@@ -10,6 +10,7 @@ type Config struct {
 
 type Parameters struct {
 	KfpNamespace             string `mapstructure:"kfpNamespace" yaml:"kfpNamespace,omitempty"`
+	KfpMultiUserMode         bool   `mapstructure:"kfpMultiUserMode" yaml:"kfpMultiUserMode,omitempty"`
 	RestKfpApiUrl            string `mapstructure:"restKfpApiUrl" yaml:"restKfpApiUrl,omitempty"`
 	GrpcMetadataStoreAddress string `mapstructure:"grpcMetadataStoreAddress" yaml:"grpcMetadataStoreAddress,omitempty"`
 	GrpcKfpApiAddress        string `mapstructure:"grpcKfpApiAddress" yaml:"grpcKfpApiAddress,omitempty"`

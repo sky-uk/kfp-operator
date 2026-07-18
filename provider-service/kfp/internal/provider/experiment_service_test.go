@@ -28,7 +28,8 @@ var _ = Describe("ExperimentService", func() {
 	BeforeEach(func() {
 		mockClient = mocks.MockExperimentServiceClient{}
 		experimentService = &DefaultExperimentService{
-			&mockClient,
+			client:           &mockClient,
+			requestNamespace: nsn.Namespace,
 		}
 	})
 
@@ -41,6 +42,7 @@ var _ = Describe("ExperimentService", func() {
 					Experiment: &go_client.Experiment{
 						DisplayName: "namespace-name",
 						Description: "description",
+						Namespace:   nsn.Namespace,
 					},
 				},
 			).Return(&go_client.Experiment{ExperimentId: expectedId}, nil)
@@ -70,6 +72,7 @@ var _ = Describe("ExperimentService", func() {
 						Experiment: &go_client.Experiment{
 							DisplayName: "namespace-name",
 							Description: "description",
+							Namespace:   nsn.Namespace,
 						},
 					},
 				).Return(nil, errors.New("failed"))
@@ -121,7 +124,8 @@ var _ = Describe("ExperimentService", func() {
 			mockClient.On(
 				"ListExperiments",
 				&go_client.ListExperimentsRequest{
-					Filter: util.ByDisplayNameFilter("namespace-name"),
+					Filter:    util.ByDisplayNameFilter("namespace-name"),
+					Namespace: nsn.Namespace,
 				},
 			).Return(&expectedResult, nil)
 			res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
@@ -147,7 +151,8 @@ var _ = Describe("ExperimentService", func() {
 				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
-						Filter: util.ByDisplayNameFilter("namespace-name"),
+						Filter:    util.ByDisplayNameFilter("namespace-name"),
+						Namespace: nsn.Namespace,
 					},
 				).Return(nil, errors.New("failed"))
 				res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
@@ -165,7 +170,8 @@ var _ = Describe("ExperimentService", func() {
 				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
-						Filter: util.ByDisplayNameFilter("namespace-name"),
+						Filter:    util.ByDisplayNameFilter("namespace-name"),
+						Namespace: nsn.Namespace,
 					},
 				).Return(&expectedResult, nil)
 				res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
@@ -186,7 +192,8 @@ var _ = Describe("ExperimentService", func() {
 				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
-						Filter: util.ByDisplayNameFilter("namespace-name"),
+						Filter:    util.ByDisplayNameFilter("namespace-name"),
+						Namespace: nsn.Namespace,
 					},
 				).Return(&expectedResult, nil)
 				res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
