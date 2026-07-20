@@ -7,15 +7,12 @@ import (
 	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
-type ExperimentDefinitionCreator struct {
-	Config config.ConfigSpec
-}
+type experimentDefinitionBuilder struct{}
 
-func (edc ExperimentDefinitionCreator) experimentDefinition(
-	_ pipelineshub.Provider,
+func (b experimentDefinitionBuilder) build(
 	experiment *pipelineshub.Experiment,
-) ([]pipelineshub.Patch, providers.ExperimentDefinition, error) {
-	return nil, providers.ExperimentDefinition{
+) (providers.ExperimentDefinition, error) {
+	return providers.ExperimentDefinition{
 		Name: common.NamespacedName{
 			Namespace: experiment.ObjectMeta.Namespace,
 			Name:      experiment.ObjectMeta.Name,
@@ -27,13 +24,9 @@ func (edc ExperimentDefinitionCreator) experimentDefinition(
 
 func ExperimentWorkflowFactory(
 	config config.ConfigSpec,
-) *ResourceWorkflowFactory[*pipelineshub.Experiment, providers.ExperimentDefinition] {
-	return &ResourceWorkflowFactory[*pipelineshub.Experiment, providers.ExperimentDefinition]{
-		DefinitionCreator: ExperimentDefinitionCreator{
-			Config: config,
-		}.experimentDefinition,
-		Config:                config,
-		TemplateSuffix:        SimpleSuffix,
-		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.Experiment],
+) WorkflowFactory[*pipelineshub.Experiment] {
+	return simpleWorkflowFactory[*pipelineshub.Experiment, providers.ExperimentDefinition]{
+		assembler: workflowAssembler{config: config},
+		builder:   experimentDefinitionBuilder{},
 	}
 }

@@ -11,9 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = Describe("RunDefinitionCreator", func() {
-	provider := *pipelineshub.RandomProvider()
-
+var _ = Describe("runDefinitionBuilder", func() {
 	newRun := func() *pipelineshub.Run {
 		run := pipelineshub.RandomRun(common.RandomNamespacedName())
 		run.ObjectMeta = metav1.ObjectMeta{
@@ -23,15 +21,15 @@ var _ = Describe("RunDefinitionCreator", func() {
 		return run
 	}
 
-	Context("runDefinition", func() {
-		creator := RunDefinitionCreator{Config: config.ConfigSpec{}}
+	Context("build", func() {
+		builder := runDefinitionBuilder{config: config.ConfigSpec{}}
 
 		When("the Run specifies an experiment name", func() {
 			It("sets the run namespace on the experiment name", func() {
 				run := newRun()
 				run.Spec.ExperimentName = "myExperiment"
 
-				_, runDefinition, err := creator.runDefinition(provider, run)
+				runDefinition, err := builder.build(run)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(runDefinition.ExperimentName).To(Equal(common.NamespacedName{
 					Name:      "myExperiment",
@@ -45,7 +43,7 @@ var _ = Describe("RunDefinitionCreator", func() {
 				run := newRun()
 				run.Spec.ExperimentName = ""
 
-				_, runDefinition, err := creator.runDefinition(provider, run)
+				runDefinition, err := builder.build(run)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(runDefinition.ExperimentName).To(Equal(common.NamespacedName{}))
 			})
