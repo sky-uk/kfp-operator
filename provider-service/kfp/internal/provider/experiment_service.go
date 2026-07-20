@@ -106,6 +106,10 @@ func (es *DefaultExperimentService) ExperimentIdByDisplayName(
 	ctx context.Context,
 	experiment common.NamespacedName,
 ) (string, error) {
+	if experiment.Namespace == "" {
+		experiment.Namespace = es.requestNamespace
+	}
+
 	experimentName, err := util.ResourceNameFromNamespacedName(experiment)
 	if err != nil {
 		return "", err

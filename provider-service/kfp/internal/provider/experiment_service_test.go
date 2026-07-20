@@ -96,6 +96,23 @@ var _ = Describe("ExperimentService", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 		})
+
+		It("leaves an unqualified experiment name unscoped", func() {
+			unqualified := common.NamespacedName{Name: "Default"}
+			mockClient.On(
+				"ListExperiments",
+				&go_client.ListExperimentsRequest{
+					Filter:    util.ByDisplayNameFilter("Default"),
+					Namespace: "",
+				},
+			).Return(&go_client.ListExperimentsResponse{
+				Experiments: []*go_client.Experiment{{ExperimentId: "one"}},
+			}, nil)
+			res, err := experimentService.ExperimentIdByDisplayName(ctx, unqualified)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal("one"))
+		})
 	})
 
 	Context("multi-user mode", func() {
@@ -119,6 +136,23 @@ var _ = Describe("ExperimentService", func() {
 				Experiments: []*go_client.Experiment{{ExperimentId: "one"}},
 			}, nil)
 			res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal("one"))
+		})
+
+		It("scopes an unqualified experiment name to the provider namespace", func() {
+			unqualified := common.NamespacedName{Name: "default"}
+			mockClient.On(
+				"ListExperiments",
+				&go_client.ListExperimentsRequest{
+					Filter:    util.ByDisplayNameFilter("kfp-default"),
+					Namespace: providerNamespace,
+				},
+			).Return(&go_client.ListExperimentsResponse{
+				Experiments: []*go_client.Experiment{{ExperimentId: "one"}},
+			}, nil)
+			res, err := experimentService.ExperimentIdByDisplayName(ctx, unqualified)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal("one"))
