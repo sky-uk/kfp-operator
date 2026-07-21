@@ -32,29 +32,37 @@ var _ = Describe("ExperimentService", func() {
 		mockClient = mocks.MockExperimentServiceClient{}
 	})
 
-	// namespaceScopedSpecs asserts the request namespace the service sends on the
-	// operations that carry one. expectedNamespace is the namespace the service is
-	// expected to send, independent of the resource's own namespace.
-	namespaceScopedSpecs := func(expectedNamespace string) {
-		It("CreateExperiment sends the expected namespace", func() {
+	// createExperimentSpec asserts the request namespace and display name
+	// CreateExperiment sends. CreateExperiment is mode-agnostic: it always
+	// mangles the display name from the input's own namespace and sends the
+	// service's request namespace. In multi-user mode the provider owner
+	// deploys the experiment into the provider namespace, so the input is
+	// already provider-scoped and no redirect is needed.
+	createExperimentSpec := func(input common.NamespacedName, expectedNamespace, expectedDisplayName string) {
+		It("CreateExperiment sends the expected namespace and display name", func() {
 			expectedId := "expected-result-id"
 			mockClient.On(
 				"CreateExperiment",
 				&go_client.CreateExperimentRequest{
 					Experiment: &go_client.Experiment{
-						DisplayName: "namespace-name",
+						DisplayName: expectedDisplayName,
 						Description: "description",
 						Namespace:   expectedNamespace,
 					},
 				},
 			).Return(&go_client.Experiment{ExperimentId: expectedId}, nil)
-			res, err := experimentService.CreateExperiment(ctx, nsn, "description")
+			res, err := experimentService.CreateExperiment(ctx, input, "description")
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(expectedId))
 		})
+	}
 
-		It("ExperimentIdByDisplayName sends the expected namespace", func() {
+	// lookupExperimentSpec asserts the request namespace and display-name filter
+	// ExperimentIdByDisplayName sends. expectedNamespace is the request
+	// namespace; expectedDisplayName is the mangled name it filters on.
+	lookupExperimentSpec := func(expectedNamespace, expectedDisplayName string) {
+		It("ExperimentIdByDisplayName sends the expected namespace and filter", func() {
 			expectedResult := go_client.ListExperimentsResponse{
 				Experiments: []*go_client.Experiment{
 					{ExperimentId: "one"},
@@ -63,7 +71,7 @@ var _ = Describe("ExperimentService", func() {
 			mockClient.On(
 				"ListExperiments",
 				&go_client.ListExperimentsRequest{
-					Filter:    util.ByDisplayNameFilter("namespace-name"),
+					Filter:    util.ByDisplayNameFilter(expectedDisplayName),
 					Namespace: expectedNamespace,
 				},
 			).Return(&expectedResult, nil)
@@ -78,11 +86,14 @@ var _ = Describe("ExperimentService", func() {
 		BeforeEach(func() {
 			experimentService = &DefaultExperimentService{
 				client:           &mockClient,
+				multiUserMode:    false,
 				requestNamespace: "",
 			}
 		})
 
-		namespaceScopedSpecs("")
+		// A supplied experiment name keeps the resource (run) namespace.
+		createExperimentSpec(nsn, "", "namespace-name")
+		lookupExperimentSpec("", "namespace-name")
 
 		It("sends an empty namespace even though the resource is namespaced", func() {
 			mockClient.On(
@@ -119,27 +130,19 @@ var _ = Describe("ExperimentService", func() {
 		BeforeEach(func() {
 			experimentService = &DefaultExperimentService{
 				client:           &mockClient,
+				multiUserMode:    true,
 				requestNamespace: providerNamespace,
 			}
 		})
 
-		namespaceScopedSpecs(providerNamespace)
-
-		It("sends the provider namespace, not the resource namespace", func() {
-			mockClient.On(
-				"ListExperiments",
-				mock.MatchedBy(func(req *go_client.ListExperimentsRequest) bool {
-					return req.Namespace == providerNamespace &&
-						req.Namespace != nsn.Namespace
-				}),
-			).Return(&go_client.ListExperimentsResponse{
-				Experiments: []*go_client.Experiment{{ExperimentId: "one"}},
-			}, nil)
-			res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
-
-			Expect(err).ToNot(HaveOccurred())
-			Expect(res).To(Equal("one"))
-		})
+		// The provider owner deploys the experiment into the provider
+		// namespace, so CreateExperiment receives a provider-scoped input and
+		// mangles the display name from it. The lookup receives the run's
+		// namespace and overrides it to the provider namespace, producing the
+		// same mangled name.
+		providerNsn := common.NamespacedName{Name: nsn.Name, Namespace: providerNamespace}
+		createExperimentSpec(providerNsn, providerNamespace, providerNamespace+"-name")
+		lookupExperimentSpec(providerNamespace, providerNamespace+"-name")
 
 		It("scopes an unqualified experiment name to the provider namespace", func() {
 			unqualified := common.NamespacedName{Name: "default"}
@@ -160,6 +163,10 @@ var _ = Describe("ExperimentService", func() {
 	})
 
 	Context("mode-independent", func() {
+		// These specs exercise error propagation only, so the exact namespace
+		// and display name are incidental. multiUserMode is left false (no
+		// lookup override) while requestNamespace is set, letting the specs
+		// pin both a request namespace and an un-mangled display-name filter.
 		BeforeEach(func() {
 			experimentService = &DefaultExperimentService{
 				client:           &mockClient,

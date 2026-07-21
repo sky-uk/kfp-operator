@@ -25,7 +25,8 @@ type ExperimentService interface {
 }
 
 type DefaultExperimentService struct {
-	client client.ExperimentServiceClient
+	client        client.ExperimentServiceClient
+	multiUserMode bool
 	// requestNamespace scopes experiment requests to a KFP namespace: the
 	// provider namespace in multi-user mode, empty in single-user mode.
 	requestNamespace string
@@ -55,6 +56,7 @@ func NewExperimentService(
 
 	return &DefaultExperimentService{
 		client:           go_client.NewExperimentServiceClient(conn),
+		multiUserMode:    multiUserMode,
 		requestNamespace: requestNamespace,
 	}, nil
 }
@@ -106,7 +108,11 @@ func (es *DefaultExperimentService) ExperimentIdByDisplayName(
 	ctx context.Context,
 	experiment common.NamespacedName,
 ) (string, error) {
-	if experiment.Namespace == "" {
+	// In multi-user mode the experiment lives in the provider namespace, but
+	// the lookup is driven by a Run whose namespace is the run's, not the
+	// provider's. Scope the lookup to the provider namespace so the mangled
+	// display name matches the one CreateExperiment stored.
+	if es.multiUserMode {
 		experiment.Namespace = es.requestNamespace
 	}
 
