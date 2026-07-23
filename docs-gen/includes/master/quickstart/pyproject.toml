@@ -10,7 +10,7 @@ dependencies = [
     "setuptools<82",
     "tensorflow-io",
     "boto3",
-    "grpcio<1.83.0",
+    "grpcio<1.84.0",
     "dill",
 ]
 
