@@ -7,7 +7,7 @@ requires-python = ">=3.10.19,<3.11"
 dependencies = [
     "tfx==1.16.0",
     "kfp>=2,<2.6",
-    "setuptools<84",
+    "setuptools<82",
     "tensorflow-io",
     "boto3",
     "grpcio<1.83.0",
@@ -23,5 +23,5 @@ required-environments = [
 packages = ["penguin_pipeline"]
 
 [build-system]
-requires = ["setuptools>=83.0.0,<84", "wheel"]
+requires = ["setuptools>=61,<82", "wheel"]
 build-backend = "setuptools.build_meta"

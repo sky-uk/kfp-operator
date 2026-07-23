@@ -12,5 +12,5 @@ dependencies = [
 packages = ["getting_started"]
 
 [build-system]
-requires = ["setuptools>=83.0.0", "wheel"]
+requires = ["setuptools>=61,<83", "wheel"]
 build-backend = "setuptools.build_meta"
