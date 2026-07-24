@@ -15,7 +15,6 @@ var _ = Context("RunSchedule Resource Workflows", Serial, func() {
 		DefaultProviderValues: config.DefaultProviderValues{
 			ServicePort: 8080,
 		},
-		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 	})
 
 	var newRunSchedule = func() *pipelineshub.RunSchedule {
