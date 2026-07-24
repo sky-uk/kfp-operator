@@ -37,10 +37,14 @@ updates:
       update-types:
       - "major"
 
+# TFX modules
+# setuptools version 82 removed pkg_resources, which tfx still imports
 - package-ecosystem: "uv"
   directories:
-  - "/compilers/**"
-  - "/docs-gen/includes/master/**"
+  - "/compilers/tfx"
+  - "/compilers/tfx/integration/**"
+  - "/docs-gen/includes/master/quickstart"
+  - "/docs-gen/includes/master/quickstart-with-dependencies/**"
   schedule:
     interval: "weekly"
   rebase-strategy: "disabled"
@@ -50,6 +54,48 @@ updates:
     prefix: "chore(deps)"
   exclude-paths:
   - "docs-gen/includes/versions/**"
+  ignore:
+  - dependency-name: "setuptools"
+    versions: [">=82"]
+  open-pull-requests-limit: 10
+  groups:
+    uv-minor-and-patch:
+      applies-to: version-updates
+      update-types:
+      - "minor"
+      - "patch"
+    uv-major:
+      applies-to: version-updates
+      update-types:
+      - "major"
+    uv-security-minor-and-patch:
+      applies-to: security-updates
+      update-types:
+      - "minor"
+      - "patch"
+    uv-security-major:
+      applies-to: security-updates
+      update-types:
+      - "major"
+
+# kfp-sdk modules
+# setuptools version below 83 to support Python 3.9
+- package-ecosystem: "uv"
+  directories:
+  - "/compilers/kfp-sdk"
+  - "/docs-gen/includes/master/kfpsdk-quickstart"
+  schedule:
+    interval: "weekly"
+  rebase-strategy: "disabled"
+  allow:
+  - dependency-type: "direct"
+  commit-message:
+    prefix: "chore(deps)"
+  exclude-paths:
+  - "docs-gen/includes/versions/**"
+  ignore:
+  - dependency-name: "setuptools"
+    versions: [">=83"]
   open-pull-requests-limit: 10
   groups:
     uv-minor-and-patch:
