@@ -38,8 +38,7 @@ updates:
       - "major"
 
 # TFX modules
-# setuptools version 82 removed pkg_resources which breaks TFX
-# setuptools version 83 requires Python 3.10+, and compilers/tfx only support 3.9
+# setuptools version 82 removed pkg_resources, which tfx still imports
 - package-ecosystem: "uv"
   directories:
   - "/compilers/tfx"
