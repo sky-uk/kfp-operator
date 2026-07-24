@@ -45,10 +45,10 @@ type ConfigSpec struct {
 	// workflows always execute in their Provider's namespace. It is retained only
 	// to seed the legacy v1alpha6 DefaultProviderNamespace conversion default and
 	// will be removed together with v1alpha6.
-	WorkflowNamespace 	   string           	 `yaml:"workflowNamespace,omitempty"`
-	Multiversion           bool                  `yaml:"multiversion,omitempty"`
-	RunCompletionTTL       *metav1.Duration      `yaml:"runCompletionTTL,omitempty"`
-	RunCompletionFeed      ServiceConfig         `yaml:"runCompletionFeed,omitempty"`
+	WorkflowNamespace string           `yaml:"workflowNamespace,omitempty"`
+	Multiversion      bool             `yaml:"multiversion,omitempty"`
+	RunCompletionTTL  *metav1.Duration `yaml:"runCompletionTTL,omitempty"`
+	RunCompletionFeed ServiceConfig    `yaml:"runCompletionFeed,omitempty"`
 }
 
 type DefaultProviderValues struct {
