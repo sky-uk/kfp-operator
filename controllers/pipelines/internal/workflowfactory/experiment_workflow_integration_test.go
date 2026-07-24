@@ -16,7 +16,6 @@ var _ = Context("Experiment Resource Workflows", Serial, func() {
 			ServicePort: 8080,
 		},
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
-		WorkflowNamespace:      "argo",
 	})
 
 	var newExperiment = func() *pipelineshub.Experiment {

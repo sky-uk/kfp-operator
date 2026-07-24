@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: common-steps
-  namespace: kfp-operator-system
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   templates:
   - name: select-resource-image
@@ -12,14 +12,15 @@ spec:
         path: /resource-definition.json
         raw:
           data: |
-            {{workflow.parameters.resource-definition}}
+            {{`{{workflow.parameters.resource-definition}}`}}
     script:
       command:
       - ash
       image: mikefarah/yq:4.45.1
       source: yq e -r '.image' /resource-definition.json
-    metadata: {}
-    activeDeadlineSeconds: 300
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
   - name: url-encode
     inputs:
       parameters:
@@ -29,13 +30,14 @@ spec:
       - name: url-encoded
         valueFrom:
           path: "/tmp/url-encoded.txt"
-    metadata: {}
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     container:
       image: apteno/alpine-jq:latest
       command: [sh, -c]
       args:
       - |
-        echo -n "{{inputs.parameters.unencoded}}" | jq -sRr @uri > /tmp/url-encoded.txt
+        echo -n "{{`{{inputs.parameters.unencoded}}`}}" | jq -sRr @uri > /tmp/url-encoded.txt
   - name: create
     inputs:
       artifacts:
@@ -48,8 +50,9 @@ spec:
       - name: provider-output
         valueFrom:
           path: /tmp/provider-output.json
-    activeDeadlineSeconds: 300
-    metadata: {}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     container:
       image: curlimages/curl:8.12.1
       command: [sh, -c]
@@ -58,8 +61,8 @@ spec:
         HTTP_RESPONSE=$(
           curl -v -s -o /tmp/provider-output.json -w "%{response_code}" -X POST \
               -H "Content-Type: application/json" \
-              --data-binary @{{inputs.artifacts.body.path}} \
-              "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}"
+              --data-binary @{{`{{inputs.artifacts.body.path}}`}} \
+              "{{`{{workflow.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}"
         )
 
         case $HTTP_RESPONSE in
@@ -79,8 +82,9 @@ spec:
       - name: provider-output
         valueFrom:
           path: /tmp/provider-output.json
-    activeDeadlineSeconds: 300
-    metadata: {}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     container:
       image: curlimages/curl:8.12.1
       command: [sh, -c]
@@ -88,14 +92,15 @@ spec:
       - |
         HTTP_RESPONSE=$(
           curl -v -o /tmp/provider-output.json -w "%{response_code}" -X PUT -H "Content-Type: application/json" \
-              --data-binary @{{inputs.artifacts.body.path}} \
-              "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
+              --data-binary @{{`{{inputs.artifacts.body.path}}`}} \
+              "{{`{{workflow.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}/{{`{{inputs.parameters.url-encoded-resource-id}}`}}"
         )
 
         case $HTTP_RESPONSE in
           501)  exit 1 ;;
           *) exit 0 ;;
         esac
+    {{- include "kfp-provider-workflows.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: delete
     inputs:
       parameters:
@@ -106,8 +111,9 @@ spec:
       - name: provider-output
         valueFrom:
           path: /tmp/provider-output.json
-    metadata: {}
-    activeDeadlineSeconds: 300
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: curlimages/curl:8.12.1
       command: [sh, -c]
@@ -115,22 +121,23 @@ spec:
       - |
         HTTP_RESPONSE=$(
           curl -v -o /tmp/provider-output.json -w "%{response_code}" -X DELETE \
-              "{{inputs.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
+              "{{`{{inputs.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}/{{`{{inputs.parameters.url-encoded-resource-id}}`}}"
         )
 
         case $HTTP_RESPONSE in
           501)  exit 1 ;;
           *) exit 0 ;;
         esac
+    {{- include "kfp-provider-workflows.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: delete
-  namespace: kfp-operator-system
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   ttlStrategy:
-    secondsAfterCompletion: 3600
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-name
@@ -138,34 +145,34 @@ spec:
     - name: resource-kind
     - name: resource-id
   entrypoint: main
-  serviceAccountName: kfp-operator-argo
+  serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
+  {{- with .Values.manager.argo.securityContext }}
   securityContext:
-    runAsNonRoot: true
-    runAsUser: 1000
-    fsGroup: 1000
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
   templates:
   - name: main
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
+          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: url-encode-resource-id
         templateRef:
-          name: kfp-operator-common-steps
+          name: common-steps
           template: url-encode
         arguments:
           parameters:
           - name: unencoded
-            value: '{{workflow.parameters.resource-id}}'
+            value: '{{`{{workflow.parameters.resource-id}}`}}'
     - - name: provider
         templateRef:
-          name: kfp-operator-common-steps
+          name: common-steps
           template: delete
         arguments:
           parameters:
           - name: url-encoded-resource-id
-            value: '{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}'
+            value: '{{`{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}`}}'
           - name: provider-service-url
-            value: '{{workflow.parameters.provider-service-url}}'
+            value: '{{`{{workflow.parameters.provider-service-url}}`}}'

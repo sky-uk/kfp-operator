@@ -39,10 +39,13 @@ type LeaderElectionConfig struct {
 }
 
 type ConfigSpec struct {
-	DefaultProviderValues  DefaultProviderValues `yaml:"defaultProviderValues,omitempty"`
-	DefaultTfxImage        string                `yaml:"defaultTfxImage,omitempty"`
-	WorkflowTemplatePrefix string                `yaml:"workflowTemplatePrefix,omitempty"`
-	WorkflowNamespace      string                `yaml:"workflowNamespace,omitempty"`
+	DefaultProviderValues DefaultProviderValues `yaml:"defaultProviderValues,omitempty"`
+	DefaultTfxImage       string                `yaml:"defaultTfxImage,omitempty"`
+	// Deprecated: WorkflowNamespace no longer controls where workflows run;
+	// workflows always execute in their Provider's namespace. It is retained only
+	// to seed the legacy v1alpha6 DefaultProviderNamespace conversion default and
+	// will be removed together with v1alpha6.
+	WorkflowNamespace 	   string           	 `yaml:"workflowNamespace,omitempty"`
 	Multiversion           bool                  `yaml:"multiversion,omitempty"`
 	RunCompletionTTL       *metav1.Duration      `yaml:"runCompletionTTL,omitempty"`
 	RunCompletionFeed      ServiceConfig         `yaml:"runCompletionFeed,omitempty"`

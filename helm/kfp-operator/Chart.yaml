@@ -9,3 +9,11 @@ version: 0.0.0
 
 # Set at packaging time
 appVersion: "latest"
+
+# The per-provider workflow chart is installed independently (one release per
+# provider namespace) and is not rendered as part of the operator install.
+dependencies:
+- name: kfp-provider-workflows
+  version: 0.0.0
+  condition: kfp-provider-workflows.enabled
+  repository: ""

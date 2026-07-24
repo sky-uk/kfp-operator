@@ -58,9 +58,9 @@ var _ = Context("WorkflowRepository K8s integration", Serial, func() {
 			workflow := randomWorkflow()
 
 			Expect(workflowRepository.CreateWorkflowForResource(Ctx, workflow, owner)).To(Succeed())
-			Expect(workflowRepository.GetByLabels(Ctx, workflow.GetLabels())).To(Not(BeEmpty()))
+			Expect(workflowRepository.GetByLabels(Ctx, workflow.GetLabels(), namespace)).To(Not(BeEmpty()))
 			Expect(workflowRepository.MarkWorkflowAsProcessed(Ctx, workflow)).To(Succeed())
-			Expect(workflowRepository.GetByLabels(Ctx, workflow.GetLabels())).To(BeEmpty())
+			Expect(workflowRepository.GetByLabels(Ctx, workflow.GetLabels(), namespace)).To(BeEmpty())
 		})
 	})
 })

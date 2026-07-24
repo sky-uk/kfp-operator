@@ -4,8 +4,9 @@ system:
     id: kfp-operator-lock
 spec:
   multiversion: true
+  # Deprecated: resource-management workflows now run in each Provider's own
+  # namespace. Retained only as the namespace for the run-completion EventBus.
   workflowNamespace: kfp-operator-system
-  workflowTemplatePrefix: kfp-operator-
   runCompletionFeed:
     port: 8082
     endpoints: []

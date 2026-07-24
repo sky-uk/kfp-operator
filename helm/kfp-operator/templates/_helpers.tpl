@@ -57,7 +57,6 @@ Populate configuration with fallbacks and overrides.
 workflowNamespace: {{ .Values.namespace.name }}
 {{- end }}
 {{- define "configurationOverrides" -}}
-workflowTemplatePrefix: {{ include "kfp-operator.fullname" . }}-
 {{- if .Values.manager.multiversion.enabled }}
 multiversion: true
 {{- end -}}
