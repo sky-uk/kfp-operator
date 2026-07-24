@@ -41,13 +41,13 @@ from kfp import dsl
 # Use the image specified in the Pipeline resource
 DEFAULT_IMAGE = os.environ.get("KFP_PIPELINE_IMAGE", "python:3.9")
 
+
 @dsl.component(base_image=DEFAULT_IMAGE)
 def component():
     pass
 
-@dsl.pipeline(
-    description='A simple pipeline to get started with the KFP SDK.'
-)
+
+@dsl.pipeline(description="A simple pipeline to get started with the KFP SDK.")
 def pipeline_function():
     component()
 ```
