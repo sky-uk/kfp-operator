@@ -62,7 +62,11 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 		return nil, err
 	}
 
-	experimentService, err := NewExperimentService(conn)
+	experimentService, err := NewExperimentService(
+		conn,
+		config.Parameters.KfpMultiUserMode,
+		config.ProviderName.Namespace,
+	)
 	if err != nil {
 		return nil, err
 	}
