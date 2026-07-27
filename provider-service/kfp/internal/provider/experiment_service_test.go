@@ -13,11 +13,48 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/util"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
-var _ = Describe("ExperimentService", func() {
-	const providerNamespace = "kfp"
+const providerNamespace = "kfp"
 
+var _ = Describe("NewExperimentService", func() {
+	var conn *grpc.ClientConn
+
+	BeforeEach(func() {
+		var err error
+		conn, err = grpc.NewClient(
+			"passthrough:///unused",
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	It("errors when no gRPC connection is provided", func() {
+		_, err := NewExperimentService(nil, false, providerNamespace)
+		Expect(err).To(HaveOccurred())
+	})
+
+	It("errors when configured for multi user mode without provider namespace", func() {
+		_, err := NewExperimentService(conn, true, "")
+		Expect(err).To(HaveOccurred())
+	})
+
+	It("pins the request namespace to the provider namespace in multi-user mode", func() {
+		svc, err := NewExperimentService(conn, true, providerNamespace)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(svc.(*DefaultExperimentService).requestNamespace).To(Equal(providerNamespace))
+	})
+
+	It("leaves the request namespace empty in single-user mode", func() {
+		svc, err := NewExperimentService(conn, false, providerNamespace)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(svc.(*DefaultExperimentService).requestNamespace).To(BeEmpty())
+	})
+})
+
+var _ = Describe("DefaultExperimentService", func() {
 	var (
 		mockClient        mocks.MockExperimentServiceClient
 		experimentService ExperimentService

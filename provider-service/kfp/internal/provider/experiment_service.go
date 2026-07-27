@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
@@ -44,9 +45,13 @@ func NewExperimentService(
 	providerNamespace string,
 ) (ExperimentService, error) {
 	if conn == nil {
-		return nil, fmt.Errorf(
+		return nil, errors.New(
 			"no gRPC connection was provided to start experiment service",
 		)
+	}
+
+	if multiUserMode && providerNamespace == "" {
+		return nil, errors.New("multi-user mode requires a provider namespace")
 	}
 
 	requestNamespace := ""
