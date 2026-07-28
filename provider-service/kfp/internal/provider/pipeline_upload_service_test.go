@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_http_client/pipeline_upload_client/pipeline_upload_service"
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_http_client/pipeline_upload_model"
 	. "github.com/onsi/ginkgo/v2"
@@ -29,7 +30,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 	BeforeEach(func() {
 		mockClient = mocks.MockPipelineUploadServiceClient{}
 		pipelineUploadService = DefaultPipelineUploadService{
-			&mockClient,
+			pipelineUploadService: &mockClient,
 		}
 	})
 
@@ -141,6 +142,31 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 
 				Expect(err).To(HaveOccurred())
 			})
+		})
+	})
+})
+
+var _ = Describe("NewPipelineUploadService", func() {
+	const restKfpApiUrl = "http://ml-pipeline:8888"
+
+	When("an auth writer is provided", func() {
+		It("stores the writer on the service", func() {
+			authInfo := runtime.ClientAuthInfoWriterFunc(
+				func(runtime.ClientRequest, strfmt.Registry) error {
+					return nil
+				},
+			)
+			service, err := NewPipelineUploadService(restKfpApiUrl, authInfo)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(service.authInfo).ToNot(BeNil())
+		})
+	})
+
+	When("no auth writer is provided", func() {
+		It("leaves the writer nil", func() {
+			service, err := NewPipelineUploadService(restKfpApiUrl, nil)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(service.authInfo).To(BeNil())
 		})
 	})
 })

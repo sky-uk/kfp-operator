@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/auth"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
@@ -69,9 +70,35 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	return resourceReferences, nil
 }
 
+// dialer is the subset of grpc.NewClient's signature used to open the
+// connection, so the real dialer can be swapped out (for example, in tests).
+type dialer func(
+	target string,
+	opts ...grpc.DialOption,
+) (*grpc.ClientConn, error)
+
 func CreateKfpApi(ctx context.Context, config config.Config) (*GrpcKfpApi, error) {
+	return createKfpApi(ctx, config, grpc.NewClient)
+}
+
+func createKfpApi(
+	ctx context.Context,
+	config config.Config,
+	dial dialer,
+) (*GrpcKfpApi, error) {
 	logger := logr.FromContextOrDiscard(ctx)
-	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
+
+	var authOptions []grpc.DialOption
+	if config.Parameters.KfpMultiUserMode {
+		tokenSource := auth.NewFileTokenSource(config.Parameters.TokenPath)
+		authOptions = auth.GrpcDialOptions(tokenSource)
+	}
+
+	kfpApi, err := connectToKfpApi(
+		dial,
+		config.Parameters.GrpcKfpApiAddress,
+		authOptions...,
+	)
 	if err != nil {
 		logger.Error(err, "failed to connect to Kubeflow API", "address", config.Parameters.GrpcKfpApiAddress)
 		return nil, err
@@ -79,8 +106,17 @@ func CreateKfpApi(ctx context.Context, config config.Config) (*GrpcKfpApi, error
 	return kfpApi, nil
 }
 
-func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
-	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func connectToKfpApi(
+	dial dialer,
+	address string,
+	authOptions ...grpc.DialOption,
+) (*GrpcKfpApi, error) {
+	dialOptions := append(
+		[]grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
+		authOptions...,
+	)
+
+	conn, err := dial(address, dialOptions...)
 	if err != nil {
 		return nil, err
 	}

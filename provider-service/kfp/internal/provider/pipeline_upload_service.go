@@ -33,12 +33,16 @@ type DefaultPipelineUploadService struct {
 	// require a URL to an already uploaded file rather than actually uploading
 	// a file for the user.
 	pipelineUploadService client.PipelineUploadService
+	// authInfo attaches the bearer token to upload requests, or is nil to send
+	// no credentials.
+	authInfo runtime.ClientAuthInfoWriter
 }
 
 const uploadPipelineFilePath string = "resource.yaml"
 
 func NewPipelineUploadService(
 	restKfpApiUrl string,
+	authInfo runtime.ClientAuthInfoWriter,
 ) (*DefaultPipelineUploadService, error) {
 	apiUrl, err := url.Parse(restKfpApiUrl)
 	if err != nil {
@@ -56,6 +60,7 @@ func NewPipelineUploadService(
 
 	return &DefaultPipelineUploadService{
 		pipelineUploadService: pipelineUploadService,
+		authInfo:              authInfo,
 	}, nil
 }
 
@@ -77,7 +82,7 @@ func (us *DefaultPipelineUploadService) UploadPipeline(
 			Uploadfile: uploadFile,
 			Context:    ctx,
 		},
-		nil,
+		us.authInfo,
 	)
 	if err != nil {
 		return "", err
@@ -105,7 +110,7 @@ func (us *DefaultPipelineUploadService) UploadPipelineVersion(
 			Uploadfile: uploadFile,
 			Context:    ctx,
 		},
-		nil,
+		us.authInfo,
 	)
 	if err != nil {
 		return err
