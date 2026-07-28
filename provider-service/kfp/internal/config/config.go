@@ -15,4 +15,5 @@ type Parameters struct {
 	GrpcMetadataStoreAddress string `mapstructure:"grpcMetadataStoreAddress" yaml:"grpcMetadataStoreAddress,omitempty"`
 	GrpcKfpApiAddress        string `mapstructure:"grpcKfpApiAddress" yaml:"grpcKfpApiAddress,omitempty"`
 	DefaultExperiment        string `mapstructure:"defaultExperiment" yaml:"defaultExperiment,omitempty"`
+	TokenPath                string `mapstructure:"tokenPath" yaml:"tokenPath,omitempty"`
 }
