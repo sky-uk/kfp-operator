@@ -1,0 +1,43 @@
+package auth
+
+import (
+	"context"
+
+	"google.golang.org/grpc"
+)
+
+// BearerCredentials implements google.golang.org/grpc/credentials.PerRPCCredentials
+// by attaching an "authorization: Bearer <token>" header to every gRPC call.
+type BearerCredentials struct {
+	Source TokenSource
+}
+
+func NewBearerCredentials(source TokenSource) *BearerCredentials {
+	return &BearerCredentials{Source: source}
+}
+
+func (c *BearerCredentials) GetRequestMetadata(
+	_ context.Context,
+	_ ...string,
+) (map[string]string, error) {
+	token, err := c.Source.Token()
+	if err != nil {
+		return nil, err
+	}
+	return map[string]string{
+		"authorization": "Bearer " + token,
+	}, nil
+}
+
+// RequireTransportSecurity returns false so the credential can be sent over a
+// plaintext in-cluster connection.
+func (c *BearerCredentials) RequireTransportSecurity() bool {
+	return false
+}
+
+// GrpcDialOptions returns dial options that attach a bearer token from source
+// to every outgoing gRPC call.
+func GrpcDialOptions(source TokenSource) []grpc.DialOption {
+	cred := NewBearerCredentials(source)
+	return []grpc.DialOption{grpc.WithPerRPCCredentials(cred)}
+}
