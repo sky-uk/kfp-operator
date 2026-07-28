@@ -57,6 +57,9 @@ func main() {
 		kfpConfig.Config{
 			ProviderName:        serviceConfig.ProviderName,
 			PipelineRootStorage: serviceConfig.PipelineRootStorage,
+			Parameters: kfpConfig.Parameters{
+				TokenPath: "/var/run/secrets/kfp/token",
+			},
 		},
 	)
 	if err != nil {
