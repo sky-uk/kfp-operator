@@ -21,8 +21,8 @@ spec:
       - name: resource
         path: /tmp/resource.json
     metadata:
-      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
-    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.compile }}
+      {{- .Values.argo.metadata | toYaml | nindent 6 }}
+    activeDeadlineSeconds: {{ .Values.argo.stepTimeoutSeconds.compile }}
     container:
       command:
       - /shared/compile.sh
@@ -36,7 +36,7 @@ spec:
       - /tmp/resource.json
       - --{{`{{workflow.parameters.resource-kind}}`}}_config
       - /resource-definition.json
-      {{- include "kfp-provider-workflows.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+      {{- include "kfp-provider-workflows.notEmptyYaml" .Values.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared
     initContainers:
@@ -45,7 +45,7 @@ spec:
       image: "{{`{{workflow.parameters.pipeline-framework-image}}`}}"
       mirrorVolumeMounts: true
       name: compile
-      {{- include "kfp-provider-workflows.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+      {{- include "kfp-provider-workflows.notEmptyYaml" .Values.argo.containerDefaults | nindent 6 }}
   - name: combine-files
     inputs:
       artifacts:
@@ -58,7 +58,7 @@ spec:
         - name: combined
           path: /tmp/combined.json
     metadata:
-      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+      {{- .Values.argo.metadata | toYaml | nindent 6 }}
     container:
       image: mikefarah/yq:4.45.1
       command: [sh,-c]
@@ -80,7 +80,7 @@ metadata:
   namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   ttlStrategy:
-    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
+    {{- .Values.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-name
@@ -89,8 +89,8 @@ spec:
     - name: resource-definition
     - name: pipeline-framework-image
   entrypoint: main
-  serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
-  {{- with .Values.manager.argo.securityContext }}
+  serviceAccountName: {{ .Values.argo.serviceAccount.name }}
+  {{- with .Values.argo.securityContext }}
   securityContext:
     {{- . | toYaml | nindent 4 }}
   {{- end }}
@@ -148,7 +148,7 @@ metadata:
   namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   ttlStrategy:
-    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
+    {{- .Values.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-name
@@ -158,8 +158,8 @@ spec:
     - name: resource-definition
     - name: pipeline-framework-image
   entrypoint: main
-  serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
-  {{- with .Values.manager.argo.securityContext }}
+  serviceAccountName: {{ .Values.argo.serviceAccount.name }}
+  {{- with .Values.argo.securityContext }}
   securityContext:
     {{- . | toYaml | nindent 4 }}
   {{- end }}

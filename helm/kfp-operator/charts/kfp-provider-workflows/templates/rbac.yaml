@@ -1,15 +1,15 @@
-{{- if .Values.manager.argo.serviceAccount.create }}
+{{- if .Values.argo.serviceAccount.create }}
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.manager.argo.serviceAccount.name }}
+  name: {{ .Values.argo.serviceAccount.name }}
   namespace: {{ include "kfp-provider-workflows.namespace" . }}
-{{- with .Values.manager.argo.serviceAccount.metadata }}
+{{- with .Values.argo.serviceAccount.metadata }}
   {{ . | toYaml | nindent 2 }}
 {{- end }}
 {{- end }}
-{{- if .Values.manager.argo.rbac.create }}
+{{- if .Values.argo.rbac.create }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -43,6 +43,6 @@ roleRef:
   name: workflow-executor
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.manager.argo.serviceAccount.name }}
+    name: {{ .Values.argo.serviceAccount.name }}
     namespace: {{ include "kfp-provider-workflows.namespace" . }}
 {{- end }}

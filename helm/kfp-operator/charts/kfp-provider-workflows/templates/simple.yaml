@@ -5,7 +5,7 @@ metadata:
   namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   ttlStrategy:
-    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
+    {{- .Values.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-name
@@ -13,8 +13,8 @@ spec:
     - name: resource-kind
     - name: resource-definition
   entrypoint: main
-  serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
-  {{- with .Values.manager.argo.securityContext }}
+  serviceAccountName: {{ .Values.argo.serviceAccount.name }}
+  {{- with .Values.argo.securityContext }}
   securityContext:
     {{- . | toYaml | nindent 4 }}
   {{- end }}
@@ -48,7 +48,7 @@ metadata:
   namespace: {{ include "kfp-provider-workflows.namespace" . }}
 spec:
   ttlStrategy:
-    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
+    {{- .Values.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-name
@@ -57,8 +57,8 @@ spec:
     - name: resource-id
     - name: resource-definition
   entrypoint: main
-  serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
-  {{- with .Values.manager.argo.securityContext }}
+  serviceAccountName: {{ .Values.argo.serviceAccount.name }}
+  {{- with .Values.argo.securityContext }}
   securityContext:
     {{- . | toYaml | nindent 4 }}
   {{- end }}

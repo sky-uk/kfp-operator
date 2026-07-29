@@ -6,32 +6,31 @@
 # namespace when left empty.
 namespace: ""
 
-# The Argo execution configuration. Mirrors manager.argo in the kfp-operator
-# chart so provider-namespace templates stay consistent with the operator.
-manager:
-  argo:
-    # Gates the workflow-executor Role and its RoleBinding. Set to false to
-    # manage these namespace-scoped resources externally.
-    rbac:
-      create: true
-    serviceAccount:
-      # ServiceAccount workflows run as. Created in the provider namespace.
-      name: "kfp-operator-argo"
-      # Whether to create the ServiceAccount. Set to false to reuse an
-      # existing one.
-      create: true
-      metadata: {}
-    containerDefaults: {}
+# The Argo execution configuration for the WorkflowTemplates rendered into the
+# provider namespace.
+argo:
+  # Gates the workflow-executor Role and its RoleBinding. Set to false to
+  # manage these namespace-scoped resources externally.
+  rbac:
+    create: true
+  serviceAccount:
+    # ServiceAccount workflows run as. Created in the provider namespace.
+    name: "kfp-operator-argo"
+    # Whether to create the ServiceAccount. Set to false to reuse an
+    # existing one.
+    create: true
     metadata: {}
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      fsGroup: 1000
-    ttlStrategy:
-      secondsAfterCompletion: 3600
-    stepTimeoutSeconds:
-      default: 300
-      compile: 1800
+  containerDefaults: {}
+  metadata: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  ttlStrategy:
+    secondsAfterCompletion: 3600
+  stepTimeoutSeconds:
+    default: 300
+    compile: 1800
 
 # The Provider resource this release provisions workflows for.
 provider:
