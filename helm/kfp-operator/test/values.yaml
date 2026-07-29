@@ -4,8 +4,6 @@ crds:
   create: true
   keep: false
 manager:
-  argo:
-    containerDefaults: {}
   monitoring:
     create: true
     rbacSecured: true
