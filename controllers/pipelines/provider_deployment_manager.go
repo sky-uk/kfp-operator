@@ -161,11 +161,14 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 		return envVars[a].Name < envVars[b].Name
 	})
 
+	podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, provider.Spec.PodTemplateVolumes...)
+
 	podTemplate.Spec.Containers = lo.Map(podTemplate.Spec.Containers, func(c corev1.Container, _ int) corev1.Container {
 		if c.Name == serviceContainerName {
 			c.Image = provider.Spec.ServiceImage
 			c.Env = append(c.Env, envVars...)
 			c.Env = mergeEnvByName(c.Env, provider.Spec.PodTemplateEnv)
+			c.VolumeMounts = append(c.VolumeMounts, provider.Spec.PodTemplateVolumeMounts...)
 		}
 		return c
 	})

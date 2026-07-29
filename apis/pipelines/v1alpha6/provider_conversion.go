@@ -57,6 +57,8 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 	dst.Spec.Frameworks = []hub.Framework{tfxFramework}
 	dst.Spec.AllowedNamespaces = remainderFromConvertFrom.AllowedNamespaces
 	dst.Spec.PodTemplateEnv = remainderFromConvertFrom.PodTemplateEnv
+	dst.Spec.PodTemplateVolumes = remainderFromConvertFrom.PodTemplateVolumes
+	dst.Spec.PodTemplateVolumeMounts = remainderFromConvertFrom.PodTemplateVolumeMounts
 
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
@@ -108,6 +110,8 @@ func (dst *Provider) ConvertFrom(srcRaw conversion.Hub) error {
 	remainder := ProviderConversionRemainder{}
 	remainder.AllowedNamespaces = src.Spec.AllowedNamespaces
 	remainder.PodTemplateEnv = src.Spec.PodTemplateEnv
+	remainder.PodTemplateVolumes = src.Spec.PodTemplateVolumes
+	remainder.PodTemplateVolumeMounts = src.Spec.PodTemplateVolumeMounts
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

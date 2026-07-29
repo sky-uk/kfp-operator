@@ -90,6 +90,8 @@ func RandomProviderSpec() ProviderSpec {
 		randomParameters[key] = &apiextensionsv1.JSON{Raw: []byte(`{"key1": "value1", "key2": 1234}`)}
 	}
 
+	volumeName := RandomLowercaseString()
+
 	return ProviderSpec{
 		ServiceImage:        "service-image",
 		ExecutionMode:       "none",
@@ -101,6 +103,16 @@ func RandomProviderSpec() ProviderSpec {
 		PodTemplateEnv: []corev1.EnvVar{{
 			Name:  RandomString(),
 			Value: RandomString(),
+		}},
+		PodTemplateVolumes: []corev1.Volume{{
+			Name: volumeName,
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		}},
+		PodTemplateVolumeMounts: []corev1.VolumeMount{{
+			Name:      volumeName,
+			MountPath: "/" + RandomLowercaseString(),
 		}},
 	}
 }
