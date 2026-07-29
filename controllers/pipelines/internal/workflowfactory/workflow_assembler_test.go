@@ -12,16 +12,16 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-var _ = Describe("CommonWorkflowMeta", func() {
+var _ = Describe("commonWorkflowMeta", func() {
 	It("creates metadata", func() {
 		owner := pipelineshub.RandomResource()
 		namespace := RandomString()
-		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
-			Config: config.ConfigSpec{
+		a := workflowAssembler{
+			config: config.ConfigSpec{
 				WorkflowNamespace: namespace,
 			},
 		}
-		meta := w.CommonWorkflowMeta(owner)
+		meta := a.commonWorkflowMeta(owner)
 
 		Expect(meta.Namespace).To(Equal(namespace))
 		Expect(meta.GetGenerateName()).To(Equal(owner.GetKind() + "-" + owner.GetName() + "-"))
@@ -34,12 +34,12 @@ var _ = Describe("CommonWorkflowMeta", func() {
 	It("uses config.WorkflowNamespace if set", func() {
 		owner := pipelineshub.RandomResource()
 		configuredNamespace := "configuredNamespace"
-		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
-			Config: config.ConfigSpec{
+		a := workflowAssembler{
+			config: config.ConfigSpec{
 				WorkflowNamespace: configuredNamespace,
 			},
 		}
-		meta := w.CommonWorkflowMeta(owner)
+		meta := a.commonWorkflowMeta(owner)
 
 		Expect(meta.Namespace).To(Equal(configuredNamespace))
 	})

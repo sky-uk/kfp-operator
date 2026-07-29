@@ -17,11 +17,11 @@ var RunConfigurationConstants = struct {
 	RunConfigurationNameLabelKey: apis.Group + "/runconfiguration.name",
 }
 
-type RunDefinitionCreator struct {
-	Config config.ConfigSpec
+type runDefinitionBuilder struct {
+	config config.ConfigSpec
 }
 
-func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipelineshub.Run) ([]pipelineshub.Patch, providers.RunDefinition, error) {
+func (b runDefinitionBuilder) build(run *pipelineshub.Run) (providers.RunDefinition, error) {
 	var experimentName common.NamespacedName
 	if run.Spec.ExperimentName != "" {
 		experimentName = common.NamespacedName{
@@ -31,12 +31,12 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 	}
 
 	if run.Status.Dependencies.Pipeline.Version == "" {
-		return nil, providers.RunDefinition{}, fmt.Errorf("unknown pipeline version")
+		return providers.RunDefinition{}, fmt.Errorf("unknown pipeline version")
 	}
 
 	namedValues, _, err := run.Spec.ResolveParameters(run.Status.Dependencies)
 	if err != nil {
-		return nil, providers.RunDefinition{}, err
+		return providers.RunDefinition{}, err
 	}
 
 	triggerIndicator := triggers.FromLabels(run.Labels)
@@ -65,18 +65,14 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 		}
 	}
 
-	return nil, runDefinition, nil
+	return runDefinition, nil
 }
 
 func RunWorkflowFactory(
 	config config.ConfigSpec,
-) *ResourceWorkflowFactory[*pipelineshub.Run, providers.RunDefinition] {
-	return &ResourceWorkflowFactory[*pipelineshub.Run, providers.RunDefinition]{
-		DefinitionCreator: RunDefinitionCreator{
-			Config: config,
-		}.runDefinition,
-		Config:                config,
-		TemplateSuffix:        SimpleSuffix,
-		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.Run],
+) WorkflowFactory[*pipelineshub.Run] {
+	return simpleWorkflowFactory[*pipelineshub.Run, providers.RunDefinition]{
+		assembler: workflowAssembler{config: config},
+		builder:   runDefinitionBuilder{config: config},
 	}
 }

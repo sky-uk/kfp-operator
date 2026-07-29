@@ -14,14 +14,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-type RunScheduleDefinitionCreator struct {
-	Config config.ConfigSpec
+type runScheduleDefinitionBuilder struct {
+	config config.ConfigSpec
 }
 
-func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
-	_ pipelineshub.Provider,
+func (b runScheduleDefinitionBuilder) build(
 	rs *pipelineshub.RunSchedule,
-) ([]pipelineshub.Patch, providers.RunScheduleDefinition, error) {
+) (providers.RunScheduleDefinition, error) {
 	var experimentName common.NamespacedName
 	if rs.Spec.ExperimentName != "" {
 		experimentName = common.NamespacedName{
@@ -30,7 +29,7 @@ func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
 		}
 	}
 
-	return nil, providers.RunScheduleDefinition{
+	return providers.RunScheduleDefinition{
 		Name: common.NamespacedName{
 			Name:      rs.ObjectMeta.Name,
 			Namespace: rs.Namespace,
@@ -79,13 +78,9 @@ func runConfigurationNameForRunSchedule(
 
 func RunScheduleWorkflowFactory(
 	config config.ConfigSpec,
-) *ResourceWorkflowFactory[*pipelineshub.RunSchedule, providers.RunScheduleDefinition] {
-	return &ResourceWorkflowFactory[*pipelineshub.RunSchedule, providers.RunScheduleDefinition]{
-		DefinitionCreator: RunScheduleDefinitionCreator{
-			Config: config,
-		}.runScheduleDefinition,
-		Config:                config,
-		TemplateSuffix:        SimpleSuffix,
-		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.RunSchedule],
+) WorkflowFactory[*pipelineshub.RunSchedule] {
+	return simpleWorkflowFactory[*pipelineshub.RunSchedule, providers.RunScheduleDefinition]{
+		assembler: workflowAssembler{config: config},
+		builder:   runScheduleDefinitionBuilder{config: config},
 	}
 }

@@ -53,9 +53,7 @@ var _ = Context("runConfigurationNameForRunSchedule", func() {
 	})
 })
 
-var _ = Describe("RunScheduleDefinitionCreator", func() {
-	provider := *pipelineshub.RandomProvider()
-
+var _ = Describe("runScheduleDefinitionBuilder", func() {
 	newRunSchedule := func() *pipelineshub.RunSchedule {
 		rs := pipelineshub.RandomRunSchedule(common.RandomNamespacedName())
 		rs.ObjectMeta = metav1.ObjectMeta{
@@ -65,15 +63,15 @@ var _ = Describe("RunScheduleDefinitionCreator", func() {
 		return rs
 	}
 
-	Context("runScheduleDefinition", func() {
-		creator := RunScheduleDefinitionCreator{Config: config.ConfigSpec{}}
+	Context("build", func() {
+		builder := runScheduleDefinitionBuilder{config: config.ConfigSpec{}}
 
 		When("the RunSchedule specifies an experiment name", func() {
 			It("sets the run schedule namespace on the experiment name", func() {
 				rs := newRunSchedule()
 				rs.Spec.ExperimentName = "myExperiment"
 
-				_, definition, err := creator.runScheduleDefinition(provider, rs)
+				definition, err := builder.build(rs)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(definition.ExperimentName).To(Equal(common.NamespacedName{
 					Name:      "myExperiment",
@@ -87,7 +85,7 @@ var _ = Describe("RunScheduleDefinitionCreator", func() {
 				rs := newRunSchedule()
 				rs.Spec.ExperimentName = ""
 
-				_, definition, err := creator.runScheduleDefinition(provider, rs)
+				definition, err := builder.build(rs)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(definition.ExperimentName).To(Equal(common.NamespacedName{}))
 			})
