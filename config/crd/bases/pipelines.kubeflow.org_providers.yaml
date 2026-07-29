@@ -383,8 +383,9 @@ spec:
                 type: array
               podTemplateVolumeMounts:
                 description: |-
-                  VolumeMounts added to the generated provider-service container, paired
-                  with PodTemplateVolumes by name.
+                  VolumeMounts applied to the generated provider-service container, merged
+                  over the operator's defaultProviderValues volume mounts; per-provider
+                  values take precedence on mount-path collision.
                 items:
                   description: VolumeMount describes a mounting of a Volume within
                     a container.
@@ -449,8 +450,9 @@ spec:
                 type: array
               podTemplateVolumes:
                 description: |-
-                  Volumes added to the generated provider-service pod, appended to the
-                  operator's defaultProviderValues volumes.
+                  Volumes applied to the generated provider-service pod, merged over the
+                  operator's defaultProviderValues volumes; per-provider values take
+                  precedence on name collision.
                 items:
                   description: Volume represents a named volume in a pod that may
                     be accessed by any container in the pod.
