@@ -161,14 +161,14 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 		return envVars[a].Name < envVars[b].Name
 	})
 
-	podTemplate.Spec.Volumes = append(podTemplate.Spec.Volumes, provider.Spec.PodTemplateVolumes...)
+	podTemplate.Spec.Volumes = mergeVolumesByName(podTemplate.Spec.Volumes, provider.Spec.PodTemplateVolumes)
 
 	podTemplate.Spec.Containers = lo.Map(podTemplate.Spec.Containers, func(c corev1.Container, _ int) corev1.Container {
 		if c.Name == serviceContainerName {
 			c.Image = provider.Spec.ServiceImage
 			c.Env = append(c.Env, envVars...)
 			c.Env = mergeEnvByName(c.Env, provider.Spec.PodTemplateEnv)
-			c.VolumeMounts = append(c.VolumeMounts, provider.Spec.PodTemplateVolumeMounts...)
+			c.VolumeMounts = mergeVolumeMountsByPath(c.VolumeMounts, provider.Spec.PodTemplateVolumeMounts)
 		}
 		return c
 	})
@@ -176,28 +176,41 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 	return &podTemplate, nil
 }
 
-// mergeEnvByName merges overrides into base, keyed on env var Name. Entries in
-// overrides replace base entries with the same name (preserving position) and are
-// otherwise appended, so per-provider env takes precedence on name collision.
-func mergeEnvByName(base []corev1.EnvVar, overrides []corev1.EnvVar) []corev1.EnvVar {
-	merged := make([]corev1.EnvVar, len(base))
+// mergeByKey merges overrides into base, keyed on the value returned by key.
+// Entries in overrides replace base entries with the same key (preserving position)
+// and are otherwise appended, so overrides take precedence on key collision.
+func mergeByKey[T any, K comparable](base []T, overrides []T, key func(T) K) []T {
+	merged := make([]T, len(base))
 	copy(merged, base)
 
-	indexByName := make(map[string]int, len(merged))
+	indexByKey := make(map[K]int, len(merged))
 	for i, e := range merged {
-		indexByName[e.Name] = i
+		indexByKey[key(e)] = i
 	}
 
 	for _, e := range overrides {
-		if i, ok := indexByName[e.Name]; ok {
+		k := key(e)
+		if i, ok := indexByKey[k]; ok {
 			merged[i] = e
 		} else {
-			indexByName[e.Name] = len(merged)
+			indexByKey[k] = len(merged)
 			merged = append(merged, e)
 		}
 	}
 
 	return merged
+}
+
+func mergeEnvByName(base []corev1.EnvVar, overrides []corev1.EnvVar) []corev1.EnvVar {
+	return mergeByKey(base, overrides, func(e corev1.EnvVar) string { return e.Name })
+}
+
+func mergeVolumesByName(base []corev1.Volume, overrides []corev1.Volume) []corev1.Volume {
+	return mergeByKey(base, overrides, func(v corev1.Volume) string { return v.Name })
+}
+
+func mergeVolumeMountsByPath(base []corev1.VolumeMount, overrides []corev1.VolumeMount) []corev1.VolumeMount {
+	return mergeByKey(base, overrides, func(m corev1.VolumeMount) string { return m.MountPath })
 }
 
 func jsonToString(jsonValue *apiextensionsv1.JSON) string {
