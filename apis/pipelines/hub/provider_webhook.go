@@ -73,20 +73,6 @@ func (v *ProviderValidator) validate(
 		}
 	}
 
-	volumeNames := make(map[string]struct{}, len(provider.Spec.PodTemplateVolumes))
-	for _, volume := range provider.Spec.PodTemplateVolumes {
-		volumeNames[volume.Name] = struct{}{}
-	}
-	for i, volumeMount := range provider.Spec.PodTemplateVolumeMounts {
-		if _, ok := volumeNames[volumeMount.Name]; !ok {
-			errs = append(errs, field.Invalid(
-				field.NewPath("spec", "podTemplateVolumeMounts").Index(i).Child("name"),
-				volumeMount.Name,
-				"volume mount does not reference a volume declared in podTemplateVolumes",
-			))
-		}
-	}
-
 	if len(errs) == 0 {
 		return nil, nil
 	}

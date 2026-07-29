@@ -86,39 +86,5 @@ var _ = Describe("ProviderValidator Webhook", func() {
 				Expect(causes).To(HaveLen(2))
 			})
 		})
-
-		When("every podTemplateVolumeMount references a declared podTemplateVolume", func() {
-			It("should not error", func() {
-				provider.Spec.PodTemplateVolumes = []corev1.Volume{
-					{Name: "kfp-sa-token"},
-				}
-				provider.Spec.PodTemplateVolumeMounts = []corev1.VolumeMount{
-					{Name: "kfp-sa-token", MountPath: "/var/run/secrets/kfp"},
-				}
-
-				warnings, err := validator.validate(&provider)
-				Expect(warnings).To(BeNil())
-				Expect(err).ToNot(HaveOccurred())
-			})
-		})
-
-		When("a podTemplateVolumeMount references an undeclared volume", func() {
-			It("should error", func() {
-				provider.Spec.PodTemplateVolumes = []corev1.Volume{
-					{Name: "declared"},
-				}
-				provider.Spec.PodTemplateVolumeMounts = []corev1.VolumeMount{
-					{Name: "declared", MountPath: "/a"},
-					{Name: "missing", MountPath: "/b"},
-				}
-
-				warnings, err := validator.validate(&provider)
-				Expect(warnings).To(BeNil())
-				Expect(apierrors.IsInvalid(err)).To(BeTrue())
-				causes := err.(*apierrors.StatusError).Status().Details.Causes
-				Expect(causes).To(HaveLen(1))
-				Expect(causes[0].Type).To(Equal(metav1.CauseTypeFieldValueInvalid))
-			})
-		})
 	})
 })
