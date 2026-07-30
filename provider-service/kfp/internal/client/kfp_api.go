@@ -10,8 +10,10 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"k8s.io/client-go/transport"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 )
@@ -87,11 +89,13 @@ const bearerTokenPath = "/var/run/secrets/kfp/token"
 // MultiUserTokenSource returns the bearer-token source for cfg and true when
 // multi-user mode is enabled, reading the projected token from the fixed
 // bearerTokenPath. It returns (nil, false) when multi-user mode is disabled.
-func MultiUserTokenSource(cfg config.Config) (auth.TokenSource, bool) {
+// The source caches the token and periodically reloads it so rotated projected
+// ServiceAccount tokens are picked up.
+func MultiUserTokenSource(cfg config.Config) (oauth2.TokenSource, bool) {
 	if !cfg.Parameters.KfpMultiUserMode {
 		return nil, false
 	}
-	return auth.NewFileTokenSource(bearerTokenPath), true
+	return transport.NewCachedFileTokenSource(bearerTokenPath), true
 }
 
 // GrpcDialOptions returns the gRPC dial options for connecting to the KFP API
