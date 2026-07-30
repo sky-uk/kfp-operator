@@ -78,6 +78,22 @@ type dialer func(
 	opts ...grpc.DialOption,
 ) (*grpc.ClientConn, error)
 
+// bearerTokenPath is the fixed path at which the KFP provider-service reads the
+// projected ServiceAccount token when running in multi-user mode. Provider
+// owners must mount their projected token at this path via the Provider CR's
+// podTemplateVolumes/podTemplateVolumeMounts.
+const bearerTokenPath = "/var/run/secrets/kfp/token"
+
+// MultiUserTokenSource returns the bearer-token source for cfg and true when
+// multi-user mode is enabled, reading the projected token from the fixed
+// bearerTokenPath. It returns (nil, false) when multi-user mode is disabled.
+func MultiUserTokenSource(cfg config.Config) (auth.TokenSource, bool) {
+	if !cfg.Parameters.KfpMultiUserMode {
+		return nil, false
+	}
+	return auth.NewFileTokenSource(bearerTokenPath), true
+}
+
 // GrpcDialOptions returns the gRPC dial options for connecting to the KFP API
 // with cfg: insecure transport credentials always, plus a bearer-token
 // credential read from the projected token when multi-user mode is enabled.
@@ -85,16 +101,14 @@ func GrpcDialOptions(cfg config.Config) []grpc.DialOption {
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
-	if cfg.Parameters.KfpMultiUserMode {
-		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
-		dialOptions = append(dialOptions, auth.BearerDialOptions(tokenSource)...)
+	if tokenSource, ok := MultiUserTokenSource(cfg); ok {
+		dialOptions = append(dialOptions, auth.BearerDialOption(tokenSource))
 	}
 	return dialOptions
 }
 
 func CreateKfpApi(ctx context.Context, cfg config.Config) (*GrpcKfpApi, error) {
-	if cfg.Parameters.KfpMultiUserMode {
-		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
+	if tokenSource, ok := MultiUserTokenSource(cfg); ok {
 		if _, err := tokenSource.Token(); err != nil {
 			return nil, fmt.Errorf("multi-user mode requires a readable bearer token: %w", err)
 		}

@@ -31,8 +31,7 @@ type KfpProvider struct {
 
 func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 	var authInfo runtime.ClientAuthInfoWriter
-	if cfg.Parameters.KfpMultiUserMode {
-		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
+	if tokenSource, ok := client.MultiUserTokenSource(*cfg); ok {
 		if _, err := tokenSource.Token(); err != nil {
 			return nil, fmt.Errorf("multi-user mode requires a readable bearer token: %w", err)
 		}

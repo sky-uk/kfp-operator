@@ -2,12 +2,6 @@ package config
 
 import "github.com/sky-uk/kfp-operator/pkg/common"
 
-// BearerTokenPath is the fixed path at which the KFP provider-service reads the
-// projected ServiceAccount token when running in multi-user mode. Provider
-// owners must mount their projected token at this path via the Provider CR's
-// podTemplateVolumes/podTemplateVolumeMounts.
-const BearerTokenPath = "/var/run/secrets/kfp/token"
-
 type Config struct {
 	ProviderName        common.NamespacedName `mapstructure:"providerName" yaml:"providerName"`
 	PipelineRootStorage string                `mapstructure:"pipelineRootStorage" yaml:"pipelineRootStorage"`
