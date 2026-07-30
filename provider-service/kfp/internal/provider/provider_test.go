@@ -592,3 +592,19 @@ var _ = Describe("Provider", func() {
 		})
 	})
 })
+
+var _ = Describe("NewKfpProvider", func() {
+	When("multi-user mode is enabled but no bearer token is mounted", func() {
+		It("returns an error before connecting", func() {
+			cfg := &config.Config{
+				Parameters: config.Parameters{
+					KfpMultiUserMode: true,
+				},
+			}
+			provider, err := NewKfpProvider(cfg)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("bearer token"))
+			Expect(provider).To(BeNil())
+		})
+	})
+})
