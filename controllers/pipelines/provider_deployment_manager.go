@@ -180,8 +180,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 // Entries in overrides replace base entries with the same key (preserving position)
 // and are otherwise appended, so overrides take precedence on key collision.
 func mergeByKey[T any, K comparable](base []T, overrides []T, key func(T) K) []T {
-	merged := make([]T, len(base))
-	copy(merged, base)
+	merged := slices.Clone(base)
 
 	indexByKey := make(map[K]int, len(merged))
 	for i, e := range merged {
