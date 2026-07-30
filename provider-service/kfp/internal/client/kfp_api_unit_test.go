@@ -87,8 +87,7 @@ var _ = Context("createKfpApi", func() {
 		}
 	}
 
-	// capturingDialer records the dial options it is given and returns a real
-	// (lazy, unconnected) client so construction succeeds without a backend.
+	// capturingDialer records the dial options and returns a lazy client.
 	var captured []grpc.DialOption
 	capturingDialer := func(
 		target string,

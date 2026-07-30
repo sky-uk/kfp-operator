@@ -73,26 +73,18 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	return resourceReferences, nil
 }
 
-// dialer is the subset of grpc.NewClient's signature used to open the
-// connection, so the real dialer can be swapped out (for example, in tests).
+// dialer matches grpc.NewClient so it can be swapped out in tests.
 type dialer func(
 	target string,
 	opts ...grpc.DialOption,
 ) (*grpc.ClientConn, error)
 
-// bearerTokenPath is the fixed path at which the KFP provider-service reads the
-// projected ServiceAccount token when running in multi-user mode. Provider
-// owners must mount their projected token at this path via the Provider CR's
-// podTemplateVolumes/podTemplateVolumeMounts.
+// bearerTokenPath is where the projected ServiceAccount token must be mounted
+// in multi-user mode.
 const bearerTokenPath = "/var/run/secrets/kfp/token"
 
-// MultiUserTokenSource returns the validated bearer-token source for cfg when
-// multi-user mode is enabled, or a nil source when it is disabled. In multi-user
-// mode it reads the projected token from the fixed bearerTokenPath once to fail
-// fast if the token is unreadable; the returned source caches the token and
-// periodically reloads it so rotated projected ServiceAccount tokens are picked
-// up. The same source should be reused for both the gRPC and REST credentials so
-// that a single cache is shared.
+// MultiUserTokenSource returns a validated, caching bearer-token source in
+// multi-user mode, or a nil source when it is disabled.
 func MultiUserTokenSource(cfg config.Config) (oauth2.TokenSource, error) {
 	if !cfg.Parameters.KfpMultiUserMode {
 		return nil, nil
@@ -104,9 +96,8 @@ func MultiUserTokenSource(cfg config.Config) (oauth2.TokenSource, error) {
 	return tokenSource, nil
 }
 
-// GrpcDialOptions returns the gRPC dial options for connecting to the KFP API:
-// insecure transport credentials always, plus a bearer-token credential when
-// tokenSource is non-nil (multi-user mode).
+// GrpcDialOptions returns the KFP gRPC dial options, adding a bearer
+// credential when tokenSource is non-nil.
 func GrpcDialOptions(tokenSource oauth2.TokenSource) []grpc.DialOption {
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),

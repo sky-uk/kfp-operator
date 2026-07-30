@@ -6,9 +6,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// BearerAuthInfoWriter returns a runtime.ClientAuthInfoWriter that sets the
-// "Authorization: Bearer <token>" header on go-openapi REST requests. The token
-// is read from source on each request so rotated tokens are picked up.
+// BearerAuthInfoWriter returns a runtime.ClientAuthInfoWriter that adds an
+// "Authorization: Bearer <token>" header to go-openapi REST requests.
 func BearerAuthInfoWriter(source oauth2.TokenSource) runtime.ClientAuthInfoWriter {
 	return runtime.ClientAuthInfoWriterFunc(
 		func(req runtime.ClientRequest, _ strfmt.Registry) error {

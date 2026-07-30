@@ -19,14 +19,12 @@ func TestAuth(t *testing.T) {
 	RunSpecs(t, "Auth Unit Suite")
 }
 
-// staticTokenSource returns a fixed token, for credential tests.
 type staticTokenSource struct{ token string }
 
 func (s staticTokenSource) Token() (*oauth2.Token, error) {
 	return &oauth2.Token{AccessToken: s.token}, nil
 }
 
-// errorTokenSource always fails, to exercise error propagation.
 type errorTokenSource struct{}
 
 func (errorTokenSource) Token() (*oauth2.Token, error) {
