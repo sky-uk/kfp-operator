@@ -6,6 +6,11 @@ fullnameOverride: ""
 
 containerRegistry: "ghcr.io/kfp-operator"
 
+# The kfp-provider-workflows subchart is installed independently, one release per
+# provider namespace, and is disabled when installing the operator chart.
+kfp-provider-workflows:
+  enabled: false
+
 crds:
   create: true
   keep: true
@@ -34,21 +39,6 @@ manager:
     enabled: true
     id: "kfp-operator-lock"
   configuration: {}
-  argo:
-    serviceAccount:
-      name: "kfp-operator-argo"
-      create: true
-    containerDefaults: {}
-    metadata: {}
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      fsGroup: 1000
-    ttlStrategy:
-      secondsAfterCompletion: 3600
-    stepTimeoutSeconds:
-      default: 300
-      compile: 1800
   monitoring:
     create: false
     rbacSecured: false

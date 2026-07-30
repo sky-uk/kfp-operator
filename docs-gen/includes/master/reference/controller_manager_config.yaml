@@ -4,8 +4,11 @@ system:
     id: kfp-operator-lock
 spec:
   multiversion: true
+  # Deprecated: no longer controls where workflows run; workflows always
+  # execute in their Provider's namespace. Retained only to seed the legacy
+  # v1alpha6 DefaultProviderNamespace conversion default and will be removed
+  # together with v1alpha6.
   workflowNamespace: kfp-operator-system
-  workflowTemplatePrefix: kfp-operator-
   runCompletionFeed:
     port: 8082
     endpoints: []

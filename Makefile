@@ -70,7 +70,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
 	kubectl apply -n argo -f config/testing/provider-deployment.yaml
 	kubectl wait -n argo deployment/provider-test --for condition=available --timeout=5m
 	kubectl apply -n argo -f config/testing/provider-service.yaml
-	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
+	$(HELM) template kfp-operator-integration-tests helm/kfp-operator/charts/kfp-provider-workflows --values config/testing/integration-test-workflows-values.yaml | \
  		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
  		kubectl apply -f -
 	go test ./controllers/pipelines/internal/workflowfactory/... -tags=integration --timeout 20m
@@ -153,16 +153,33 @@ kustomize: ## Download kustomize locally if necessary.
 helm-package-operator: helm-cmd helm-test-operator ## Package and test operator helm-chart
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-package: helm-package-operator ## Package operator helm-chart
+helm-package: helm-package-operator helm-package-workflows ## Package operator and per-provider workflows helm-charts
 
-helm-install-operator: helm-package-operator values.yaml ## Install operator
-	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+helm-install-operator: helm-package-operator values.yaml ## Install operator (upgrades if already installed)
+	$(HELM) upgrade --install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
 helm-uninstall-operator: ## Uninstall operator
 	$(HELM) uninstall kfp-operator
 
 helm-upgrade-operator: helm-package-operator values.yaml ## Upgrade operator with helm chart
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+
+# Per-provider workflows chart. Installed as an independent release, one per
+# provider namespace. Override on the command line, e.g.:
+#   make helm-install-workflows WORKFLOWS_RELEASE=kfp WORKFLOWS_NAMESPACE=kfp WORKFLOWS_VALUES=my-values.yaml
+WORKFLOWS_RELEASE ?= kfp-provider-workflows
+WORKFLOWS_NAMESPACE ?= $(WORKFLOWS_RELEASE)
+WORKFLOWS_VALUES ?=
+helm-package-workflows: helm-cmd ## Package the per-provider workflows helm-chart
+	$(HELM) package helm/kfp-operator/charts/kfp-provider-workflows --version $(VERSION) --app-version $(VERSION) -d dist
+
+helm-install-workflows: helm-package-workflows ## Install the workflows chart into a provider namespace
+	$(HELM) upgrade --install $(WORKFLOWS_RELEASE) dist/kfp-provider-workflows-$(VERSION).tgz \
+		--namespace $(WORKFLOWS_NAMESPACE) --create-namespace \
+		$(if $(WORKFLOWS_VALUES),-f $(WORKFLOWS_VALUES),)
+
+helm-uninstall-workflows: ## Uninstall the workflows chart from a provider namespace
+	$(HELM) uninstall $(WORKFLOWS_RELEASE) --namespace $(WORKFLOWS_NAMESPACE)
 
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
 helm-publish:
@@ -176,13 +193,15 @@ helm-publish:: helm-package ## Publish Helm chart to repositories
 	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES),$(call helm-upload,$(url)))
 
 define helm-upload
-@echo "Publishing Helm chart to $(1)"
+@echo "Publishing Helm charts to $(1)"
 @if echo "$(1)" | grep -q "^oci://"; then \
 	echo "Using Helm OCI push"; \
 	helm push dist/kfp-operator-$(VERSION).tgz $(1); \
+	helm push dist/kfp-provider-workflows-$(VERSION).tgz $(1); \
 else \
 	echo "Using curl upload"; \
 	curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz "$(1)"; \
+	curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-provider-workflows-$(VERSION).tgz "$(1)"; \
 fi
 $(NEWLINE)
 endef

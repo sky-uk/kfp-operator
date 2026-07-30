@@ -57,7 +57,6 @@ Populate configuration with fallbacks and overrides.
 workflowNamespace: {{ .Values.namespace.name }}
 {{- end }}
 {{- define "configurationOverrides" -}}
-workflowTemplatePrefix: {{ include "kfp-operator.fullname" . }}-
 {{- if .Values.manager.multiversion.enabled }}
 multiversion: true
 {{- end -}}
@@ -67,6 +66,6 @@ multiversion: true
 {{ merge (include "configurationOverrides" . | fromYaml) .Values.manager.configuration (include "fallbackConfiguration" . | fromYaml) | toYaml }}
 {{- end }}
 
-{{- define "kfp-operator.argoNamespace" -}}
-{{- (include "kfp-operator.configuration" . | fromYaml).workflowNamespace -}}
+{{- define "kfp-operator.eventBusNamespace" -}}
+{{- .Values.namespace.name -}}
 {{- end -}}

@@ -1,0 +1,48 @@
+{{- if .Values.argo.serviceAccount.create }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.argo.serviceAccount.name }}
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
+{{- with .Values.argo.serviceAccount.metadata }}
+  {{ . | toYaml | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- if .Values.argo.rbac.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: workflow-executor
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - patch
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflowtaskresults
+    verbs:
+      - create
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: workflow-executor
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: workflow-executor
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.argo.serviceAccount.name }}
+    namespace: {{ include "kfp-provider-workflows.namespace" . }}
+{{- end }}

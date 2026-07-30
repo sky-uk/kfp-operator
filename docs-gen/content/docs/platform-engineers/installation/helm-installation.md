@@ -282,8 +282,63 @@ Please refer to your chosen provider instructions before proceeding. Supported p
 
 To install your chosen provider, create a [Provider resource](../../reference/resources/provider) in a namespace that the operator can access (see the [rbac setup below]({{< ref "#provider-rbac" >}}) for reference). Once it is applied the Provider controller will reconcile and create the Provider Deployment and Provider Service within the same namespace that the Provider resource was applied.
 
+### Provider workflows {#provider-workflows}
+
+The operator runs resource-management Argo `Workflow`s in the **same namespace as the `Provider`** they belong to, so that each provider is isolated from the others. Argo cannot reference a `WorkflowTemplate` across namespaces, therefore every provider namespace must contain its own copy of the `WorkflowTemplate`s and the execution RBAC (`ServiceAccount`, `Role` and `RoleBinding`) the workflows run with.
+
+These per-namespace resources are provisioned by the `kfp-provider-workflows` chart, which is installed **once per provider namespace**. Install one release for each namespace in which you create a `Provider`:
+
+```sh
+helm install <release-name> ./helm/kfp-operator/charts/kfp-provider-workflows \
+  --namespace <provider-namespace> \
+  --set namespace=<provider-namespace>
+```
+
+By default the chart also creates the `Provider` resource. Provide its required spec fields, or set `provider.create=false` to manage the `Provider` yourself:
+
+```sh
+helm install <release-name> ./helm/kfp-operator/charts/kfp-provider-workflows \
+  --namespace <provider-namespace> \
+  --set namespace=<provider-namespace> \
+  --set provider.name=<provider-name> \
+  --set provider.serviceImage=<provider-service-image> \
+  --set provider.pipelineRootStorage=<pipeline-root-storage>
+```
+
+The most relevant values are:
+
+| Value | Description | Default |
+|-------|-------------|---------|
+| `namespace` | Namespace the `WorkflowTemplate`s, RBAC and `Provider` are created in. Must match the `Provider` namespace. Defaults to the release namespace when empty. | `""` |
+| `manager.argo.serviceAccount.name` | `ServiceAccount` the workflows run as. Created in the provider namespace. | `kfp-operator-argo` |
+| `manager.argo.serviceAccount.create` | Whether to create the `ServiceAccount`. Set to `false` to reuse an existing one. | `true` |
+| `manager.argo.rbac.create` | Whether to create the namespace-scoped `workflow-executor` `Role` and its `RoleBinding`. Set to `false` to manage these resources externally. | `true` |
+| `provider.create` | Whether the chart also renders the `Provider` resource. | `true` |
+| `provider.name` | `Provider` resource name. Defaults to the release name when empty. | `""` |
+| `provider.serviceImage` | Provider service image. Required when `provider.create` is `true`. | `""` |
+| `provider.serviceAccount.name` | Provider service `ServiceAccount`, created in the provider namespace and referenced by the `Provider` spec. Defaults to `kfp-provider-<provider-name>` when empty. Its cluster-scoped viewer/eventing bindings are managed externally. | `""` |
+| `provider.serviceAccount.create` | Whether to create the provider service `ServiceAccount`. Set to `false` to reuse an existing one. | `true` |
+| `provider.pipelineRootStorage` | Pipeline root storage location. Required when `provider.create` is `true`. | `""` |
+
+The Argo execution values (`manager.argo.ttlStrategy`, `manager.argo.stepTimeoutSeconds`, `manager.argo.securityContext`, `manager.argo.containerDefaults` and `manager.argo.metadata`) mirror those of the operator chart and default to the same values. Override them per release if a provider namespace needs different workflow behaviour.
+
+**Note:** because workflows now run in the provider namespace, the artifact-repository credentials `Secret` that your Argo `workflow-controller` references (the `accessKeySecret`/`secretKeySecret` in its `artifactRepository` configuration — for example the MinIO/S3 secret) **must exist in each provider namespace**. Argo resolves that `Secret` in the namespace the workflow pods run in, so a copy that only lives in the Argo or operator namespace is not sufficient. The `kfp-provider-workflows` chart does **not** manage this `Secret` — it holds credentials owned by the platform team — so you must create it in every provider namespace yourself.
+
+#### What the chart provisions {#provider-workflows-resources}
+
+The `kfp-provider-workflows` chart provisions **only namespace-scoped resources** — everything a provider needs to operate *inside its own namespace*. Cluster-scoped resources are deliberately left to the platform team (see [Cluster-scoped RBAC](#provider-rbac) below). A single release renders:
+
+| Resource | Kind | Gated by | Purpose |
+|----------|------|----------|---------|
+| `common-steps`, `create-simple`, `update-simple`, `create-compiled`, `update-compiled`, `compiled-workflow-steps`, `delete` | `WorkflowTemplate` | always | The resource-management workflow definitions the operator invokes. |
+| `kfp-operator-argo` | `ServiceAccount` | `manager.argo.serviceAccount.create` | The account the Argo `Workflow` pods run as. |
+| `workflow-executor` | `Role` + `RoleBinding` | `manager.argo.rbac.create` | Grants the Argo workflow account the in-namespace permissions its steps need (`pods` get/patch, `workflowtaskresults` create/patch). Bound to the Argo workflow `ServiceAccount`. |
+| `kfp-provider-<provider-name>` | `ServiceAccount` | `provider.create` and `provider.serviceAccount.create` | The account the provider service runs as; referenced by the `Provider` spec. |
+| `<provider-name>` | `Provider` | `provider.create` | The `Provider` custom resource itself. |
+
 ## Role-based access control (RBAC) for providers {#provider-rbac}
-When using a provider, you should create the necessary `ServiceAccount`, `RoleBinding` and `ClusterRoleBinding` resources required for the providers being used.
+
+The namespace-scoped RBAC above is handled by the chart. The resources in this section are **cluster-scoped** and are therefore **not** created by the chart — you must create them once (they are shared across provider namespaces). If you are not using the chart at all, see [Deploying without Helm](#provider-without-helm) for the complete list including the namespace-scoped resources.
 
 In order for Event Source Servers and the Controller to read the Providers you must configure their service accounts
 to have read permissions of Provider resources. e.g:
@@ -306,55 +361,38 @@ subjects:
   namespace: kfp-operator-system
 ```
 
-An example configuration for Providers is also provided below for reference:
+The provider service account itself (`kfp-provider-<provider-name>` by default) is created by the chart in the provider namespace. It still needs cluster-scoped read access to `RunConfiguration` and `Run` resources, granted by binding it to the `ClusterRole`s the operator ships. Create one `ClusterRoleBinding` per provider service account (replace `kfp-provider-example` and `kfp-namespace` with your values):
+
 ```yaml
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: kfp-operator-kfp-service-account
-  namespace: kfp-namespace
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kfp-operator-kfp-runconfiguration-viewer-rolebinding
+  name: kfp-operator-example-runconfiguration-viewer-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: kfp-operator-runconfiguration-viewer-role
 subjects:
 - kind: ServiceAccount
-  name: kfp-operator-kfp-service-account
+  name: kfp-provider-example
   namespace: kfp-namespace
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kfp-operator-kfp-run-viewer-rolebinding
+  name: kfp-operator-example-run-viewer-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: kfp-operator-run-viewer-role
 subjects:
 - kind: ServiceAccount
-  name: kfp-operator-kfp-service-account
-  namespace: kfp-namespace
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: kfp-operator-provider-workflow-executor
-  namespace: kfp-namespace
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: kfp-operator-workflow-executor
-subjects:
-- kind: ServiceAccount
-  name: kfp-operator-kfp-service-account
+  name: kfp-provider-example
   namespace: kfp-namespace
 ```
+
+**Note:** the `workflow-executor` `Role`/`RoleBinding` and the Argo workflow `ServiceAccount` are namespace-scoped and are created for you by the `kfp-provider-workflows` chart. You only need to author them manually when [deploying without Helm](#provider-without-helm).
 
 ## Kubeflow completion eventing required RBACs
 If using the `Kubeflow Pipelines` Provider you will also need a `ClusterRole` for permission to interact with argo workflows for the
@@ -388,6 +426,78 @@ roleRef:
   name: kfp-operator-kfp-eventsource-server-role
 subjects:
 - kind: ServiceAccount
-  name:  kfp-operator-kfp-service-account
-  namespace:  kfp-operator-namespace
+  name: kfp-provider-example
+  namespace: kfp-namespace
 ```
+
+## Deploying without Helm {#provider-without-helm}
+
+If you do not use the `kfp-provider-workflows` chart, you are responsible for creating **every** resource a provider needs yourself. Because Argo cannot reference a `WorkflowTemplate` across namespaces, the namespace-scoped resources must be recreated **once per provider namespace**, while the cluster-scoped resources are created **once per cluster** and shared.
+
+### Namespace-scoped resources (once per provider namespace)
+
+These are the resources the chart would otherwise create. All of them live in the provider's namespace.
+
+| Resource | Kind | Purpose |
+|----------|------|---------|
+| `common-steps`, `create-simple`, `update-simple`, `create-compiled`, `update-compiled`, `compiled-workflow-steps`, `delete` | `WorkflowTemplate` | The resource-management workflow definitions. Copy them from [`helm/kfp-operator/charts/kfp-provider-workflows/templates`](https://github.com/sky-uk/kfp-operator/tree/master/helm/kfp-operator/charts/kfp-provider-workflows/templates) into the provider namespace. They must keep these exact names — the operator references them statically. |
+| Argo workflow `ServiceAccount` | `ServiceAccount` | The account the Argo `Workflow` pods run as. |
+| `workflow-executor` | `Role` | Grants the Argo workflow account `pods` (get, patch) and `argoproj.io/workflowtaskresults` (create, patch). |
+| `workflow-executor` | `RoleBinding` | Binds the `workflow-executor` `Role` to the Argo workflow `ServiceAccount`. |
+| Provider service `ServiceAccount` | `ServiceAccount` | The account the provider service runs as; referenced by the `Provider` spec. |
+| `Provider` | `Provider` | The provider custom resource. |
+| Artifact-repository credentials | `Secret` | The `accessKeySecret`/`secretKeySecret` referenced by the Argo `workflow-controller`'s `artifactRepository` configuration (for example the MinIO/S3 secret). Argo resolves it in the namespace the workflow pods run in, so a copy must exist in each provider namespace. Not managed by the chart in the Helm path either. |
+
+Example of the namespace-scoped RBAC (replace `argo-workflow-sa`, `kfp-provider-example` and `kfp-namespace` with your values):
+
+```yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-workflow-sa
+  namespace: kfp-namespace
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kfp-provider-example
+  namespace: kfp-namespace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: workflow-executor
+  namespace: kfp-namespace
+rules:
+- apiGroups: [""]
+  resources: [pods]
+  verbs: [get, patch]
+- apiGroups: [argoproj.io]
+  resources: [workflowtaskresults]
+  verbs: [create, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: workflow-executor
+  namespace: kfp-namespace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: workflow-executor
+subjects:
+- kind: ServiceAccount
+  name: argo-workflow-sa
+  namespace: kfp-namespace
+```
+
+### Cluster-scoped resources (once per cluster)
+
+These are shared across all provider namespaces and are the same resources described in [RBAC for providers](#provider-rbac) and [Kubeflow completion eventing](#kubeflow-completion-eventing-required-rbacs) above:
+
+- The `providers-viewer` `ClusterRoleBinding` for the Event Source Server and Controller service accounts.
+- A `run-viewer` and a `runconfiguration-viewer` `ClusterRoleBinding` per provider service account.
+- For the `Kubeflow Pipelines` provider only, the eventing `ClusterRole` and `ClusterRoleBinding`.
+
+The `providers-viewer-role`, `run-viewer-role` and `runconfiguration-viewer-role` `ClusterRole`s are installed by the operator chart; when deploying the operator without Helm you must create these too (see [`helm/kfp-operator/templates/rbac`](https://github.com/sky-uk/kfp-operator/tree/master/helm/kfp-operator/templates/rbac)).

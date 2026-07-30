@@ -15,7 +15,7 @@ type StubbedWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (sw StubbedWorkflows) GetByLabels(_ context.Context, _ map[string]string) []argo.Workflow {
+func (sw StubbedWorkflows) GetByLabels(_ context.Context, _ map[string]string, _ string) []argo.Workflow {
 	return sw.Workflows
 }
 
