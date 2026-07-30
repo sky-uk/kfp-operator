@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -92,6 +93,12 @@ func GrpcDialOptions(cfg config.Config) []grpc.DialOption {
 }
 
 func CreateKfpApi(ctx context.Context, cfg config.Config) (*GrpcKfpApi, error) {
+	if cfg.Parameters.KfpMultiUserMode {
+		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
+		if _, err := tokenSource.Token(); err != nil {
+			return nil, fmt.Errorf("multi-user mode requires a readable bearer token: %w", err)
+		}
+	}
 	return createKfpApi(ctx, cfg, grpc.NewClient)
 }
 
