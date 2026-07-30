@@ -87,7 +87,7 @@ func GrpcDialOptions(cfg config.Config) []grpc.DialOption {
 	}
 	if cfg.Parameters.KfpMultiUserMode {
 		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
-		dialOptions = append(dialOptions, auth.GrpcDialOptions(tokenSource)...)
+		dialOptions = append(dialOptions, auth.BearerDialOptions(tokenSource)...)
 	}
 	return dialOptions
 }

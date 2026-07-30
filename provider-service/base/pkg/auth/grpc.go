@@ -35,9 +35,9 @@ func (c *BearerCredentials) RequireTransportSecurity() bool {
 	return false
 }
 
-// GrpcDialOptions returns dial options that attach a bearer token from source
+// BearerDialOptions returns dial options that attach a bearer token from source
 // to every outgoing gRPC call.
-func GrpcDialOptions(source TokenSource) []grpc.DialOption {
+func BearerDialOptions(source TokenSource) []grpc.DialOption {
 	cred := NewBearerCredentials(source)
 	return []grpc.DialOption{grpc.WithPerRPCCredentials(cred)}
 }
