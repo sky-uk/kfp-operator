@@ -63,6 +63,7 @@ spec:
     grpcMetadataStoreAddress: metadata-grpc-service.kubeflow:8080
     kfpNamespace: kubeflow
     restKfpApiUrl: http://ml-pipeline.kubeflow:8888
+    kfpMultiUserMode: true
   frameworks:
   - name: tfx
     image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
@@ -108,6 +109,7 @@ spec:
 | `parameters.kfpNamespace`             | The namespace where Kubeflow is deployed                                  |
 | `parameters.restKfpApiUrl`            | The exposed restful endpoint used to interact with Kubeflow pipelines     |
 | `parameters.defaultExperiment`        | Experiment name used for runs and run-schedules that do not specify one   |
+| `parameters.kfpMultiUserMode`         | Enables Kubeflow Pipelines multi-user mode. When `true`, a bearer token must be supplied as a projected `ServiceAccount` token mounted at `/var/run/secrets/kfp/token` (as shown in the `podTemplateVolumes` / `podTemplateVolumeMounts` above). Defaults to `false`. |
 
 ### Vertex AI
 
