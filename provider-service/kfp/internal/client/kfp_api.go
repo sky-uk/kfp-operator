@@ -86,43 +86,49 @@ type dialer func(
 // podTemplateVolumes/podTemplateVolumeMounts.
 const bearerTokenPath = "/var/run/secrets/kfp/token"
 
-// MultiUserTokenSource returns the bearer-token source for cfg and true when
-// multi-user mode is enabled, reading the projected token from the fixed
-// bearerTokenPath. It returns (nil, false) when multi-user mode is disabled.
-// The source caches the token and periodically reloads it so rotated projected
-// ServiceAccount tokens are picked up.
-func MultiUserTokenSource(cfg config.Config) (oauth2.TokenSource, bool) {
+// MultiUserTokenSource returns the validated bearer-token source for cfg when
+// multi-user mode is enabled, or a nil source when it is disabled. In multi-user
+// mode it reads the projected token from the fixed bearerTokenPath once to fail
+// fast if the token is unreadable; the returned source caches the token and
+// periodically reloads it so rotated projected ServiceAccount tokens are picked
+// up. The same source should be reused for both the gRPC and REST credentials so
+// that a single cache is shared.
+func MultiUserTokenSource(cfg config.Config) (oauth2.TokenSource, error) {
 	if !cfg.Parameters.KfpMultiUserMode {
-		return nil, false
+		return nil, nil
 	}
-	return transport.NewCachedFileTokenSource(bearerTokenPath), true
+	tokenSource := transport.NewCachedFileTokenSource(bearerTokenPath)
+	if _, err := tokenSource.Token(); err != nil {
+		return nil, fmt.Errorf("multi-user mode requires a readable bearer token: %w", err)
+	}
+	return tokenSource, nil
 }
 
-// GrpcDialOptions returns the gRPC dial options for connecting to the KFP API
-// with cfg: insecure transport credentials always, plus a bearer-token
-// credential read from the projected token when multi-user mode is enabled.
-func GrpcDialOptions(cfg config.Config) []grpc.DialOption {
+// GrpcDialOptions returns the gRPC dial options for connecting to the KFP API:
+// insecure transport credentials always, plus a bearer-token credential when
+// tokenSource is non-nil (multi-user mode).
+func GrpcDialOptions(tokenSource oauth2.TokenSource) []grpc.DialOption {
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
-	if tokenSource, ok := MultiUserTokenSource(cfg); ok {
+	if tokenSource != nil {
 		dialOptions = append(dialOptions, auth.BearerDialOption(tokenSource))
 	}
 	return dialOptions
 }
 
 func CreateKfpApi(ctx context.Context, cfg config.Config) (*GrpcKfpApi, error) {
-	if tokenSource, ok := MultiUserTokenSource(cfg); ok {
-		if _, err := tokenSource.Token(); err != nil {
-			return nil, fmt.Errorf("multi-user mode requires a readable bearer token: %w", err)
-		}
+	tokenSource, err := MultiUserTokenSource(cfg)
+	if err != nil {
+		return nil, err
 	}
-	return createKfpApi(ctx, cfg, grpc.NewClient)
+	return createKfpApi(ctx, cfg, tokenSource, grpc.NewClient)
 }
 
 func createKfpApi(
 	ctx context.Context,
 	cfg config.Config,
+	tokenSource oauth2.TokenSource,
 	dial dialer,
 ) (*GrpcKfpApi, error) {
 	logger := logr.FromContextOrDiscard(ctx)
@@ -130,7 +136,7 @@ func createKfpApi(
 	kfpApi, err := connectToKfpApi(
 		dial,
 		cfg.Parameters.GrpcKfpApiAddress,
-		GrpcDialOptions(cfg)...,
+		GrpcDialOptions(tokenSource)...,
 	)
 	if err != nil {
 		logger.Error(err, "failed to connect to Kubeflow API", "address", cfg.Parameters.GrpcKfpApiAddress)

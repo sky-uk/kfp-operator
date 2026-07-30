@@ -30,11 +30,13 @@ type KfpProvider struct {
 }
 
 func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
+	tokenSource, err := client.MultiUserTokenSource(*cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	var authInfo runtime.ClientAuthInfoWriter
-	if tokenSource, ok := client.MultiUserTokenSource(*cfg); ok {
-		if _, err := tokenSource.Token(); err != nil {
-			return nil, fmt.Errorf("multi-user mode requires a readable bearer token: %w", err)
-		}
+	if tokenSource != nil {
 		authInfo = auth.BearerAuthInfoWriter(tokenSource)
 	}
 
@@ -48,7 +50,7 @@ func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 
 	conn, err := grpc.NewClient(
 		cfg.Parameters.GrpcKfpApiAddress,
-		client.GrpcDialOptions(*cfg)...,
+		client.GrpcDialOptions(tokenSource)...,
 	)
 	if err != nil {
 		return nil, err

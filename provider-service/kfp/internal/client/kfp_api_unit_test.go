@@ -11,6 +11,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"golang.org/x/oauth2"
 	"google.golang.org/grpc"
 
 	"github.com/sky-uk/kfp-operator/pkg/common"
@@ -78,11 +79,10 @@ var _ = Context("KFP API", func() {
 })
 
 var _ = Context("createKfpApi", func() {
-	newConfig := func(multiUser bool) config.Config {
+	newConfig := func() config.Config {
 		return config.Config{
 			Parameters: config.Parameters{
 				GrpcKfpApiAddress: "ml-pipeline:8887",
-				KfpMultiUserMode:  multiUser,
 			},
 		}
 	}
@@ -102,11 +102,12 @@ var _ = Context("createKfpApi", func() {
 		captured = nil
 	})
 
-	When("multi-user mode is enabled", func() {
+	When("a bearer token source is provided", func() {
 		It("attaches the bearer credential dial option", func() {
 			kfpApi, err := createKfpApi(
 				context.Background(),
-				newConfig(true),
+				newConfig(),
+				oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "token"}),
 				capturingDialer,
 			)
 			Expect(err).ToNot(HaveOccurred())
@@ -116,11 +117,12 @@ var _ = Context("createKfpApi", func() {
 		})
 	})
 
-	When("multi-user mode is disabled", func() {
+	When("no bearer token source is provided", func() {
 		It("attaches no auth dial option", func() {
 			kfpApi, err := createKfpApi(
 				context.Background(),
-				newConfig(false),
+				newConfig(),
+				nil,
 				capturingDialer,
 			)
 			Expect(err).ToNot(HaveOccurred())
