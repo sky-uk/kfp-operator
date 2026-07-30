@@ -311,6 +311,96 @@ var _ = Context("Provider Deployment Manager", func() {
 			Expect(configEnv.ValueFrom.ConfigMapKeyRef.Key).To(Equal("setting"))
 		})
 
+		Specify("Should append PodTemplateVolumes to the pod and PodTemplateVolumeMounts to the service container", func() {
+			provider.Spec.Parameters = nil
+			provider.Spec.PodTemplateEnv = nil
+			provider.Spec.PodTemplateVolumes = []corev1.Volume{{
+				Name: "kfp-sa-token",
+				VolumeSource: corev1.VolumeSource{
+					Projected: &corev1.ProjectedVolumeSource{
+						Sources: []corev1.VolumeProjection{{
+							ServiceAccountToken: &corev1.ServiceAccountTokenProjection{
+								Path:     "token",
+								Audience: "pipelines.kubeflow.org",
+							},
+						}},
+					},
+				},
+			}}
+			provider.Spec.PodTemplateVolumeMounts = []corev1.VolumeMount{{
+				Name:      "kfp-sa-token",
+				MountPath: "/var/run/secrets/kfp",
+				ReadOnly:  true,
+			}}
+
+			deployment, err := deploymentManager.Construct(provider)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.Spec.Template.Spec.Volumes).To(Equal(provider.Spec.PodTemplateVolumes))
+			Expect(deployment.Spec.Template.Spec.Containers[0].VolumeMounts).To(Equal(provider.Spec.PodTemplateVolumeMounts))
+		})
+
+		Specify("Should merge PodTemplateVolumes with per-provider precedence over default volumes on name collision", func() {
+			deploymentManager.config.DefaultProviderValues.PodTemplateSpec.Spec.Volumes = []corev1.Volume{
+				{Name: "global", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+				{Name: "shared", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+			}
+
+			provider.Spec.Parameters = nil
+			provider.Spec.PodTemplateEnv = nil
+			provider.Spec.PodTemplateVolumeMounts = nil
+			provider.Spec.PodTemplateVolumes = []corev1.Volume{
+				{Name: "shared", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/data"}}},
+				{Name: "custom", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+			}
+
+			deployment, err := deploymentManager.Construct(provider)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.Spec.Template.Spec.Volumes).To(Equal([]corev1.Volume{
+				{Name: "global", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+				{Name: "shared", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/data"}}},
+				{Name: "custom", VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
+			}))
+		})
+
+		Specify("Should merge PodTemplateVolumeMounts with per-provider precedence over default mounts on path collision", func() {
+			deploymentManager.config.DefaultProviderValues.PodTemplateSpec.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{
+				{Name: "global", MountPath: "/global"},
+				{Name: "shared", MountPath: "/shared"},
+			}
+
+			provider.Spec.Parameters = nil
+			provider.Spec.PodTemplateEnv = nil
+			provider.Spec.PodTemplateVolumes = nil
+			provider.Spec.PodTemplateVolumeMounts = []corev1.VolumeMount{
+				{Name: "shared-override", MountPath: "/shared", ReadOnly: true},
+				{Name: "custom", MountPath: "/custom"},
+			}
+
+			deployment, err := deploymentManager.Construct(provider)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.Spec.Template.Spec.Containers[0].VolumeMounts).To(Equal([]corev1.VolumeMount{
+				{Name: "global", MountPath: "/global"},
+				{Name: "shared-override", MountPath: "/shared", ReadOnly: true},
+				{Name: "custom", MountPath: "/custom"},
+			}))
+		})
+
+		Specify("Should not add any volumes or mounts when PodTemplateVolumes and PodTemplateVolumeMounts are unset", func() {
+			provider.Spec.Parameters = nil
+			provider.Spec.PodTemplateEnv = nil
+			provider.Spec.PodTemplateVolumes = nil
+			provider.Spec.PodTemplateVolumeMounts = nil
+
+			deployment, err := deploymentManager.Construct(provider)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(deployment.Spec.Template.Spec.Volumes).To(BeEmpty())
+			Expect(deployment.Spec.Template.Spec.Containers[0].VolumeMounts).To(BeEmpty())
+		})
+
 		Specify("Should return an error if the no container with matching ServiceContainerName exists", func() {
 			deploymentManager.config.DefaultProviderValues.PodTemplateSpec.Spec.Containers = []corev1.Container{}
 			_, err := deploymentManager.Construct(provider)

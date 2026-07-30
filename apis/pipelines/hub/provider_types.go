@@ -48,6 +48,16 @@ type ProviderSpec struct {
 	// merged over the operator's defaultProviderValues env; per-provider values
 	// take precedence on name collision.
 	PodTemplateEnv []corev1.EnvVar `json:"podTemplateEnv,omitempty" yaml:"podTemplateEnv,omitempty"`
+	// +kubebuilder:validation:Optional
+	// Volumes applied to the generated provider-service pod, merged over the
+	// operator's defaultProviderValues volumes; per-provider values take
+	// precedence on name collision.
+	PodTemplateVolumes []corev1.Volume `json:"podTemplateVolumes,omitempty" yaml:"podTemplateVolumes,omitempty"`
+	// +kubebuilder:validation:Optional
+	// VolumeMounts applied to the generated provider-service container, merged
+	// over the operator's defaultProviderValues volume mounts; per-provider
+	// values take precedence on mount-path collision.
+	PodTemplateVolumeMounts []corev1.VolumeMount `json:"podTemplateVolumeMounts,omitempty" yaml:"podTemplateVolumeMounts,omitempty"`
 }
 
 type Framework struct {
