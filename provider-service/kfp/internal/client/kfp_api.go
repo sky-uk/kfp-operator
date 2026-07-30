@@ -77,6 +77,20 @@ type dialer func(
 	opts ...grpc.DialOption,
 ) (*grpc.ClientConn, error)
 
+// GrpcDialOptions returns the gRPC dial options for connecting to the KFP API
+// with cfg: insecure transport credentials always, plus a bearer-token
+// credential read from the projected token when multi-user mode is enabled.
+func GrpcDialOptions(cfg config.Config) []grpc.DialOption {
+	dialOptions := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
+	if cfg.Parameters.KfpMultiUserMode {
+		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
+		dialOptions = append(dialOptions, auth.GrpcDialOptions(tokenSource)...)
+	}
+	return dialOptions
+}
+
 func CreateKfpApi(ctx context.Context, cfg config.Config) (*GrpcKfpApi, error) {
 	return createKfpApi(ctx, cfg, grpc.NewClient)
 }
@@ -88,16 +102,10 @@ func createKfpApi(
 ) (*GrpcKfpApi, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 
-	var authOptions []grpc.DialOption
-	if cfg.Parameters.KfpMultiUserMode {
-		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
-		authOptions = auth.GrpcDialOptions(tokenSource)
-	}
-
 	kfpApi, err := connectToKfpApi(
 		dial,
 		cfg.Parameters.GrpcKfpApiAddress,
-		authOptions...,
+		GrpcDialOptions(cfg)...,
 	)
 	if err != nil {
 		logger.Error(err, "failed to connect to Kubeflow API", "address", cfg.Parameters.GrpcKfpApiAddress)
@@ -109,13 +117,8 @@ func createKfpApi(
 func connectToKfpApi(
 	dial dialer,
 	address string,
-	authOptions ...grpc.DialOption,
+	dialOptions ...grpc.DialOption,
 ) (*GrpcKfpApi, error) {
-	dialOptions := append(
-		[]grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
-		authOptions...,
-	)
-
 	conn, err := dial(address, dialOptions...)
 	if err != nil {
 		return nil, err

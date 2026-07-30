@@ -13,9 +13,9 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -31,11 +31,9 @@ type KfpProvider struct {
 
 func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 	var authInfo runtime.ClientAuthInfoWriter
-	var authOptions []grpc.DialOption
 	if cfg.Parameters.KfpMultiUserMode {
 		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
 		authInfo = auth.BearerAuthInfoWriter(tokenSource)
-		authOptions = auth.GrpcDialOptions(tokenSource)
 	}
 
 	pipelineUploadService, err := NewPipelineUploadService(
@@ -46,13 +44,9 @@ func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 		return nil, err
 	}
 
-	dialOptions := append(
-		[]grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())},
-		authOptions...,
-	)
 	conn, err := grpc.NewClient(
 		cfg.Parameters.GrpcKfpApiAddress,
-		dialOptions...,
+		client.GrpcDialOptions(*cfg)...,
 	)
 	if err != nil {
 		return nil, err
