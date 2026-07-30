@@ -145,6 +145,10 @@ CONTROLLER_GEN = $(PROJECT_DIR)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-install,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.19.0)
 
+HELM_DOCS = $(PROJECT_DIR)/bin/helm-docs
+helm-docs-cmd: ## Download helm-docs locally if necessary.
+	$(call go-install,$(HELM_DOCS),github.com/norwoodj/helm-docs/cmd/helm-docs@v1.14.2)
+
 KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
@@ -243,6 +247,17 @@ docker-push-providers: ## Publish provider docker images
 	$(MAKE) -C provider-service docker-push
 
 ##@ Docs
+
+HELM_VALUES_FRAGMENT = docs-gen/includes/master/reference/helm-values.md
+helm-docs: helm-docs-cmd ## Generate the Helm values docs fragment from values.yaml
+	$(HELM_DOCS) --chart-search-root helm/kfp-operator -t helm-values.md.gotmpl -o ../../$(HELM_VALUES_FRAGMENT)
+
+helm-docs-check: helm-docs ## Fail if the generated Helm values docs fragment is out of date
+	@if [ -n "$$(git status -s $(HELM_VALUES_FRAGMENT))" ]; then \
+		echo "$(HELM_VALUES_FRAGMENT) is out of date - run 'make helm-docs' and commit the result"; \
+		git --no-pager diff $(HELM_VALUES_FRAGMENT); \
+		exit 1; \
+	fi
 
 website: ## Build website
 	$(MAKE) -C docs-gen build
