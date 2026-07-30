@@ -29,17 +29,17 @@ type KfpProvider struct {
 	labelService          LabelService
 }
 
-func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
+func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 	var authInfo runtime.ClientAuthInfoWriter
 	var authOptions []grpc.DialOption
-	if config.Parameters.KfpMultiUserMode {
-		tokenSource := auth.NewFileTokenSource(config.Parameters.TokenPath)
+	if cfg.Parameters.KfpMultiUserMode {
+		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
 		authInfo = auth.BearerAuthInfoWriter(tokenSource)
 		authOptions = auth.GrpcDialOptions(tokenSource)
 	}
 
 	pipelineUploadService, err := NewPipelineUploadService(
-		config.Parameters.RestKfpApiUrl,
+		cfg.Parameters.RestKfpApiUrl,
 		authInfo,
 	)
 	if err != nil {
@@ -51,7 +51,7 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 		authOptions...,
 	)
 	conn, err := grpc.NewClient(
-		config.Parameters.GrpcKfpApiAddress,
+		cfg.Parameters.GrpcKfpApiAddress,
 		dialOptions...,
 	)
 	if err != nil {
@@ -64,23 +64,23 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 	}
 
 	labelGenerator := label.DefaultLabelGen{
-		ProviderName: config.ProviderName,
+		ProviderName: cfg.ProviderName,
 	}
 
-	runService, err := NewRunService(conn, labelGenerator, config.PipelineRootStorage)
+	runService, err := NewRunService(conn, labelGenerator, cfg.PipelineRootStorage)
 	if err != nil {
 		return nil, err
 	}
 
-	recurringRunService, err := NewRecurringRunService(conn, labelGenerator, config.PipelineRootStorage)
+	recurringRunService, err := NewRecurringRunService(conn, labelGenerator, cfg.PipelineRootStorage)
 	if err != nil {
 		return nil, err
 	}
 
 	experimentService, err := NewExperimentService(
 		conn,
-		config.Parameters.KfpMultiUserMode,
-		config.ProviderName.Namespace,
+		cfg.Parameters.KfpMultiUserMode,
+		cfg.ProviderName.Namespace,
 	)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 	}
 
 	return &KfpProvider{
-		config:                config,
+		config:                cfg,
 		pipelineUploadService: pipelineUploadService,
 		pipelineService:       pipelineService,
 		runService:            runService,

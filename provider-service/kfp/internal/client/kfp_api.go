@@ -77,30 +77,30 @@ type dialer func(
 	opts ...grpc.DialOption,
 ) (*grpc.ClientConn, error)
 
-func CreateKfpApi(ctx context.Context, config config.Config) (*GrpcKfpApi, error) {
-	return createKfpApi(ctx, config, grpc.NewClient)
+func CreateKfpApi(ctx context.Context, cfg config.Config) (*GrpcKfpApi, error) {
+	return createKfpApi(ctx, cfg, grpc.NewClient)
 }
 
 func createKfpApi(
 	ctx context.Context,
-	config config.Config,
+	cfg config.Config,
 	dial dialer,
 ) (*GrpcKfpApi, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 
 	var authOptions []grpc.DialOption
-	if config.Parameters.KfpMultiUserMode {
-		tokenSource := auth.NewFileTokenSource(config.Parameters.TokenPath)
+	if cfg.Parameters.KfpMultiUserMode {
+		tokenSource := auth.NewFileTokenSource(config.BearerTokenPath)
 		authOptions = auth.GrpcDialOptions(tokenSource)
 	}
 
 	kfpApi, err := connectToKfpApi(
 		dial,
-		config.Parameters.GrpcKfpApiAddress,
+		cfg.Parameters.GrpcKfpApiAddress,
 		authOptions...,
 	)
 	if err != nil {
-		logger.Error(err, "failed to connect to Kubeflow API", "address", config.Parameters.GrpcKfpApiAddress)
+		logger.Error(err, "failed to connect to Kubeflow API", "address", cfg.Parameters.GrpcKfpApiAddress)
 		return nil, err
 	}
 	return kfpApi, nil

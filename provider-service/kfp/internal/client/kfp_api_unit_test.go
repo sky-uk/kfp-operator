@@ -83,7 +83,6 @@ var _ = Context("createKfpApi", func() {
 			Parameters: config.Parameters{
 				GrpcKfpApiAddress: "ml-pipeline:8887",
 				KfpMultiUserMode:  multiUser,
-				TokenPath:         "/var/run/secrets/kfp/token",
 			},
 		}
 	}
