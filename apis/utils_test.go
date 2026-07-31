@@ -43,13 +43,4 @@ var _ = Context("Utils", func() {
 		Entry("", []int{1, 2}, nil, false),
 		Entry("", []int{2, 1}, nil, false),
 	)
-
-	type TestMapping struct {
-		Key   string
-		Value int
-	}
 })
-
-func ptr[T any](t T) *T {
-	return &t
-}

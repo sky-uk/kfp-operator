@@ -201,14 +201,6 @@ func setPipelineNameInSpec(workflow *unstructured.Unstructured, pipelineName str
 	})
 }
 
-func setWorkflowEntryPoint(workflow *unstructured.Unstructured, entrypoint string) {
-	workflow.Object = map[string]any{
-		"spec": map[string]any{
-			"entrypoint": entrypoint,
-		},
-	}
-}
-
 func setWorkflowRunId(
 	workflow *unstructured.Unstructured,
 	runId string,
