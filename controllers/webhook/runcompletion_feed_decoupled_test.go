@@ -16,7 +16,6 @@ import (
 	. "github.com/onsi/gomega"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/pkg/common"
-	"go.opentelemetry.io/otel/metric"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -27,19 +26,6 @@ var mockRCEHandlerHandleCounter = 0
 var _ = BeforeEach(func() {
 	mockRCEHandlerHandleCounter = 0
 })
-
-type MockCounter struct {
-	metric.Int64Counter
-	count int64
-}
-
-func (m *MockCounter) Add(ctx context.Context, incr int64, options ...metric.AddOption) {
-	m.count += incr
-}
-
-func (m *MockCounter) GetCount() int64 {
-	return m.count
-}
 
 type MockRCEHandler struct {
 	expectedBody string

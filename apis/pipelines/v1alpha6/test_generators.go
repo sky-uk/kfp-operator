@@ -12,8 +12,6 @@ import (
 	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 func RandomPipeline(provider string) *Pipeline {
@@ -34,21 +32,6 @@ func RandomPipelineSpec(provider string) PipelineSpec {
 		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
 		Env:           RandomNamedValues(),
 		BeamArgs:      RandomNamedValues(),
-	}
-}
-
-func RandomConditions() Conditions {
-	return RandomList(RandomCondition)
-}
-
-func RandomCondition() metav1.Condition {
-	return metav1.Condition{
-		Type:               RandomLowercaseString(),
-		Status:             RandomConditionStatus(),
-		ObservedGeneration: common.RandomInt64(),
-		LastTransitionTime: metav1.Time{Time: time.Now()},
-		Reason:             RandomLowercaseString(),
-		Message:            RandomLowercaseString(),
 	}
 }
 
@@ -107,14 +90,6 @@ func RandomTriggers() Triggers {
 	}
 }
 
-func RandomScheduleTrigger() Triggers {
-	return Triggers{Schedules: []Schedule{RandomSchedule()}}
-}
-
-func RandomOnChangeTrigger() Triggers {
-	return Triggers{OnChange: []OnChangeType{OnChangeTypes.Pipeline}}
-}
-
 func RandomRunSchedule(provider string) *RunSchedule {
 	return &RunSchedule{
 		ObjectMeta: metav1.ObjectMeta{
@@ -164,22 +139,6 @@ func RandomRun(provider string) *Run {
 			Status:                  RandomStatus(provider),
 		},
 	}
-}
-
-func RandomRunConfigurationRefRuntimeParameter() RuntimeParameter {
-	return RuntimeParameter{
-		Name: RandomString(),
-		ValueFrom: &ValueFrom{
-			RunConfigurationRef: RunConfigurationRef{
-				Name:           common.RandomNamespacedName(),
-				OutputArtifact: RandomString(),
-			},
-		},
-	}
-}
-
-func WithValueFrom(runSpec *RunSpec) {
-	runSpec.RuntimeParameters = append(runSpec.RuntimeParameters, RandomList(RandomRunConfigurationRefRuntimeParameter)...)
 }
 
 func RandomRunSpec(provider string) RunSpec {
@@ -271,52 +230,5 @@ func RandomProviderSpec() ProviderSpec {
 		DefaultBeamArgs:     RandomNamedValues(),
 		PipelineRootStorage: RandomLowercaseString(),
 		Parameters:          randomParameters,
-	}
-}
-
-type TestResource struct {
-	metav1.TypeMeta
-	metav1.ObjectMeta
-	NamespacedName types.NamespacedName
-
-	Kind            string
-	Status          Status
-	ComputedVersion string
-}
-
-func (tr *TestResource) GetStatus() Status {
-	return tr.Status
-}
-
-func (tr *TestResource) SetStatus(status Status) {
-	tr.Status = status
-}
-
-func (tr *TestResource) DeepCopyObject() runtime.Object {
-	return tr
-}
-
-func (tr *TestResource) GetNamespacedName() types.NamespacedName {
-	return tr.NamespacedName
-}
-
-func (tr *TestResource) ComputeVersion() string {
-	return tr.ComputedVersion
-}
-
-func (tr *TestResource) SetComputedVersion(version string) {
-	tr.ComputedVersion = version
-}
-
-func (tr *TestResource) GetKind() string {
-	return tr.Kind
-}
-
-func RandomResource() *TestResource {
-	return &TestResource{
-		Status:          RandomStatus(RandomString()),
-		NamespacedName:  RandomNamespacedName(),
-		Kind:            RandomString(),
-		ComputedVersion: RandomShortHash(),
 	}
 }
