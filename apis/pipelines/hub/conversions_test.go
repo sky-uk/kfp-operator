@@ -29,7 +29,7 @@ var _ = Context("Conversions", func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			marshal, _ := json.Marshal(tfxComponents)
-			Expect(framework.Parameters["components"]).To(Equal(&apiextensionsv1.JSON{Raw: marshal}))
+			Expect(framework.Parameters).To(HaveKeyWithValue("components", &apiextensionsv1.JSON{Raw: marshal}))
 		})
 	})
 
@@ -55,7 +55,7 @@ var _ = Context("Conversions", func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			marshal, _ := json.Marshal(beamArgs)
-			Expect(framework.Parameters["beamArgs"]).To(Equal(&apiextensionsv1.JSON{Raw: marshal}))
+			Expect(framework.Parameters).To(HaveKeyWithValue("beamArgs", &apiextensionsv1.JSON{Raw: marshal}))
 		})
 	})
 

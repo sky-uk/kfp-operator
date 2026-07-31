@@ -60,7 +60,7 @@ var _ = Context("constructRunForRunConfiguration", PropertyBased, func() {
 		run, err := rcr.constructRunForRunConfiguration(runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(run.GetLabels()[workflowfactory.RunConfigurationConstants.RunConfigurationNameLabelKey]).To(Equal(runConfiguration.GetName()))
+		Expect(run.GetLabels()).To(HaveKeyWithValue(workflowfactory.RunConfigurationConstants.RunConfigurationNameLabelKey, runConfiguration.GetName()))
 	})
 })
 

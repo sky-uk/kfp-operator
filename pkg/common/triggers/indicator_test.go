@@ -18,14 +18,11 @@ var _ = Context("Indicator", func() {
 
 			result := indicator.AsK8sLabels()
 
-			Expect(result).To(HaveKey(TriggerByTypeLabel))
-			Expect(result[TriggerByTypeLabel]).To(Equal("onChangePipeline"))
+			Expect(result).To(HaveKeyWithValue(TriggerByTypeLabel, "onChangePipeline"))
 
-			Expect(result).To(HaveKey(TriggerBySourceLabel))
-			Expect(result[TriggerBySourceLabel]).To(Equal("source-1"))
+			Expect(result).To(HaveKeyWithValue(TriggerBySourceLabel, "source-1"))
 
-			Expect(result).To(HaveKey(TriggerBySourceNamespaceLabel))
-			Expect(result[TriggerBySourceNamespaceLabel]).To(Equal("namespace_test"))
+			Expect(result).To(HaveKeyWithValue(TriggerBySourceNamespaceLabel, "namespace_test"))
 		})
 
 		It("omits empty fields", func() {
@@ -70,9 +67,9 @@ var _ = Context("Indicator", func() {
 			}
 
 			labels := indicator.AsK8sLabels()
-			Expect(labels[TriggerByTypeLabel]).To(Equal("Type"))
-			Expect(labels[TriggerBySourceLabel]).To(Equal("some_source"))
-			Expect(labels[TriggerBySourceNamespaceLabel]).To(Equal("someNamespace"))
+			Expect(labels).To(HaveKeyWithValue(TriggerByTypeLabel, "Type"))
+			Expect(labels).To(HaveKeyWithValue(TriggerBySourceLabel, "some_source"))
+			Expect(labels).To(HaveKeyWithValue(TriggerBySourceNamespaceLabel, "someNamespace"))
 		})
 	})
 })

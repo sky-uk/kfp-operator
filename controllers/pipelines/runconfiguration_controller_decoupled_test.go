@@ -329,7 +329,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(K8sClient.Get(Ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[rcNamespacedName]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations).To(HaveKeyWithValue(rcNamespacedName, referencedRc.Status.LatestRuns.Succeeded))
 			})).Should(Succeed())
 		})
 
@@ -545,7 +545,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, rc *pipelineshub.RunConfiguration) {
-				g.Expect(rc.Status.Dependencies.RunConfigurations[rcNamespacedName]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
+				g.Expect(rc.Status.Dependencies.RunConfigurations).To(HaveKeyWithValue(rcNamespacedName, referencedRc.Status.LatestRuns.Succeeded))
 			})).Should(Succeed())
 
 			Eventually(func(g Gomega) {

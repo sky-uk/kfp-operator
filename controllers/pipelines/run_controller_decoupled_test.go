@@ -341,8 +341,8 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelineshub.Run) {
 				g.Expect(run.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
-				g.Expect(run.Status.Dependencies.RunConfigurations[rc1NamespacedName]).To(Equal(referencedRc1.Status.LatestRuns.Succeeded))
-				g.Expect(run.Status.Dependencies.RunConfigurations[rc2NamespacedName]).To(Equal(referencedRc2.Status.LatestRuns.Succeeded))
+				g.Expect(run.Status.Dependencies.RunConfigurations).To(HaveKeyWithValue(rc1NamespacedName, referencedRc1.Status.LatestRuns.Succeeded))
+				g.Expect(run.Status.Dependencies.RunConfigurations).To(HaveKeyWithValue(rc2NamespacedName, referencedRc2.Status.LatestRuns.Succeeded))
 			})).Should(Succeed())
 		})
 	})
@@ -390,7 +390,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			runHelper := Create(run)
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelineshub.Run) {
-				g.Expect(run.Status.Dependencies.RunConfigurations[rcNamespacedName]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
+				g.Expect(run.Status.Dependencies.RunConfigurations).To(HaveKeyWithValue(rcNamespacedName, referencedRc.Status.LatestRuns.Succeeded))
 			})).Should(Succeed())
 
 			Eventually(runHelper.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
