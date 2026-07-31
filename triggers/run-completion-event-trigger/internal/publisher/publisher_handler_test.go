@@ -61,7 +61,7 @@ var _ = Describe("PublisherHandler", func() {
 
 				err := publisher.Publish(event)
 
-				Expect(err).To(Not(HaveOccurred()))
+				Expect(err).NotTo(HaveOccurred())
 				mockNatsConn.AssertExpectations(GinkgoT())
 			})
 		})

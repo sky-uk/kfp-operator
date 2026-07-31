@@ -107,14 +107,14 @@ var _ = Context("Pipeline", func() {
 		Specify("Returns pipeline name if version is missing", func() {
 			pid := PipelineIdentifier{Name: "dummy-pipeline"}
 			json, err := pid.MarshalJSON()
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(string(json)).To(Equal("\"dummy-pipeline\""))
 		})
 
 		Specify("Returns pipeline name and version if both exist", func() {
 			pid := PipelineIdentifier{Name: "dummy-pipeline", Version: "dummy-version"}
 			json, err := pid.MarshalJSON()
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(string(json)).To(Equal("\"dummy-pipeline:dummy-version\""))
 		})
 	})
@@ -124,14 +124,14 @@ var _ = Context("Pipeline", func() {
 		Specify("Returns pipeline name if version is missing", func() {
 			pid := PipelineIdentifier{Name: "dummy-pipeline"}
 			json, err := pid.MarshalJSON()
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(string(json)).To(Equal("\"dummy-pipeline\""))
 		})
 
 		Specify("Returns pipeline name and version if both exist", func() {
 			pid := PipelineIdentifier{Name: "dummy-pipeline", Version: "dummy-version"}
 			json, err := pid.MarshalJSON()
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(string(json)).To(Equal("\"dummy-pipeline:dummy-version\""))
 		})
 	})
