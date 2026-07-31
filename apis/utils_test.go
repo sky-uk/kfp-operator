@@ -31,7 +31,7 @@ var _ = Context("Utils", func() {
 			return strconv.Itoa(a), nil
 		})
 		if expectSuccess {
-			Expect(err).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
 			Expect(actual).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
 		} else {
 			Expect(err).NotTo(BeNil())
