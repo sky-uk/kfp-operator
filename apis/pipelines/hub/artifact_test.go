@@ -34,7 +34,7 @@ var _ = Context("OutputArtifact", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(artifactPath.Locator.Component).To(Equal(expectedArtifactPath.Locator.Component))
 			Expect(artifactPath.Locator.Artifact).To(Equal(expectedArtifactPath.Locator.Artifact))
-			Expect(artifactPath.Locator.Index).To(Equal(0))
+			Expect(artifactPath.Locator.Index).To(BeZero())
 			Expect(artifactPath.Filter).To(BeEmpty())
 		})
 
@@ -49,7 +49,7 @@ var _ = Context("OutputArtifact", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(artifactPath.Locator.Component).To(Equal(expectedArtifactPath.Locator.Component))
 			Expect(artifactPath.Locator.Artifact).To(Equal(expectedArtifactPath.Locator.Artifact))
-			Expect(artifactPath.Locator.Index).To(Equal(0))
+			Expect(artifactPath.Locator.Index).To(BeZero())
 			Expect(artifactPath.Filter).To(Equal(expectedArtifactPath.Filter))
 		})
 
