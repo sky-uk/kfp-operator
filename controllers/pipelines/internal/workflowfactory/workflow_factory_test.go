@@ -50,8 +50,7 @@ var _ = Describe("checkResourceNamespaceAllowed", func() {
 			Namespace: "foo",
 			Name:      "test-resource",
 		}, *provider)
-		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal("resource test-resource in namespace foo is not allowed by provider test"))
+		Expect(err).To(MatchError("resource test-resource in namespace foo is not allowed by provider test"))
 	})
 
 	It("succeeds when the provider allowed namespaces is empty", func() {
