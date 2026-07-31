@@ -50,6 +50,8 @@ manager:
     storedVersion: v1beta1
   webhookCertificates:
     provider: cert-manager
+    secretName: ""
+    caBundle: ""
   webhookServicePort: 9443
   runcompletionWebhook:
     servicePort: 8082
@@ -59,6 +61,15 @@ runcompletionEventTrigger:
   metadata: {}
   enabled: false
   monitoring: false
+  replicas: 1
+  server:
+    port: 50051
+  metrics:
+    port: 8081
+  nats:
+    subject: events
+    server:
+      port: 4222
 
 statusFeedback:
   enabled: false
@@ -77,3 +88,8 @@ provider:
       memory: 256Mi
   servicePort: 8080
   metricsPort: 8081
+  labels: {}
+  podTemplateLabels: {}
+  volumes: []
+  volumeMounts: []
+  env: []
