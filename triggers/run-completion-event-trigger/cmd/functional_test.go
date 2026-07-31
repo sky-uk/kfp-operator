@@ -129,6 +129,7 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 })
 
 func getLatestMessageFromNats(natsSubscription *nats.Subscription) (*common.RunCompletionEvent, error) {
+	GinkgoHelper()
 	msg, err := natsSubscription.NextMsg(5 * time.Second)
 	Expect(err).ToNot(HaveOccurred())
 
