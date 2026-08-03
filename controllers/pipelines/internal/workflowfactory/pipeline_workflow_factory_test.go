@@ -73,8 +73,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 		When("given a Pipeline resource with invalid framework", func() {
 			_, _, err := creator.pipelineDefinition(provider, pipelineIncorrectFramework)
 			It("returns an error", func() {
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("error in workflow: [invalidFramework] framework not support by provider"))
+				Expect(err).To(MatchError("error in workflow: [invalidFramework] framework not support by provider"))
 			})
 		})
 
@@ -143,8 +142,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 				creator := PipelineParamsCreator{}
 				_, err := creator.additionalParams(provider, pipelineIncorrectFramework)
 
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("error in workflow: [invalidFramework] framework not support by provider"))
+				Expect(err).To(MatchError("error in workflow: [invalidFramework] framework not support by provider"))
 			})
 		})
 

@@ -77,7 +77,7 @@ var _ = Describe("PublisherHandler", func() {
 				err := publisher.Publish(event)
 
 				Expect(err).To(BeAssignableToTypeOf(&ConnectionError{}))
-				Expect(err.Error()).To(ContainSubstring("Connection failed"))
+				Expect(err).To(MatchError(ContainSubstring("Connection failed")))
 			})
 		})
 	})
