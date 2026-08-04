@@ -93,6 +93,7 @@ func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(
 	providerId pipelineshub.ProviderAndId,
 	providerError string,
 ) StateTransitionTestCase {
+	GinkgoHelper()
 	workflow, err := workflowutil.SetWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
@@ -116,6 +117,7 @@ func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(
 	providerId pipelineshub.ProviderAndId,
 	providerError string,
 ) StateTransitionTestCase {
+	GinkgoHelper()
 	workflow, err := workflowutil.SetWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
@@ -139,6 +141,7 @@ func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(
 	providerId pipelineshub.ProviderAndId,
 	providerError string,
 ) StateTransitionTestCase {
+	GinkgoHelper()
 	workflow, err := workflowutil.SetWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)

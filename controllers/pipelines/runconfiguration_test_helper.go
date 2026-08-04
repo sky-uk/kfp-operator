@@ -3,6 +3,7 @@
 package pipelines
 
 import (
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -11,6 +12,7 @@ import (
 )
 
 func createSucceededRcWithSchedule() *pipelineshub.RunConfiguration {
+	GinkgoHelper()
 	runConfiguration := createStableRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 		runConfiguration.Spec.Triggers = pipelineshub.RandomScheduleTrigger()
 		return runConfiguration
@@ -42,6 +44,7 @@ func createSucceededRcWith(modifyRc func(runConfiguration *pipelineshub.RunConfi
 }
 
 func createStableRcWith(modifyRc func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration, synchronizationState apis.SynchronizationState) *pipelineshub.RunConfiguration {
+	GinkgoHelper()
 	runConfiguration := pipelineshub.RandomRunConfiguration(
 		common.NamespacedName{
 			Name:      Provider.Name,
@@ -63,6 +66,7 @@ func createStableRcWith(modifyRc func(runConfiguration *pipelineshub.RunConfigur
 }
 
 func createRcWithLatestRun(succeeded pipelineshub.RunReference) *pipelineshub.RunConfiguration {
+	GinkgoHelper()
 	referencedRc := createSucceededRc()
 	referencedRc.Status.LatestRuns.Succeeded = succeeded
 	Expect(K8sClient.Status().Update(Ctx, referencedRc)).To(Succeed())
@@ -78,6 +82,7 @@ func matchRunConfiguration(runConfiguration *pipelineshub.RunConfiguration, matc
 }
 
 func updateOwnedSchedules(runConfiguration *pipelineshub.RunConfiguration, updateFn func(schedule *pipelineshub.RunSchedule)) error {
+	GinkgoHelper()
 	ownedSchedules, err := findOwnedRunSchedules(Ctx, K8sClient, runConfiguration)
 	if err != nil {
 		return err
