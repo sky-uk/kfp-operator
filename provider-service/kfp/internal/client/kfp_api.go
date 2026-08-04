@@ -73,11 +73,27 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	return resourceReferences, nil
 }
 
-// dialer matches grpc.NewClient so it can be swapped out in tests.
-type dialer func(
-	target string,
-	opts ...grpc.DialOption,
-) (*grpc.ClientConn, error)
+func CreateKfpApi(ctx context.Context, cfg config.Config) (*GrpcKfpApi, error) {
+	logger := logr.FromContextOrDiscard(ctx)
+
+	tokenSource, err := MultiUserTokenSource(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := grpc.NewClient(
+		cfg.Parameters.GrpcKfpApiAddress,
+		GrpcDialOptions(tokenSource)...,
+	)
+	if err != nil {
+		logger.Error(err, "failed to connect to Kubeflow API", "address", cfg.Parameters.GrpcKfpApiAddress)
+		return nil, err
+	}
+
+	return &GrpcKfpApi{
+		RunServiceClient: go_client.NewRunServiceClient(conn),
+	}, nil
+}
 
 // bearerTokenPath is where the projected ServiceAccount token must be mounted
 // in multi-user mode.
@@ -106,47 +122,4 @@ func GrpcDialOptions(tokenSource oauth2.TokenSource) []grpc.DialOption {
 		dialOptions = append(dialOptions, auth.BearerDialOption(tokenSource))
 	}
 	return dialOptions
-}
-
-func CreateKfpApi(ctx context.Context, cfg config.Config) (*GrpcKfpApi, error) {
-	tokenSource, err := MultiUserTokenSource(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return createKfpApi(ctx, cfg, tokenSource, grpc.NewClient)
-}
-
-func createKfpApi(
-	ctx context.Context,
-	cfg config.Config,
-	tokenSource oauth2.TokenSource,
-	dial dialer,
-) (*GrpcKfpApi, error) {
-	logger := logr.FromContextOrDiscard(ctx)
-
-	kfpApi, err := connectToKfpApi(
-		dial,
-		cfg.Parameters.GrpcKfpApiAddress,
-		GrpcDialOptions(tokenSource)...,
-	)
-	if err != nil {
-		logger.Error(err, "failed to connect to Kubeflow API", "address", cfg.Parameters.GrpcKfpApiAddress)
-		return nil, err
-	}
-	return kfpApi, nil
-}
-
-func connectToKfpApi(
-	dial dialer,
-	address string,
-	dialOptions ...grpc.DialOption,
-) (*GrpcKfpApi, error) {
-	conn, err := dial(address, dialOptions...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &GrpcKfpApi{
-		RunServiceClient: go_client.NewRunServiceClient(conn),
-	}, nil
 }

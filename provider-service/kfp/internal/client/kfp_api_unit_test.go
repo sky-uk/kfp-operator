@@ -12,12 +12,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"golang.org/x/oauth2"
-	"google.golang.org/grpc"
 
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 )
 
@@ -78,56 +76,22 @@ var _ = Context("KFP API", func() {
 	})
 })
 
-var _ = Context("createKfpApi", func() {
-	newConfig := func() config.Config {
-		return config.Config{
-			Parameters: config.Parameters{
-				GrpcKfpApiAddress: "ml-pipeline:8887",
-			},
-		}
-	}
-
-	// capturingDialer records the dial options and returns a lazy client.
-	var captured []grpc.DialOption
-	capturingDialer := func(
-		target string,
-		opts ...grpc.DialOption,
-	) (*grpc.ClientConn, error) {
-		captured = opts
-		return grpc.NewClient(target, opts...)
-	}
-
-	BeforeEach(func() {
-		captured = nil
-	})
-
+var _ = Context("GrpcDialOptions", func() {
 	When("a bearer token source is provided", func() {
 		It("attaches the bearer credential dial option", func() {
-			kfpApi, err := createKfpApi(
-				context.Background(),
-				newConfig(),
+			opts := GrpcDialOptions(
 				oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "token"}),
-				capturingDialer,
 			)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(kfpApi).ToNot(BeNil())
 			// transport credentials + bearer credential
-			Expect(captured).To(HaveLen(2))
+			Expect(opts).To(HaveLen(2))
 		})
 	})
 
 	When("no bearer token source is provided", func() {
 		It("attaches no auth dial option", func() {
-			kfpApi, err := createKfpApi(
-				context.Background(),
-				newConfig(),
-				nil,
-				capturingDialer,
-			)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(kfpApi).ToNot(BeNil())
+			opts := GrpcDialOptions(nil)
 			// transport credentials only
-			Expect(captured).To(HaveLen(1))
+			Expect(opts).To(HaveLen(1))
 		})
 	})
 })
