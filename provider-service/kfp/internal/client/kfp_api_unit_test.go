@@ -54,7 +54,7 @@ var _ = Context("KFP API", func() {
 				).Return(&mockRunDetail, nil)
 
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
-				Expect(err).To(BeNil())
+				Expect(err).NotTo(HaveOccurred())
 				Expect(resourceReferences).To(BeComparableTo(resource.References{
 					PipelineName: common.NamespacedName{
 						Name:      "PipelineName",

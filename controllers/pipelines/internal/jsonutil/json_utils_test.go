@@ -28,18 +28,18 @@ var _ = Describe("PatchJson", func() {
 				Value: "c",
 			}
 			patchOpJson, err := json.Marshal([]common.JsonPatchOperation{patchOp})
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			patches := []pipelineshub.Patch{
 				{Type: JsonPatch, Payload: string(patchOpJson)},
 			}
 
 			result, err := PatchJson(patches, jsonBytes)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			var data map[string]any
 			err = json.Unmarshal([]byte(result), &data)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(data["baz"].(string)).To(Equal("c"))
 		})
 
@@ -53,18 +53,18 @@ var _ = Describe("PatchJson", func() {
 				Value: "newValue",
 			}
 			patchOpJson, err := json.Marshal([]common.JsonPatchOperation{patchOp})
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			patches := []pipelineshub.Patch{
 				{Type: JsonPatch, Payload: string(patchOpJson)},
 			}
 
 			result, err := PatchJson(patches, jsonBytes)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			var data map[string]any
 			err = json.Unmarshal([]byte(result), &data)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(data["bar"].([]any)[0].(string)).To(Equal("newValue"))
 			Expect(data["bar"].([]any)[1].(string)).To(Equal("b"))
 		})
@@ -79,18 +79,18 @@ var _ = Describe("PatchJson", func() {
 				Value: "hello",
 			}
 			patchOpJson, err := json.Marshal([]common.JsonPatchOperation{patchOp})
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			patches := []pipelineshub.Patch{
 				{Type: JsonPatch, Payload: string(patchOpJson)},
 			}
 
 			result, err := PatchJson(patches, jsonBytes)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			var data map[string]any
 			err = json.Unmarshal([]byte(result), &data)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(data["baz"].([]any)[0].(string)).To(Equal("hello"))
 		})
 	})
@@ -106,12 +106,12 @@ var _ = Describe("PatchJson", func() {
 			}
 
 			result, err := PatchJson(patches, jsonBytes)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			println(result)
 			var data map[string]any
 			err = json.Unmarshal([]byte(result), &data)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(data["foo"].(string)).To(Equal("z"))
 			Expect(data["bar"].(string)).To(Equal("b"))
 			Expect(data["baz"].(string)).To(Equal("c"))

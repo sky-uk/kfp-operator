@@ -76,7 +76,7 @@ var _ = Context("workflow source", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, phase)
 			_, hasFinished := runCompletionStatus(workflow)
-			Expect(hasFinished).To(Equal(false))
+			Expect(hasFinished).To(BeFalse())
 		},
 		Entry("unknown", argo.WorkflowUnknown),
 		Entry("pending", argo.WorkflowPending),
@@ -89,7 +89,7 @@ var _ = Context("workflow source", func() {
 			setWorkflowPhase(workflow, phase)
 			status, hasFinished := runCompletionStatus(workflow)
 			Expect(status).To(Equal(expectedStatus))
-			Expect(hasFinished).To(Equal(true))
+			Expect(hasFinished).To(BeTrue())
 		},
 		Entry("error", argo.WorkflowError, common.RunCompletionStatuses.Failed),
 		Entry("failed", argo.WorkflowFailed, common.RunCompletionStatuses.Failed),

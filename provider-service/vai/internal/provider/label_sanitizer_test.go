@@ -55,7 +55,7 @@ var _ = Describe("DefaultLabelSanitizer", func() {
 			Expect(result).To(Equal(map[string]string{
 				key[:maxLength]: value[:maxLength],
 			}))
-			Expect(len(key[:maxLength])).To(Equal(63))
+			Expect(key[:maxLength]).To(HaveLen(63))
 		})
 
 		It("returns an empty map when input is empty", func() {

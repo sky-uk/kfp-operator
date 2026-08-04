@@ -255,7 +255,7 @@ var _ = Context("VaiEventingServer", func() {
 				)
 				event, err := eventingFlow.runCompletionEventDataForRun(ctx, runId)
 				Expect(event).NotTo(BeNil())
-				Expect(err).To(BeNil())
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 	})

@@ -16,7 +16,7 @@ var _ = Context("Conversions", func() {
 			framework := NewPipelineFramework("tfx")
 
 			err := AddComponentsToFrameworkParams("", &framework)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(framework.Parameters).To(HaveKey("components"))
 		})
@@ -26,7 +26,7 @@ var _ = Context("Conversions", func() {
 			framework := NewPipelineFramework("tfx")
 
 			err := AddComponentsToFrameworkParams(tfxComponents, &framework)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			marshal, _ := json.Marshal(tfxComponents)
 			Expect(framework.Parameters).To(HaveKeyWithValue("components", &apiextensionsv1.JSON{Raw: marshal}))
@@ -39,7 +39,7 @@ var _ = Context("Conversions", func() {
 
 			err := AddBeamArgsToFrameworkParams([]apis.NamedValue{}, &framework)
 
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(framework.Parameters).To(HaveKey("beamArgs"))
 		})
 
@@ -52,7 +52,7 @@ var _ = Context("Conversions", func() {
 			framework := NewPipelineFramework("tfx")
 
 			err := AddBeamArgsToFrameworkParams(beamArgs, &framework)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			marshal, _ := json.Marshal(beamArgs)
 			Expect(framework.Parameters).To(HaveKeyWithValue("beamArgs", &apiextensionsv1.JSON{Raw: marshal}))
@@ -66,7 +66,7 @@ var _ = Context("Conversions", func() {
 
 			components, err := ComponentsFromFramework(&framework)
 
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(components).To(BeEmpty())
 		})
 
@@ -74,14 +74,14 @@ var _ = Context("Conversions", func() {
 			components := apis.RandomString()
 
 			jsonString, err := json.Marshal(components)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 
 			framework := NewPipelineFramework("tfx")
 			framework.Parameters["components"] = &apiextensionsv1.JSON{Raw: jsonString}
 
 			result, err := ComponentsFromFramework(&framework)
 
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(components).To(Equal(result))
 		})
 
@@ -90,7 +90,7 @@ var _ = Context("Conversions", func() {
 
 			components, err := ComponentsFromFramework(&framework)
 
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(components).To(BeEmpty())
 		})
 	})
@@ -102,7 +102,7 @@ var _ = Context("Conversions", func() {
 
 			beamArgs, err := BeamArgsFromFramework(&framework)
 
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(beamArgs).To(BeEmpty())
 		})
 
@@ -119,7 +119,7 @@ var _ = Context("Conversions", func() {
 
 			beamArgsFromFramework, err := BeamArgsFromFramework(&framework)
 
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(beamArgsFromFramework).To(Equal(beamArgs))
 		})
 
@@ -128,7 +128,7 @@ var _ = Context("Conversions", func() {
 
 			beamArgs, err := BeamArgsFromFramework(&framework)
 
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(beamArgs).To(BeEmpty())
 		})
 	})
@@ -139,7 +139,7 @@ var _ = Context("Conversions", func() {
 
 			beamArgs, err := BeamArgsFromJsonPatches(patches)
 
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(beamArgs).To(BeEmpty())
 		})
 
@@ -160,14 +160,14 @@ var _ = Context("Conversions", func() {
 
 			patchOps := []apis.JsonPatchOperation{addOp, addOp2}
 			bytes, err := json.Marshal(patchOps)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			patches := []Patch{
 				{Type: "json", Payload: string(bytes)},
 			}
 
 			beamArgsFromPatches, err := BeamArgsFromJsonPatches(patches)
 
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			Expect(beamArgsFromPatches).To(Equal(beamArgs))
 		})
 
@@ -183,7 +183,7 @@ var _ = Context("Conversions", func() {
 
 			patchOps := []apis.JsonPatchOperation{addOp, addOp2}
 			bytes, err := json.Marshal(patchOps)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			patches := []Patch{
 				{Type: "json", Payload: string(bytes)},
 			}
@@ -205,7 +205,7 @@ var _ = Context("Conversions", func() {
 
 			patchOps := []apis.JsonPatchOperation{addOp, addOp2}
 			bytes, err := json.Marshal(patchOps)
-			Expect(err).To(Not(HaveOccurred()))
+			Expect(err).NotTo(HaveOccurred())
 			patches := []Patch{
 				{Type: "json", Payload: string(bytes)},
 			}

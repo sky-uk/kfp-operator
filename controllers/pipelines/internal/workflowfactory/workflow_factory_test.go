@@ -60,7 +60,7 @@ var _ = Describe("checkResourceNamespaceAllowed", func() {
 			Namespace: "foo",
 			Name:      "test-resource",
 		}, *provider)
-		Expect(err).To(Not(HaveOccurred()))
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("succeeds when the resource namespace is in the provider allowed namespaces", func() {
@@ -70,6 +70,6 @@ var _ = Describe("checkResourceNamespaceAllowed", func() {
 			Namespace: "foo",
 			Name:      "test-resource",
 		}, *provider)
-		Expect(err).To(Not(HaveOccurred()))
+		Expect(err).NotTo(HaveOccurred())
 	})
 })
