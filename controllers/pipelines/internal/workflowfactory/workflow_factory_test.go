@@ -21,9 +21,9 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		Expect(meta.Namespace).To(Equal(provider.Namespace))
 		Expect(meta.GetGenerateName()).To(Equal(owner.GetKind() + "-" + owner.GetName() + "-"))
 
-		Expect(meta.Labels[workflowconstants.OwnerKindLabelKey]).To(Equal(owner.GetKind()))
-		Expect(meta.Labels[workflowconstants.OwnerNameLabelKey]).To(Equal(owner.GetName()))
-		Expect(meta.Labels[workflowconstants.OwnerNamespaceLabelKey]).To(Equal(owner.GetNamespace()))
+		Expect(meta.Labels).To(HaveKeyWithValue(workflowconstants.OwnerKindLabelKey, owner.GetKind()))
+		Expect(meta.Labels).To(HaveKeyWithValue(workflowconstants.OwnerNameLabelKey, owner.GetName()))
+		Expect(meta.Labels).To(HaveKeyWithValue(workflowconstants.OwnerNamespaceLabelKey, owner.GetNamespace()))
 	})
 
 	It("uses the provider namespace regardless of config", func() {

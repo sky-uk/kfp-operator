@@ -100,19 +100,19 @@ var _ = Describe("PipelineParamsCreator", func() {
 				resultMap, ok := result.(map[string]interface{})
 				Expect(ok).To(BeTrue())
 
-				Expect(resultMap["name"]).To(Equal("pipelineNamespace/pipelineName"))
-				Expect(resultMap["image"]).To(Equal("pipelineImage"))
+				Expect(resultMap).To(HaveKeyWithValue("name", "pipelineNamespace/pipelineName"))
+				Expect(resultMap).To(HaveKeyWithValue("image", "pipelineImage"))
 
 				Expect(resultMap["framework"]).NotTo(BeNil())
 
 				framework, ok := resultMap["framework"].(map[string]interface{})
 				Expect(ok).To(BeTrue())
 
-				Expect(framework["name"]).To(Equal(expectedFramework.Name))
+				Expect(framework).To(HaveKeyWithValue("name", expectedFramework.Name))
 
 				parameters := framework["parameters"].(map[string]interface{})
-				Expect(parameters["a"]).To(Equal("b"))
-				Expect(parameters["c"]).To(Equal("d"))
+				Expect(parameters).To(HaveKeyWithValue("a", "b"))
+				Expect(parameters).To(HaveKeyWithValue("c", "d"))
 
 				env := resultMap["env"].([]interface{})
 				Expect(env[0]).To(Equal(map[string]interface{}{

@@ -22,8 +22,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[ProviderName]).To(Equal(lg.ProviderName.Name))
-				Expect(rl[ProviderNamespace]).To(Equal(lg.ProviderName.Namespace))
+				Expect(rl).To(HaveKeyWithValue(ProviderName, lg.ProviderName.Name))
+				Expect(rl).To(HaveKeyWithValue(ProviderNamespace, lg.ProviderName.Namespace))
 			})
 		})
 
@@ -33,8 +33,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rs)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[ProviderName]).To(Equal(lg.ProviderName.Name))
-				Expect(rl[ProviderNamespace]).To(Equal(lg.ProviderName.Namespace))
+				Expect(rl).To(HaveKeyWithValue(ProviderName, lg.ProviderName.Name))
+				Expect(rl).To(HaveKeyWithValue(ProviderNamespace, lg.ProviderName.Namespace))
 			})
 		})
 
@@ -52,9 +52,9 @@ var _ = Describe("DefaultLabelGen", func() {
 			rd := testutil.RandomRunDefinition()
 			rl, err := lg.GenerateLabels(rd)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(rl[PipelineName]).To(Equal(rd.PipelineName.Name))
-			Expect(rl[PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
-			Expect(rl[PipelineVersion]).To(Equal(rd.PipelineVersion))
+			Expect(rl).To(HaveKeyWithValue(PipelineName, rd.PipelineName.Name))
+			Expect(rl).To(HaveKeyWithValue(PipelineNamespace, rd.PipelineName.Namespace))
+			Expect(rl).To(HaveKeyWithValue(PipelineVersion, rd.PipelineVersion))
 		})
 
 		When("RunConfigurationName and RunName is present", func() {
@@ -63,10 +63,10 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
-				Expect(rl[RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
-				Expect(rl[RunName]).To(Equal(rd.Name.Name))
-				Expect(rl[RunNamespace]).To(Equal(rd.Name.Namespace))
+				Expect(rl).To(HaveKeyWithValue(RunConfigurationName, rd.RunConfigurationName.Name))
+				Expect(rl).To(HaveKeyWithValue(RunConfigurationNamespace, rd.RunConfigurationName.Namespace))
+				Expect(rl).To(HaveKeyWithValue(RunName, rd.Name.Name))
+				Expect(rl).To(HaveKeyWithValue(RunNamespace, rd.Name.Namespace))
 			})
 		})
 
@@ -77,8 +77,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[RunName]).To(Equal(rd.Name.Name))
-				Expect(rl[RunNamespace]).To(Equal(rd.Name.Namespace))
+				Expect(rl).To(HaveKeyWithValue(RunName, rd.Name.Name))
+				Expect(rl).To(HaveKeyWithValue(RunNamespace, rd.Name.Namespace))
 				Expect(rl).NotTo(HaveKey(RunConfigurationName))
 				Expect(rl).NotTo(HaveKey(RunConfigurationNamespace))
 			})
@@ -91,8 +91,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
-				Expect(rl[RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
+				Expect(rl).To(HaveKeyWithValue(RunConfigurationName, rd.RunConfigurationName.Name))
+				Expect(rl).To(HaveKeyWithValue(RunConfigurationNamespace, rd.RunConfigurationName.Namespace))
 				Expect(rl).NotTo(HaveKey(RunName))
 				Expect(rl).NotTo(HaveKey(RunNamespace))
 			})
@@ -104,9 +104,9 @@ var _ = Describe("DefaultLabelGen", func() {
 			rs := testutil.RandomRunScheduleDefinition()
 			rl, err := lg.GenerateLabels(rs)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(rl[PipelineName]).To(Equal(rs.PipelineName.Name))
-			Expect(rl[PipelineNamespace]).To(Equal(rs.PipelineName.Namespace))
-			Expect(rl[PipelineVersion]).To(Equal(rs.PipelineVersion))
+			Expect(rl).To(HaveKeyWithValue(PipelineName, rs.PipelineName.Name))
+			Expect(rl).To(HaveKeyWithValue(PipelineNamespace, rs.PipelineName.Namespace))
+			Expect(rl).To(HaveKeyWithValue(PipelineVersion, rs.PipelineVersion))
 		})
 
 		When("RunConfigurationName is present", func() {
@@ -115,8 +115,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rsd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[RunConfigurationName]).To(Equal(rsd.RunConfigurationName.Name))
-				Expect(rl[RunConfigurationNamespace]).To(Equal(rsd.RunConfigurationName.Namespace))
+				Expect(rl).To(HaveKeyWithValue(RunConfigurationName, rsd.RunConfigurationName.Name))
+				Expect(rl).To(HaveKeyWithValue(RunConfigurationNamespace, rsd.RunConfigurationName.Namespace))
 			})
 		})
 
@@ -137,9 +137,9 @@ var _ = Describe("DefaultLabelGen", func() {
 			rl, err := lg.GenerateLabels(rsd)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(rl[triggers.Type]).To(Equal(triggers.Schedule))
-			Expect(rl[triggers.Source]).To(Equal(rsd.Name.Name))
-			Expect(rl[triggers.SourceNamespace]).To(Equal(rsd.Name.Namespace))
+			Expect(rl).To(HaveKeyWithValue(triggers.Type, triggers.Schedule))
+			Expect(rl).To(HaveKeyWithValue(triggers.Source, rsd.Name.Name))
+			Expect(rl).To(HaveKeyWithValue(triggers.SourceNamespace, rsd.Name.Namespace))
 		})
 	})
 })
