@@ -147,14 +147,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 				msg.OnSuccess()
 				Expect(msg.Message).To(Equal(pipelineId))
 
-				time.Sleep(retryTimeout * 2)
-
-				select {
-				case _ = <-source.Out():
-					Fail("second message received")
-				default:
-					Succeed()
-				}
+				Consistently(source.Out(), retryTimeout*2).ShouldNot(Receive())
 			})
 		})
 
@@ -182,14 +175,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 				msg.OnUnrecoverableFailureHandler()
 				Expect(msg.Message).To(Equal(pipelineId))
 
-				time.Sleep(retryTimeout)
-
-				select {
-				case _ = <-source.Out():
-					Fail("second message received")
-				default:
-					Succeed()
-				}
+				Consistently(source.Out(), retryTimeout).ShouldNot(Receive())
 			})
 		})
 
