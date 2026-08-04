@@ -48,13 +48,6 @@ func (testCtx WorkflowTestHelper[R]) WorkflowToBeUpdated(updateFunc func(*argo.W
 	}
 }
 
-func (testCtx WorkflowTestHelper[R]) FetchWorkflow() func() error {
-	return func() error {
-		_, err := testCtx.fetchWorkflow()
-		return err
-	}
-}
-
 func (testCtx WorkflowTestHelper[R]) fetchWorkflow() (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 

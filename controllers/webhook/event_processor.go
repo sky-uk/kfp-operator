@@ -21,7 +21,7 @@ func NewResourceArtifactsEventProcessor() EventProcessor {
 }
 
 func (ep ResourceArtifactsEventProcessor) ToRunCompletionEvent(eventData *common.RunCompletionEventData, runConfiguration *pipelineshub.RunConfiguration, run *pipelineshub.Run) (*common.RunCompletionEvent, EventError) {
-	artifacts := []pipelineshub.OutputArtifact{}
+	var artifacts []pipelineshub.OutputArtifact
 	if runConfiguration != nil {
 		artifacts = runConfiguration.Spec.Run.Artifacts
 	} else if run != nil {

@@ -125,21 +125,6 @@ func RandomFramework() Framework {
 	}
 }
 
-func RandomConditions() Conditions {
-	return RandomList(RandomCondition)
-}
-
-func RandomCondition() metav1.Condition {
-	return metav1.Condition{
-		Type:               RandomLowercaseString(),
-		Status:             RandomConditionStatus(),
-		ObservedGeneration: common.RandomInt64(),
-		LastTransitionTime: metav1.Time{Time: time.Now()},
-		Reason:             RandomLowercaseString(),
-		Message:            RandomLowercaseString(),
-	}
-}
-
 func RandomRunConfiguration(provider common.NamespacedName) *RunConfiguration {
 	return &RunConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
@@ -262,10 +247,6 @@ func RandomRunConfigurationRefParameter() Parameter {
 			},
 		},
 	}
-}
-
-func WithValueFrom(runSpec *RunSpec) {
-	runSpec.Parameters = append(runSpec.Parameters, RandomList(RandomRunConfigurationRefParameter)...)
 }
 
 func RandomRunSpec(provider common.NamespacedName) RunSpec {
