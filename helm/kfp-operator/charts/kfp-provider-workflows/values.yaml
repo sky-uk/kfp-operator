@@ -1,59 +1,62 @@
 # Values for the kfp-provider-workflows chart.
 # Install one release per provider namespace.
 
-# Namespace the WorkflowTemplates, RBAC and Provider resource are created in.
-# This must be the namespace the Provider runs in. Defaults to the release
-# namespace when left empty.
+# -- Namespace the `WorkflowTemplate`s, RBAC and `Provider` resource are created in. Must match the namespace the `Provider` runs in. Defaults to the release namespace when left empty
 namespace: ""
 
 # The Argo execution configuration for the WorkflowTemplates rendered into the
 # provider namespace.
 argo:
-  # Gates the workflow-executor Role and its RoleBinding. Set to false to
-  # manage these namespace-scoped resources externally.
   rbac:
+    # -- Create the namespace-scoped `workflow-executor` `Role` and its `RoleBinding`. Set to `false` to manage these resources externally
     create: true
   serviceAccount:
-    # ServiceAccount workflows run as. Created in the provider namespace.
+    # -- `ServiceAccount` the Argo workflows run as, created in the provider namespace
     name: "kfp-operator-argo"
-    # Whether to create the ServiceAccount. Set to false to reuse an
-    # existing one.
+    # -- Create the Argo workflow `ServiceAccount`. Set to `false` to reuse an existing one
     create: true
+    # -- [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the Argo workflow `ServiceAccount`
     metadata: {}
+  # -- Container spec defaults applied to the Argo workflow pods
   containerDefaults: {}
+  # -- Metadata (labels/annotations) applied to the Argo workflow pods
   metadata: {}
+  # -- [Security Context](https://argo-workflows.readthedocs.io/en/latest/workflow-pod-security-context/) applied to the Argo workflow pods. Set to `null` or `runAsNonRoot` to `false` to run as root
   securityContext:
     runAsNonRoot: true
     runAsUser: 1000
     fsGroup: 1000
   ttlStrategy:
+    # -- [TTL Strategy](https://argoproj.github.io/argo-workflows/fields/#ttlstrategy) - seconds to retain completed Argo Workflows before cleanup
     secondsAfterCompletion: 3600
   stepTimeoutSeconds:
+    # -- Default timeout in seconds for workflow steps
     default: 300
+    # -- Timeout in seconds for compiler steps
     compile: 1800
 
 # The Provider resource this release provisions workflows for.
 provider:
-  # When true, the chart also renders the Provider custom resource.
+  # -- When `true`, the chart also renders the `Provider` custom resource
   create: true
-  # Provider resource name. Defaults to the release name when left empty.
+  # -- `Provider` resource name. Defaults to the release name when left empty
   name: ""
-  # The provider service ServiceAccount, created in the provider namespace.
-  # The cluster-scoped bindings this account needs (run/runconfiguration
-  # viewer and, for KFP, eventing) are managed externally by the platform.
   serviceAccount:
-    # ServiceAccount name. Defaults to kfp-provider-<provider-name> when
-    # left empty.
+    # -- Provider service `ServiceAccount` name, created in the provider namespace and referenced by the `Provider` spec. Defaults to `kfp-provider-<provider-name>` when left empty. Its cluster-scoped viewer/eventing bindings are managed externally by the platform
     name: ""
-    # Whether to create the ServiceAccount. Set to false to reuse an
-    # existing one.
+    # -- Create the provider service `ServiceAccount`. Set to `false` to reuse an existing one
     create: true
+    # -- [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the provider service `ServiceAccount`
     metadata: {}
-  # Provider spec fields (see the Provider CRD reference).
+  # -- Provider service image. Required when `provider.create` is `true`
   serviceImage: ""
+  # -- Pipeline root storage location. Required when `provider.create` is `true`
   pipelineRootStorage: ""
-  # Free-form provider parameters (map of name -> value).
+  # -- Free-form provider parameters (map of name to value)
   parameters: {}
+  # -- Pipeline frameworks the provider supports (see the [Provider CRD reference](../../reference/resources/provider))
   frameworks: []
+  # -- Namespaces allowed to reference this provider. An empty list allows all namespaces
   allowedNamespaces: []
+  # -- [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the `Provider` resource
   metadata: {}

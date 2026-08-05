@@ -128,17 +128,6 @@ manager:
       cpu: 500m
       memory: 512Mi
 
-  # Argo Workflows configuration
-  argo:
-    serviceAccount:
-      create: true
-      name: kfp-operator-argo
-    stepTimeoutSeconds:
-      default: 600  # 10 minutes
-      compile: 3600  # 1 hour
-    ttlStrategy:
-      secondsAfterCompletion: 3600  # Clean up after 1 hour
-
   # Monitoring configuration
   monitoring:
     create: true
@@ -268,22 +257,11 @@ helm install <release-name> ./helm/kfp-operator/charts/kfp-provider-workflows \
   --set provider.pipelineRootStorage=<pipeline-root-storage>
 ```
 
-The most relevant values are:
+Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/charts/kfp-provider-workflows/values.yaml" >}}) are:
 
-| Value | Description | Default |
-|-------|-------------|---------|
-| `namespace` | Namespace the `WorkflowTemplate`s, RBAC and `Provider` are created in. Must match the `Provider` namespace. Defaults to the release namespace when empty. | `""` |
-| `manager.argo.serviceAccount.name` | `ServiceAccount` the workflows run as. Created in the provider namespace. | `kfp-operator-argo` |
-| `manager.argo.serviceAccount.create` | Whether to create the `ServiceAccount`. Set to `false` to reuse an existing one. | `true` |
-| `manager.argo.rbac.create` | Whether to create the namespace-scoped `workflow-executor` `Role` and its `RoleBinding`. Set to `false` to manage these resources externally. | `true` |
-| `provider.create` | Whether the chart also renders the `Provider` resource. | `true` |
-| `provider.name` | `Provider` resource name. Defaults to the release name when empty. | `""` |
-| `provider.serviceImage` | Provider service image. Required when `provider.create` is `true`. | `""` |
-| `provider.serviceAccount.name` | Provider service `ServiceAccount`, created in the provider namespace and referenced by the `Provider` spec. Defaults to `kfp-provider-<provider-name>` when empty. Its cluster-scoped viewer/eventing bindings are managed externally. | `""` |
-| `provider.serviceAccount.create` | Whether to create the provider service `ServiceAccount`. Set to `false` to reuse an existing one. | `true` |
-| `provider.pipelineRootStorage` | Pipeline root storage location. Required when `provider.create` is `true`. | `""` |
+{{% readfile file="/includes/master/reference/helm-provider-workflows-values.md" %}}
 
-The Argo execution values (`manager.argo.ttlStrategy`, `manager.argo.stepTimeoutSeconds`, `manager.argo.securityContext`, `manager.argo.containerDefaults` and `manager.argo.metadata`) mirror those of the operator chart and default to the same values. Override them per release if a provider namespace needs different workflow behaviour.
+The `argo.*` execution values (`argo.ttlStrategy`, `argo.stepTimeoutSeconds`, `argo.securityContext`, `argo.containerDefaults` and `argo.metadata`) control how the provider's Argo `Workflow`s run. Override them per release if a provider namespace needs different workflow behaviour.
 
 **Note:** because workflows now run in the provider namespace, the artifact-repository credentials `Secret` that your Argo `workflow-controller` references (the `accessKeySecret`/`secretKeySecret` in its `artifactRepository` configuration — for example the MinIO/S3 secret) **must exist in each provider namespace**. Argo resolves that `Secret` in the namespace the workflow pods run in, so a copy that only lives in the Argo or operator namespace is not sufficient. The `kfp-provider-workflows` chart does **not** manage this `Secret` — it holds credentials owned by the platform team — so you must create it in every provider namespace yourself.
 
@@ -294,8 +272,8 @@ The `kfp-provider-workflows` chart provisions **only namespace-scoped resources*
 | Resource | Kind | Gated by | Purpose |
 |----------|------|----------|---------|
 | `common-steps`, `create-simple`, `update-simple`, `create-compiled`, `update-compiled`, `compiled-workflow-steps`, `delete` | `WorkflowTemplate` | always | The resource-management workflow definitions the operator invokes. |
-| `kfp-operator-argo` | `ServiceAccount` | `manager.argo.serviceAccount.create` | The account the Argo `Workflow` pods run as. |
-| `workflow-executor` | `Role` + `RoleBinding` | `manager.argo.rbac.create` | Grants the Argo workflow account the in-namespace permissions its steps need (`pods` get/patch, `workflowtaskresults` create/patch). Bound to the Argo workflow `ServiceAccount`. |
+| `kfp-operator-argo` | `ServiceAccount` | `argo.serviceAccount.create` | The account the Argo `Workflow` pods run as. |
+| `workflow-executor` | `Role` + `RoleBinding` | `argo.rbac.create` | Grants the Argo workflow account the in-namespace permissions its steps need (`pods` get/patch, `workflowtaskresults` create/patch). Bound to the Argo workflow `ServiceAccount`. |
 | `kfp-provider-<provider-name>` | `ServiceAccount` | `provider.create` and `provider.serviceAccount.create` | The account the provider service runs as; referenced by the `Provider` spec. |
 | `<provider-name>` | `Provider` | `provider.create` | The `Provider` custom resource itself. |
 

@@ -249,13 +249,15 @@ docker-push-providers: ## Publish provider docker images
 ##@ Docs
 
 HELM_VALUES_FRAGMENT = docs-gen/includes/master/reference/helm-values.md
-helm-docs: helm-docs-cmd ## Generate the Helm values docs fragment from values.yaml
+HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT = docs-gen/includes/master/reference/helm-provider-workflows-values.md
+helm-docs: helm-docs-cmd ## Generate the Helm values docs fragments from values.yaml
 	$(HELM_DOCS) --chart-search-root helm/kfp-operator -t helm-values.md.gotmpl -o ../../$(HELM_VALUES_FRAGMENT)
+	$(HELM_DOCS) --chart-search-root helm/kfp-operator/charts/kfp-provider-workflows -t ../../helm-values.md.gotmpl -o ../../../../$(HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT)
 
-helm-docs-check: helm-docs ## Fail if the generated Helm values docs fragment is out of date
-	@if [ -n "$$(git status -s $(HELM_VALUES_FRAGMENT))" ]; then \
-		echo "$(HELM_VALUES_FRAGMENT) is out of date - run 'make helm-docs' and commit the result"; \
-		git --no-pager diff $(HELM_VALUES_FRAGMENT); \
+helm-docs-check: helm-docs ## Fail if the generated Helm values docs fragments are out of date
+	@if [ -n "$$(git status -s $(HELM_VALUES_FRAGMENT) $(HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT))" ]; then \
+		echo "Helm values docs fragments are out of date - run 'make helm-docs' and commit the result"; \
+		git --no-pager diff $(HELM_VALUES_FRAGMENT) $(HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT); \
 		exit 1; \
 	fi
 
