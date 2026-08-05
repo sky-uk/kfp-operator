@@ -6,14 +6,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-openapi/runtime"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/auth"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -27,17 +29,28 @@ type KfpProvider struct {
 	labelService          LabelService
 }
 
-func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
+func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
+	tokenSource, err := client.MultiUserTokenSource(*cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	var authInfo runtime.ClientAuthInfoWriter
+	if tokenSource != nil {
+		authInfo = auth.BearerAuthInfoWriter(tokenSource)
+	}
+
 	pipelineUploadService, err := NewPipelineUploadService(
-		config.Parameters.RestKfpApiUrl,
+		cfg.Parameters.RestKfpApiUrl,
+		authInfo,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	conn, err := grpc.NewClient(
-		config.Parameters.GrpcKfpApiAddress,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		cfg.Parameters.GrpcKfpApiAddress,
+		client.GrpcDialOptions(tokenSource)...,
 	)
 	if err != nil {
 		return nil, err
@@ -49,23 +62,23 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 	}
 
 	labelGenerator := label.DefaultLabelGen{
-		ProviderName: config.ProviderName,
+		ProviderName: cfg.ProviderName,
 	}
 
-	runService, err := NewRunService(conn, labelGenerator, config.PipelineRootStorage)
+	runService, err := NewRunService(conn, labelGenerator, cfg.PipelineRootStorage)
 	if err != nil {
 		return nil, err
 	}
 
-	recurringRunService, err := NewRecurringRunService(conn, labelGenerator, config.PipelineRootStorage)
+	recurringRunService, err := NewRecurringRunService(conn, labelGenerator, cfg.PipelineRootStorage)
 	if err != nil {
 		return nil, err
 	}
 
 	experimentService, err := NewExperimentService(
 		conn,
-		config.Parameters.KfpMultiUserMode,
-		config.ProviderName.Namespace,
+		cfg.Parameters.KfpMultiUserMode,
+		cfg.ProviderName.Namespace,
 	)
 	if err != nil {
 		return nil, err
@@ -77,7 +90,7 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 	}
 
 	return &KfpProvider{
-		config:                config,
+		config:                cfg,
 		pipelineUploadService: pipelineUploadService,
 		pipelineService:       pipelineService,
 		runService:            runService,

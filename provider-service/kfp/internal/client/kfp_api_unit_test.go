@@ -4,12 +4,14 @@ package client
 
 import (
 	"context"
+
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"golang.org/x/oauth2"
 
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
@@ -70,6 +72,26 @@ var _ = Context("KFP API", func() {
 					},
 				}, cmpopts.IgnoreFields(resource.References{}, "FinishedAt")))
 			})
+		})
+	})
+})
+
+var _ = Context("GrpcDialOptions", func() {
+	When("a bearer token source is provided", func() {
+		It("attaches the bearer credential dial option", func() {
+			opts := GrpcDialOptions(
+				oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "token"}),
+			)
+			// transport credentials + bearer credential
+			Expect(opts).To(HaveLen(2))
+		})
+	})
+
+	When("no bearer token source is provided", func() {
+		It("attaches no auth dial option", func() {
+			opts := GrpcDialOptions(nil)
+			// transport credentials only
+			Expect(opts).To(HaveLen(1))
 		})
 	})
 })
