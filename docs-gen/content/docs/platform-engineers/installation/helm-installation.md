@@ -128,17 +128,6 @@ manager:
       cpu: 500m
       memory: 512Mi
 
-  # Argo Workflows configuration
-  argo:
-    serviceAccount:
-      create: true
-      name: kfp-operator-argo
-    stepTimeoutSeconds:
-      default: 600  # 10 minutes
-      compile: 3600  # 1 hour
-    ttlStrategy:
-      secondsAfterCompletion: 3600  # Clean up after 1 hour
-
   # Monitoring configuration
   monitoring:
     create: true
@@ -233,43 +222,7 @@ manager:
 
 Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/values.yaml" >}}) are:
 
-| Parameter name                                            | Description                                                                                                                                                                                                         |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `containerRegistry`                                       | Container Registry base path for all container images                                                                                                                                                               |
-| `namespace.create`                                        | Create the namespace for the operator                                                                                                                                                                               |
-| `namespace.name`                                          | Operator namespace name                                                                                                                                                                                             |
-| `manager.argo.containerDefaults`                          | Container Spec defaults to be used for Argo workflow pods created by the operator                                                                                                                                   |
-| `manager.argo.metadata`                                   | Container Metadata defaults to be used for Argo workflow pods created by the operator                                                                                                                               |
-| `manager.argo.securityContext`                            | [Security Context](https://argo-workflows.readthedocs.io/en/latest/workflow-pod-security-context/) applied to Argo WorkflowTemplate. To run as root user, set `securityContext` to `null` or `securityContext.runAsNonRoot` to `false` |
-| `manager.argo.ttlStrategy`                                | [TTL Strategy](https://argoproj.github.io/argo-workflows/fields/#ttlstrategy) used for all Argo Workflows                                                                                                           |
-| `manager.argo.stepTimeoutSeconds.compile`                 | Timeout in seconds for compiler steps - defaults to 1800 (30m)                                                                                                                                                      |
-| `manager.argo.stepTimeoutSeconds.default`                 | Default [timeout in seconds](https://argoproj.github.io/argo-workflows/walk-through/timeouts/) for workflow steps - defaults to 300 (5m)                                                                            |
-| `manager.argo.serviceAccount.name`                        | The [k8s service account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) used to run Argo workflows                                                                           |
-| `manager.argo.serviceAccount.create`                      | Create the Argo Workflows service account (or assume it has been created externally)                                                                                                                                |
-| `manager.argo.serviceAccount.metadata`                    | Optional Argo Workflows service account default metadata                                                                                                                                                            |
-| `manager.metadata`                                        | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the manager's pods                                                                            |
-| `manager.rbac.create`                                     | Create roles and rolebindings for the operator                                                                                                                                                                      |
-| `manager.serviceAccount.name`                             | Manager service account's name                                                                                                                                                                                      |
-| `manager.serviceAccount.create`                           | Create the manager's service account or expect it to be created externally                                                                                                                                          |
-| `manager.replicas`                                        | Number of replicas for the manager deployment                                                                                                                                                                       |
-| `manager.leaderElection.enabled`                          | Toggle leader election - defaults to `true`                                                                                                                                                                         |
-| `manager.leaderElection.id`                               | Leader election Lease resource name - defaults to `kfp-operator-lock`                                                                                                                                               |
-| `manager.resources`                                       | Manager resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources)                                                                              |
-| `manager.configuration`                                   | Manager configuration as defined in [Configuration](../configuration/operator-configuration) (note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied) |
-| `manager.monitoring.create`                               | Create the manager's monitoring resources                                                                                                                                                                           |
-| `manager.monitoring.rbacSecured`                          | Enable addtional RBAC-based security                                                                                                                                                                                |
-| `manager.monitoring.serviceMonitor.create`                | Create a ServiceMonitor for the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)                                                                                                   |
-| `manager.monitoring.serviceMonitor.endpointConfiguration` | Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided)                                                                                                            |
-| `manager.multiversion.enabled`                            | Enable multiversion API. Should be used in production to allow version migration, disable for simplified installation                                                                                               |
-| `manager.multiversion.storedVersion`                      | Specifies which CRD version should be set as the stored version. Only takes effect if `manager.multiversion.enabled` is set to `true`. Defaults to the latest version.                                              |
-| `manager.webhookCertificates.provider`                    | K8s conversion webhook TLS certificate provider - choose `cert-manager` for Helm to deploy certificates if cert-manager is available or `custom` otherwise (see below)                                              |
-| `manager.webhookCertificates.secretName`                  | Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the `custom` provider is chosen                                                                          |
-| `manager.webhookCertificates.caBundle`                    | CA bundle of the certificate authority that has signed the webhook's certificate, required if the `custom` provider is chosen                                                                                       |
-| `manager.webhookServicePort`                              | Port for the webhook service to listen on - defaults to 9443                                                                                                                                                        |
-| `manager.runcompletionWebhook.servicePort`                | Port for the run completion event webhook service to listen on - defaults to 8082                                                                                                                                   |
-| `manager.runcompletionWebhook.endpoints`                  | Array of endpoints for the run completion event handlers to be called when a run completion event is passed                                                                                                         |
-| `logging.verbosity`                                       | Logging verbosity for all components - see the [logging documentation]({{< param "github_project_repo" >}}/blob/master/CONTRIBUTING.md#logging) for valid values                                                    |
-| `statusFeedback.enabled`                                  | Whether run completion eventing and status update feedback loop should be installed - defaults to `false`                                                                                                           |
+{{% readfile file="/includes/master/reference/helm-values.md" %}}
 
 Examples for these values can be found in the [test configuration]({{< ghblob "/helm/kfp-operator/test/values.yaml" >}})
 
@@ -304,22 +257,11 @@ helm install <release-name> ./helm/kfp-operator/charts/kfp-provider-workflows \
   --set provider.pipelineRootStorage=<pipeline-root-storage>
 ```
 
-The most relevant values are:
+Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/charts/kfp-provider-workflows/values.yaml" >}}) are:
 
-| Value | Description | Default |
-|-------|-------------|---------|
-| `namespace` | Namespace the `WorkflowTemplate`s, RBAC and `Provider` are created in. Must match the `Provider` namespace. Defaults to the release namespace when empty. | `""` |
-| `manager.argo.serviceAccount.name` | `ServiceAccount` the workflows run as. Created in the provider namespace. | `kfp-operator-argo` |
-| `manager.argo.serviceAccount.create` | Whether to create the `ServiceAccount`. Set to `false` to reuse an existing one. | `true` |
-| `manager.argo.rbac.create` | Whether to create the namespace-scoped `workflow-executor` `Role` and its `RoleBinding`. Set to `false` to manage these resources externally. | `true` |
-| `provider.create` | Whether the chart also renders the `Provider` resource. | `true` |
-| `provider.name` | `Provider` resource name. Defaults to the release name when empty. | `""` |
-| `provider.serviceImage` | Provider service image. Required when `provider.create` is `true`. | `""` |
-| `provider.serviceAccount.name` | Provider service `ServiceAccount`, created in the provider namespace and referenced by the `Provider` spec. Defaults to `kfp-provider-<provider-name>` when empty. Its cluster-scoped viewer/eventing bindings are managed externally. | `""` |
-| `provider.serviceAccount.create` | Whether to create the provider service `ServiceAccount`. Set to `false` to reuse an existing one. | `true` |
-| `provider.pipelineRootStorage` | Pipeline root storage location. Required when `provider.create` is `true`. | `""` |
+{{% readfile file="/includes/master/reference/helm-provider-workflows-values.md" %}}
 
-The Argo execution values (`manager.argo.ttlStrategy`, `manager.argo.stepTimeoutSeconds`, `manager.argo.securityContext`, `manager.argo.containerDefaults` and `manager.argo.metadata`) mirror those of the operator chart and default to the same values. Override them per release if a provider namespace needs different workflow behaviour.
+The `argo.*` execution values (`argo.ttlStrategy`, `argo.stepTimeoutSeconds`, `argo.securityContext`, `argo.containerDefaults` and `argo.metadata`) control how the provider's Argo `Workflow`s run. Override them per release if a provider namespace needs different workflow behaviour.
 
 **Note:** because workflows now run in the provider namespace, the artifact-repository credentials `Secret` that your Argo `workflow-controller` references (the `accessKeySecret`/`secretKeySecret` in its `artifactRepository` configuration — for example the MinIO/S3 secret) **must exist in each provider namespace**. Argo resolves that `Secret` in the namespace the workflow pods run in, so a copy that only lives in the Argo or operator namespace is not sufficient. The `kfp-provider-workflows` chart does **not** manage this `Secret` — it holds credentials owned by the platform team — so you must create it in every provider namespace yourself.
 
@@ -330,8 +272,8 @@ The `kfp-provider-workflows` chart provisions **only namespace-scoped resources*
 | Resource | Kind | Gated by | Purpose |
 |----------|------|----------|---------|
 | `common-steps`, `create-simple`, `update-simple`, `create-compiled`, `update-compiled`, `compiled-workflow-steps`, `delete` | `WorkflowTemplate` | always | The resource-management workflow definitions the operator invokes. |
-| `kfp-operator-argo` | `ServiceAccount` | `manager.argo.serviceAccount.create` | The account the Argo `Workflow` pods run as. |
-| `workflow-executor` | `Role` + `RoleBinding` | `manager.argo.rbac.create` | Grants the Argo workflow account the in-namespace permissions its steps need (`pods` get/patch, `workflowtaskresults` create/patch). Bound to the Argo workflow `ServiceAccount`. |
+| `kfp-operator-argo` | `ServiceAccount` | `argo.serviceAccount.create` | The account the Argo `Workflow` pods run as. |
+| `workflow-executor` | `Role` + `RoleBinding` | `argo.rbac.create` | Grants the Argo workflow account the in-namespace permissions its steps need (`pods` get/patch, `workflowtaskresults` create/patch). Bound to the Argo workflow `ServiceAccount`. |
 | `kfp-provider-<provider-name>` | `ServiceAccount` | `provider.create` and `provider.serviceAccount.create` | The account the provider service runs as; referenced by the `Provider` spec. |
 | `<provider-name>` | `Provider` | `provider.create` | The `Provider` custom resource itself. |
 

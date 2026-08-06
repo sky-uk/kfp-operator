@@ -2,31 +2,44 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# -- Override the fully qualified name of chart resources
 fullnameOverride: ""
 
+# -- Container Registry base path for all container images
 containerRegistry: "ghcr.io/kfp-operator"
 
 # The kfp-provider-workflows subchart is installed independently, one release per
 # provider namespace, and is disabled when installing the operator chart.
 kfp-provider-workflows:
+  # -- Enable the kfp-provider-workflows subchart. Disabled by default; install the subchart separately, one release per provider namespace
   enabled: false
 
 crds:
+  # -- Install the operator's Custom Resource Definitions
   create: true
+  # -- Retain the Custom Resource Definitions when the chart is uninstalled
   keep: true
 
 namespace:
+  # -- Create the namespace for the operator
   create: true
+  # -- Operator namespace name
   name: "kfp-operator-system"
+  # -- [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the operator namespace
   metadata: {}
 
 manager:
+  # -- [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the manager's pods
   metadata: {}
   rbac:
+    # -- Create roles and rolebindings for the operator
     create: true
   serviceAccount:
+    # -- Create the manager's service account or expect it to be created externally
     create: true
+    # -- Manager service account's name
     name: "kfp-operator-controller-manager"
+  # -- Manager resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources)
   resources:
     limits:
       cpu: 100m
@@ -34,51 +47,79 @@ manager:
     requests:
       cpu: 100m
       memory: 200Mi
+  # -- Number of replicas for the manager deployment
   replicas: 1
   leaderElection:
+    # -- Toggle leader election - defaults to `true`
     enabled: true
+    # -- Leader election Lease resource name - defaults to `kfp-operator-lock`
     id: "kfp-operator-lock"
+  # -- Manager configuration as defined in [Configuration](../configuration/operator-configuration) (note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied)
   configuration: {}
   monitoring:
+    # -- Create the manager's monitoring resources
     create: false
+    # -- Enable additional RBAC-based security
     rbacSecured: false
     serviceMonitor:
+      # -- Create a ServiceMonitor for the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)
       create: false
+      # -- Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided)
       endpointConfiguration: {}
   multiversion:
+    # -- Enable multiversion API. Should be used in production to allow version migration, disable for simplified installation
     enabled: false
+    # -- Specifies which CRD version should be set as the stored version. Only takes effect if `manager.multiversion.enabled` is set to `true`. Defaults to the latest version.
     storedVersion: v1beta1
   webhookCertificates:
+    # -- K8s conversion webhook TLS certificate provider - choose `cert-manager` for Helm to deploy certificates if cert-manager is available or `custom` otherwise (see below)
     provider: cert-manager
+    # -- Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the `custom` provider is chosen
     secretName: ""
+    # -- CA bundle of the certificate authority that has signed the webhook's certificate, required if the `custom` provider is chosen
     caBundle: ""
+  # -- Port for the webhook service to listen on - defaults to 9443
   webhookServicePort: 9443
   runcompletionWebhook:
+    # -- Port for the run completion event webhook service to listen on - defaults to 8082
     servicePort: 8082
+    # -- Array of endpoints for the run completion event handlers to be called when a run completion event is passed
     endpoints: []
 
 runcompletionEventTrigger:
+  # -- [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the run completion event trigger's pods
   metadata: {}
+  # -- Whether the run completion event trigger should be installed - defaults to `false`
   enabled: false
+  # -- Whether monitoring resources should be created for the run completion event trigger - defaults to `false`
   monitoring: false
+  # -- Number of replicas for the run completion event trigger deployment
   replicas: 1
   server:
+    # -- Port for the run completion event trigger gRPC server to listen on
     port: 50051
   metrics:
+    # -- Port for the run completion event trigger metrics endpoint
     port: 8081
   nats:
+    # -- NATS subject the run completion event trigger publishes events to
     subject: events
     server:
+      # -- Port of the NATS server the run completion event trigger connects to
       port: 4222
 
 statusFeedback:
+  # -- Whether run completion eventing and status update feedback loop should be installed - defaults to `false`
   enabled: false
 
 logging:
+  # -- Logging verbosity for all components - see the [logging documentation]({{< param "github_project_repo" >}}/blob/master/CONTRIBUTING.md#logging) for valid values
   verbosity: # info
 
 provider:
+  # -- Number of replicas for provider deployments
   replicas: 1
+  # -- Provider resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources)
   resources:
     requests:
       cpu: 250m
@@ -86,10 +127,17 @@ provider:
     limits:
       cpu: 500m
       memory: 256Mi
+  # -- Port for provider services to listen on
   servicePort: 8080
+  # -- Port for provider metrics endpoints
   metricsPort: 8081
+  # -- Additional labels applied to provider resources
   labels: {}
+  # -- Additional labels applied to provider pod templates
   podTemplateLabels: {}
+  # -- Additional volumes to mount into provider pods
   volumes: []
+  # -- Additional volume mounts for provider containers
   volumeMounts: []
+  # -- Additional environment variables for provider containers
   env: []
