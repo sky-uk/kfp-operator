@@ -58,5 +58,11 @@ provider:
   frameworks: []
   # -- Namespaces allowed to reference this provider. An empty list allows all namespaces
   allowedNamespaces: []
+  # -- Environment variables applied to the generated provider-service container, merged over the operator's `defaultProviderValues` env; per-provider values take precedence on name collision
+  podTemplateEnv: []
+  # -- Volumes applied to the generated provider-service pod, merged over the operator's `defaultProviderValues` volumes; per-provider values take precedence on name collision
+  podTemplateVolumes: []
+  # -- Volume mounts applied to the generated provider-service container, merged over the operator's `defaultProviderValues` volume mounts; per-provider values take precedence on mount-path collision
+  podTemplateVolumeMounts: []
   # -- [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the `Provider` resource
   metadata: {}
