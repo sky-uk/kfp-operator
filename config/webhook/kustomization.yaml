@@ -4,8 +4,8 @@ resources:
 
 namespace: kfp-operator-system
 
-patchesStrategicMerge:
-- patches/cainjection_in_manifests.yaml
+patches:
+- path: patches/cainjection_in_manifests.yaml
 
 configurations:
 - kustomizeconfig.yaml
