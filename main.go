@@ -22,11 +22,17 @@ import (
 	"net/http"
 	"os"
 
+	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/samber/lo"
+	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
 	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/internal/metrics"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	runtimeMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -87,7 +93,22 @@ func main() {
 
 	var err error
 	ctrlConfig := config.OperatorConfig{}
-	options := ctrl.Options{Scheme: scheme, HealthProbeBindAddress: ":8081"}
+
+	ownerKindLabelKey := apis.Group + "/owner.kind"
+	workflowOwnerReq, _ := labels.NewRequirement(
+		ownerKindLabelKey, selection.Exists, nil,
+	)
+	options := ctrl.Options{
+		Scheme:                 scheme,
+		HealthProbeBindAddress: ":8081",
+		Cache: cache.Options{
+			ByObject: map[client.Object]cache.ByObject{
+				&argo.Workflow{}: {
+					Label: labels.NewSelector().Add(*workflowOwnerReq),
+				},
+			},
+		},
+	}
 
 	if configFile != "" {
 		bytes, err := os.ReadFile(configFile)
