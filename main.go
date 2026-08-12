@@ -91,13 +91,18 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	var err error
 	ctrlConfig := config.OperatorConfig{}
 
+	// Create a workflow requirement such that only workflows that are owned by the operators api group are cached.
 	ownerKindLabelKey := apis.Group + "/owner.kind"
-	workflowOwnerReq, _ := labels.NewRequirement(
+	workflowOwnerReq, err := labels.NewRequirement(
 		ownerKindLabelKey, selection.Exists, nil,
 	)
+	if err != nil {
+		setupLog.Error(err, "unable to create workflow owner requirement")
+		os.Exit(1)
+	}
+
 	options := ctrl.Options{
 		Scheme:                 scheme,
 		HealthProbeBindAddress: ":8081",
