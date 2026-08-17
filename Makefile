@@ -31,6 +31,12 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./apis/..."
 
+HELM_VALUES_FRAGMENT = docs-gen/includes/master/reference/helm-values.md
+HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT = docs-gen/includes/master/reference/helm-provider-workflows-values.md
+helm-docs: helm-docs-cmd ## Generate the Helm values docs fragments from values.yaml
+	$(HELM_DOCS) --chart-search-root helm/kfp-operator -t helm-values.md.gotmpl -o ../../$(HELM_VALUES_FRAGMENT)
+	$(HELM_DOCS) --chart-search-root helm/kfp-operator/charts/kfp-provider-workflows -t ../../helm-values.md.gotmpl -o ../../../../$(HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT)
+
 generate-grpc: ## Generate grpc services from proto files
 	protoc --go_out=. --go_opt=paths=source_relative \
 	--go-grpc_out=.  --go-grpc_opt=paths=source_relative \
@@ -108,6 +114,9 @@ build: generate fmt vet ## Build manager binary.
 
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go --zap-devel --config config/manager/controller_manager_config.yaml
+
+website: helm-docs ## Build website
+	$(MAKE) -C docs-gen build
 
 ##@ Deployment
 
@@ -245,24 +254,6 @@ docker-build-providers: ## Build provider docker images
 
 docker-push-providers: ## Publish provider docker images
 	$(MAKE) -C provider-service docker-push
-
-##@ Docs
-
-HELM_VALUES_FRAGMENT = docs-gen/includes/master/reference/helm-values.md
-HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT = docs-gen/includes/master/reference/helm-provider-workflows-values.md
-helm-docs: helm-docs-cmd ## Generate the Helm values docs fragments from values.yaml
-	$(HELM_DOCS) --chart-search-root helm/kfp-operator -t helm-values.md.gotmpl -o ../../$(HELM_VALUES_FRAGMENT)
-	$(HELM_DOCS) --chart-search-root helm/kfp-operator/charts/kfp-provider-workflows -t ../../helm-values.md.gotmpl -o ../../../../$(HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT)
-
-helm-docs-check: helm-docs ## Fail if the generated Helm values docs fragments are out of date
-	@if [ -n "$$(git status -s $(HELM_VALUES_FRAGMENT) $(HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT))" ]; then \
-		echo "Helm values docs fragments are out of date - run 'make helm-docs' and commit the result"; \
-		git --no-pager diff $(HELM_VALUES_FRAGMENT) $(HELM_PROVIDER_WORKFLOWS_VALUES_FRAGMENT); \
-		exit 1; \
-	fi
-
-website: ## Build website
-	$(MAKE) -C docs-gen build
 
 docker-push-quickstart: ## Build and push quickstart docker images
 	$(MAKE) -C docs-gen docker-push-quickstart

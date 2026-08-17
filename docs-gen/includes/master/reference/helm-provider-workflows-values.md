@@ -18,6 +18,9 @@
 | `provider.name` | `Provider` resource name. Defaults to the release name when left empty | `""` |
 | `provider.parameters` | Free-form provider parameters (map of name to value) | `{}` |
 | `provider.pipelineRootStorage` | Pipeline root storage location. Required when `provider.create` is `true` | `""` |
+| `provider.podTemplateEnv` | Environment variables applied to the generated provider-service container, merged over the operator's `defaultProviderValues` env; per-provider values take precedence on name collision | `[]` |
+| `provider.podTemplateVolumeMounts` | Volume mounts applied to the generated provider-service container, merged over the operator's `defaultProviderValues` volume mounts; per-provider values take precedence on mount-path collision | `[]` |
+| `provider.podTemplateVolumes` | Volumes applied to the generated provider-service pod, merged over the operator's `defaultProviderValues` volumes; per-provider values take precedence on name collision | `[]` |
 | `provider.serviceAccount.create` | Create the provider service `ServiceAccount`. Set to `false` to reuse an existing one | `true` |
 | `provider.serviceAccount.metadata` | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the provider service `ServiceAccount` | `{}` |
 | `provider.serviceAccount.name` | Provider service `ServiceAccount` name, created in the provider namespace and referenced by the `Provider` spec. Defaults to `kfp-provider-<provider-name>` when left empty. Its cluster-scoped viewer/eventing bindings are managed externally by the platform | `""` |

@@ -23,4 +23,16 @@ spec:
   allowedNamespaces:
     {{- . | toYaml | nindent 4 }}
   {{- end }}
+  {{- with .Values.provider.podTemplateEnv }}
+  podTemplateEnv:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  {{- with .Values.provider.podTemplateVolumes }}
+  podTemplateVolumes:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
+  {{- with .Values.provider.podTemplateVolumeMounts }}
+  podTemplateVolumeMounts:
+    {{- . | toYaml | nindent 4 }}
+  {{- end }}
 {{- end }}
