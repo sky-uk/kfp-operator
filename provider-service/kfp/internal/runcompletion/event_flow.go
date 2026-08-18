@@ -2,7 +2,6 @@ package runcompletion
 
 import (
 	"context"
-	"encoding/json"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/pkg/common"
@@ -42,10 +41,6 @@ const (
 	workflowPhaseLabel         = "workflows.argoproj.io/phase"
 	pipelineSpecAnnotationName = "pipelines.kubeflow.org/pipeline_spec"
 )
-
-type PipelineSpec struct {
-	Name string `json:"name"`
-}
 
 func (ef *EventFlow) In() chan<- StreamMessage[*unstructured.Unstructured] {
 	return ef.in
@@ -175,14 +170,4 @@ func runCompletionStatus(workflow *unstructured.Unstructured) (common.RunComplet
 	default:
 		return "", false
 	}
-}
-
-func getPipelineNameFromAnnotation(workflow *unstructured.Unstructured) string {
-	specString := workflow.GetAnnotations()[pipelineSpecAnnotationName]
-	spec := &PipelineSpec{}
-	if err := json.Unmarshal([]byte(specString), spec); err != nil {
-		return ""
-	}
-
-	return spec.Name
 }

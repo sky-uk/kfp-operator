@@ -18,44 +18,6 @@ import (
 )
 
 var _ = Context("Eventing Flow", func() {
-	Describe("getPipelineNameFromAnnotation", func() {
-		It("returns empty when the workflow has no pipeline spec annotation", func() {
-			workflow := &unstructured.Unstructured{}
-
-			extractedName := getPipelineNameFromAnnotation(workflow)
-			Expect(extractedName).To(BeEmpty())
-		})
-
-		It("returns empty when the workflow's pipeline spec annotation is invalid", func() {
-			workflow := &unstructured.Unstructured{}
-			workflow.SetAnnotations(map[string]string{
-				pipelineSpecAnnotationName: fmt.Sprintf(`{invalid`),
-			})
-
-			extractedName := getPipelineNameFromAnnotation(workflow)
-			Expect(extractedName).To(BeEmpty())
-		})
-
-		It("returns empty when the name is missing from workflow's spec annotation", func() {
-			workflow := &unstructured.Unstructured{}
-			workflow.SetAnnotations(map[string]string{
-				pipelineSpecAnnotationName: fmt.Sprintf(`{}`),
-			})
-
-			extractedName := getPipelineNameFromAnnotation(workflow)
-			Expect(extractedName).To(BeEmpty())
-		})
-
-		It("returns the pipeline's name when the workflow has a pipeline spec annotation with the pipeline name", func() {
-			pipelineName := common.RandomString()
-			workflow := &unstructured.Unstructured{}
-			setPipelineNameInSpec(workflow, pipelineName)
-
-			extractedName := getPipelineNameFromAnnotation(workflow)
-			Expect(extractedName).To(Equal(pipelineName))
-		})
-	})
-
 	Describe("eventForWorkflow", func() {
 		It("Doesn't emit an event when the workflow has not finished", func() {
 			workflow := &unstructured.Unstructured{}
