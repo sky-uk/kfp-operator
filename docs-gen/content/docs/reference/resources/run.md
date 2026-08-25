@@ -69,10 +69,22 @@ Artifact path Syntax: `<COMPONENT>:<OUTPUT>:<INDEX>[<FILTER>]` with the followin
 
 | Part      | Description                                                                        | Example      |
 |-----------|------------------------------------------------------------------------------------|--------------|
-| COMPONENT | The Pipeline component that produces the artifacts                                 | Pusher       |
+| COMPONENT | The Pipeline component that produces the artifacts. Must match the executed task name exactly — see [Naming the COMPONENT and OUTPUT](#naming-the-component-and-output). | push_model   |
 | OUTPUT    | The output artifact name of the component                                          | pushed_model |
 | INDEX     | The artifact index, defaults to 0 as in most cases there will be only one artifact | 0            |
 | FILTER    | A boolean expression to apply to properties of the artifact, defaults to no filter | pushed == 1  |
+
+#### Naming the COMPONENT and OUTPUT
+
+`COMPONENT` and `OUTPUT` must match the executed task name and output name **exactly** (case-sensitive). The correct
+value is **not** necessarily the Python class or function name in your pipeline code; it is the name your framework's
+compiler emits. The exact value depends on the framework — see the component naming rules for
+[TFX](../../../ml-engineers/frameworks/tfx/#component-naming) and
+[KFP SDK](../../../ml-engineers/frameworks/kfpsdk/#component-naming). `OUTPUT` is the output artifact name as declared
+by the component.
+
+> Note: if either does not match a task in the completed run, the artifact is **silently omitted** from the run
+> completion event — the run still succeeds and the model may still be pushed, but the artifact list will be empty.
 
 ## Lifecycle
 

@@ -25,3 +25,15 @@ To create a TFX pipeline:
 ### TFX Pipeline resource example
 
 {{% readfile file="/includes/master/quickstart/resources/pipeline.yaml" code="true" lang="yaml"%}}
+
+## Component naming
+
+The `COMPONENT` used in a Run's artifact `path` must match the component's id exactly:
+
+- By default, the id is the component's class name.
+- If the component overrides it via `.with_id("...")`, that string takes precedence — use it exactly.
+
+| Pipeline code                       | COMPONENT to use |
+|-------------------------------------|------------------|
+| `Pusher(...)` (no `with_id`)        | `Pusher`         |
+| `Pusher(...).with_id("push_model")` | `push_model`     |

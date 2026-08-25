@@ -28,3 +28,16 @@ The KFP SDK compiler automatically injects the following environment variables d
 ## KFP SDK Pipeline resource example
 
 {{% readfile file="/includes/master/kfpsdk-quickstart/resources/pipeline.yaml" code="true" lang="yaml"%}}
+
+## Component naming
+
+The `COMPONENT` used in a Run's artifact `path` is derived from the `@dsl.component` Python function name, which the
+KFP SDK normalizes: the name is lower-cased and every run of non-alphanumeric characters (e.g. underscores) is
+replaced with a single hyphen. CamelCase is **not** split into words (e.g. a function named `BatchPredictor` becomes
+`batchpredictor`, not `batch-predictor`).
+
+| Pipeline code (function name) | COMPONENT to use |
+|-------------------------------|------------------|
+| `def pusher(...)`             | `pusher`         |
+| `def train_model(...)`        | `train-model`    |
+| `def BatchPredictor(...)`     | `batchpredictor` |
