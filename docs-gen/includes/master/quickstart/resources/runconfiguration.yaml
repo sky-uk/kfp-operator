@@ -10,6 +10,9 @@ spec:
     parameters:
     - name: push_destination
       value: '{"filesystem":{"base_directory":"gs://my-bucket/penguin-pipeline"}}'
+    artifacts:
+    - name: serving-model
+      path: Pusher:pushed_model
   triggers:
     schedules:
     - cronExpression: 0 * * * *
