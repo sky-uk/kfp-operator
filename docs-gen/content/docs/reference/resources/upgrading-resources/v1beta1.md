@@ -89,7 +89,9 @@ spec:
 ```
 
 ## Run
-> In general, we expect users to deploy [RunConfigurations](../../runconfiguration) to configure the lifecycle of their runs, leaving the management of `Runs` to the operator. However, if users are deploying `Runs` themselves, they can follow the below steps to migrate the resource version.
+
+In general, we expect users to deploy [RunConfigurations](../../runconfiguration) to configure the lifecycle of their runs, leaving the management of `Runs` to the operator. However, if users are deploying `Runs` themselves, they can follow the below steps to migrate the resource version.
+
 1. Change the `apiVersion` from `pipelines.kubeflow.org/v1alpha6` to `pipelines.kubeflow.org/v1beta1`.
 2. Ensure that the `spec.provider` field includes the namespace that the Provider resource is deployed in.
 3. Change the `spec.runtimeParameters` field to `spec.parameters` if set.
@@ -124,7 +126,9 @@ spec:
 ---
 
 ## RunSchedule
-> In general, we expect users to deploy [RunConfigurations](../../runconfiguration) to configure the lifecycle of their runs, leaving the management of `RunSchedules` to the operator. However, if users are deploying `RunSchedules` themselves, they can follow the below steps to migrate the resource version.
+
+In general, we expect users to deploy [RunConfigurations](../../runconfiguration) to configure the lifecycle of their runs, leaving the management of `RunSchedules` to the operator. However, if users are deploying `RunSchedules` themselves, they can follow the below steps to migrate the resource version.
+
 1. Change the `apiVersion` from `pipelines.kubeflow.org/v1alpha6` to `pipelines.kubeflow.org/v1beta1`.
 2. Ensure that the `spec.provider` field includes the namespace that the Provider resource is deployed in.
 3. Change the `spec.runtimeParameters` field to `spec.parameters` if set.

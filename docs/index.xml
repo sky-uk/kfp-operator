@@ -509,10 +509,11 @@ with the given provider.
 e.g Kubeflow Pipelines or Vertex AI Platform.
 Providers configuration can be set using this resource and permissions for access can be configured via service
 accounts.&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Note: changing the provider of a resource that was previously managed by another provider will result in a resource
-error.&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;div class="td-alert td-alert--md alert alert-warning" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;Warning&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;p&gt;Changing the provider of a resource that was previously managed by another provider will result in a resource error.&lt;/p&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
 &lt;p&gt;Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline)
 as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p&gt;</description></item><item><title>TensorFlow Extended (TFX)</title><link>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/frameworks/tfx/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/frameworks/tfx/</guid><description>&lt;p&gt;To create a TFX pipeline:&lt;/p&gt;
 &lt;ol&gt;
@@ -1137,8 +1138,9 @@ as updates are not propagated or checked and will result in runtime errors on th
 &lt;li&gt;&lt;strong&gt;Maintenance Window&lt;/strong&gt;: Scheduled downtime if required&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Rollback Plan&lt;/strong&gt;: Clear rollback procedure documented&lt;/li&gt;
 &lt;/ul&gt;
-&lt;blockquote&gt;
-&lt;p&gt;&lt;strong&gt;Important&lt;/strong&gt;: Always test upgrades in a non-production environment first.&lt;/p&gt;</description></item><item><title>Pipeline Dependencies Tutorial</title><link>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/pipeline-dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/pipeline-dependencies/</guid><description>&lt;p&gt;Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p&gt;
+&lt;div class="td-alert td-alert--md alert alert-important" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;Important&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;p&gt;Always test upgrades in a non-production environment first.&lt;/p&gt;</description></item><item><title>Pipeline Dependencies Tutorial</title><link>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/pipeline-dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/ml-engineers/getting-started/tutorials/pipeline-dependencies/</guid><description>&lt;p&gt;Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;The data of an earlier step changes at a lower frequency than the data for subsequent steps&lt;/li&gt;
 &lt;li&gt;Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data&lt;/li&gt;
@@ -1169,9 +1171,11 @@ credentials for the Kubeflow Pipelines Provider. &lt;a href="../../../getting-st
 Google Cloud&amp;rsquo;s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling
 seamless management and execution of machine learning workflows.&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/vai.svg" alt="VAI Provider"&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Note: VAI does not support the &lt;code&gt;experiment&lt;/code&gt; resource&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;div class="td-alert td-alert--md alert alert-important" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;Important&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;p&gt;VAI does not support the &lt;code&gt;experiment&lt;/code&gt; resource.&lt;/p&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
 &lt;h2 id="deployment-and-usage"&gt;Deployment and Usage&lt;/h2&gt;
 &lt;p&gt;Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Vertex AI instance. &lt;a href="../../../getting-started/installation/#providers"&gt;See the getting started guide.&lt;/a&gt;&lt;/p&gt;</description></item><item><title>Vertex AI</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/vai/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/vai/</guid><description>&lt;h2 id="overview"&gt;Overview&lt;/h2&gt;

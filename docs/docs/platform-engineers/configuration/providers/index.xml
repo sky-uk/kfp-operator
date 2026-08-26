@@ -10,9 +10,11 @@ credentials for the Kubeflow Pipelines Provider. &lt;a href="../../../getting-st
 Google Cloud&amp;rsquo;s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling
 seamless management and execution of machine learning workflows.&lt;/p&gt;
 &lt;p&gt;&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/vai.svg" alt="VAI Provider"&gt;&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Note: VAI does not support the &lt;code&gt;experiment&lt;/code&gt; resource&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;div class="td-alert td-alert--md alert alert-important" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;Important&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;p&gt;VAI does not support the &lt;code&gt;experiment&lt;/code&gt; resource.&lt;/p&gt;
+ &lt;/div&gt;
+&lt;/div&gt;
 &lt;h2 id="deployment-and-usage"&gt;Deployment and Usage&lt;/h2&gt;
 &lt;p&gt;Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Vertex AI instance. &lt;a href="../../../getting-started/installation/#providers"&gt;See the getting started guide.&lt;/a&gt;&lt;/p&gt;</description></item></channel></rss>

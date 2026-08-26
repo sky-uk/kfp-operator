@@ -23,7 +23,9 @@ This guide will help you deploy your first ML pipeline using the KFP Operator.
 - Basic familiarity with Kubernetes concepts (pods, services)
 - Container registry access (Docker Hub, GCR, etc.) for custom images
 
-> **Need the operator installed?** Check with your platform team or see the [Platform Engineers documentation](../../platform-engineers/installation/) for installation instructions.
+> [!NOTE] Need the operator installed?
+>
+> Check with your platform team or see the [Platform Engineers documentation](../../platform-engineers/installation/) for installation instructions.
 
 ## Core Concepts
 
