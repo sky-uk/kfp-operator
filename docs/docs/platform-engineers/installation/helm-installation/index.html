@@ -84,9 +84,9 @@ Auto
 </span></span><span class=line><span class=cl>
 </span></span><span class=line><span class=cl><span class=c1># Check operator logs</span>
 </span></span><span class=line><span class=cl>kubectl logs -n kfp-operator-system deployment/kfp-operator-controller-manager
-</span></span></code></pre></div><p>Expected output:</p><pre tabindex=0><code>NAME                                           READY   STATUS    RESTARTS   AGE
-kfp-operator-controller-manager-xxx-xxx        2/2     Running   0          2m
-</code></pre><h3 id=namespace-configuration>Namespace Configuration</h3><p>The operator can be installed in any namespace. Common patterns:</p><h4 id=dedicated-namespace-recommended>Dedicated Namespace (Recommended)</h4><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>namespace</span><span class=p>:</span><span class=w>
+</span></span></code></pre></div><p>Expected output:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>NAME                                           READY   STATUS    RESTARTS   AGE
+</span></span><span class=line><span class=cl>kfp-operator-controller-manager-xxx-xxx        2/2     Running   0          2m
+</span></span></code></pre></div><h3 id=namespace-configuration>Namespace Configuration</h3><p>The operator can be installed in any namespace. Common patterns:</p><h4 id=dedicated-namespace-recommended>Dedicated Namespace (Recommended)</h4><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>namespace</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>create</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>kfp-operator-system</span><span class=w>
 </span></span></span></code></pre></div><h4 id=existing-namespace>Existing Namespace</h4><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>namespace</span><span class=p>:</span><span class=w>

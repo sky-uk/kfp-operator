@@ -14,7 +14,7 @@ This section provides the canonical API reference for all Kubernetes Custom Reso
 The KFP Operator extends Kubernetes with four primary Custom Resource types:
 
 ### Resource Hierarchy
-```
+```text
 Provider (Platform Connection)
     ↓
 Pipeline (Template Definition)

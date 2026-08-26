@@ -220,9 +220,9 @@ Auto
 </span></span></span><span class=line><span class=cl><span class=s2>print(&#39;Pipeline build successful!&#39;)
 </span></span></span><span class=line><span class=cl><span class=s2>print(f&#39;TFX version: {tfx.__version__}&#39;)
 </span></span></span><span class=line><span class=cl><span class=s2>&#34;</span>
-</span></span></code></pre></div><p>Expected output:</p><pre tabindex=0><code>Pipeline build successful!
-TFX version: 1.14.0
-</code></pre><h2 id=2-create-a-pipeline-resource>2. Create a Pipeline Resource</h2><p>Now that we have a pipeline image, we can create a <code>pipeline.yaml</code> resource to manage the lifecycle of this pipeline on Kubeflow:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1beta1</span><span class=w>
+</span></span></code></pre></div><p>Expected output:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text><span class=line><span class=cl>Pipeline build successful!
+</span></span><span class=line><span class=cl>TFX version: 1.14.0
+</span></span></code></pre></div><h2 id=2-create-a-pipeline-resource>2. Create a Pipeline Resource</h2><p>Now that we have a pipeline image, we can create a <code>pipeline.yaml</code> resource to manage the lifecycle of this pipeline on Kubeflow:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1beta1</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pipeline</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>penguin-pipeline</span><span class=w>

@@ -22,7 +22,7 @@ We use [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) to scaffold
 The [Kubebuilder Book](https://book.kubebuilder.io/) is a good introduction to the topic and we recommend reading it before proceeding.
 
 Please install kubebuilder `3.15.1` before upgrading or adding new Custom Resources:
-```
+```bash
 asdf plugin-add kubebuilder https://github.com/virtualstaticvoid/asdf-kubebuilder.git
 asdf install kubebuilder 3.15.1
 ```
