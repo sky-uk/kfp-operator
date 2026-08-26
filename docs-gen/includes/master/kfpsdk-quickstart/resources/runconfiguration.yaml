@@ -1,11 +1,14 @@
 apiVersion: pipelines.kubeflow.org/v1beta1
 kind: RunConfiguration
 metadata:
-  name: penguin-pipeline-training-rc
+  name: addition-pipeline-recurring-run
 spec:
   run:
     provider: provider-namespace/kfp
     pipeline: kfpsdk-quickstart
+    artifacts:
+    - name: result
+      path: write-result:result
   triggers:
     schedules:
     - cronExpression: 0 * * * *
