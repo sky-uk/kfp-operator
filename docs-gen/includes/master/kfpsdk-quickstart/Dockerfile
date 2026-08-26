@@ -1,7 +1,7 @@
 ARG UV_VERSION
 FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 
-FROM python:3.9.21-slim AS python39
+FROM python:3.12.14-slim AS python312
 ARG WHEEL_VERSION
 COPY --from=uv /uv /bin/uv
 
