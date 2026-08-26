@@ -3,7 +3,7 @@ name = "compiler"
 version = "0.0.0" # set by setuptools-scm
 description = ""
 authors = []
-requires-python = ">=3.9,<3.11"
+requires-python = ">=3.9,<3.13"
 dependencies = [
     "click>=8.1.8,<9",
     "PyYAML>=5.4.1",

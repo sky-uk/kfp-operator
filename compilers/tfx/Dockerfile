@@ -27,11 +27,39 @@ RUN uv sync --locked --no-install-project --no-dev --python 3.10
 RUN uv pip install --no-deps /compiler-${WHEEL_VERSION}-*.whl --target=/compiler && \
     rm /compiler-${WHEEL_VERSION}-*.whl
 
+FROM python:3.11.16 AS python311
+ARG WHEEL_VERSION
+
+COPY --from=uv /uv /bin/uv
+COPY uv.lock pyproject.toml /
+COPY dist/compiler-${WHEEL_VERSION}-*.whl /
+
+ENV UV_PROJECT_ENVIRONMENT=/compiler
+RUN uv sync --locked --no-install-project --no-dev --python 3.11
+
+RUN uv pip install --no-deps /compiler-${WHEEL_VERSION}-*.whl --target=/compiler && \
+    rm /compiler-${WHEEL_VERSION}-*.whl
+
+FROM python:3.12.14 AS python312
+ARG WHEEL_VERSION
+
+COPY --from=uv /uv /bin/uv
+COPY uv.lock pyproject.toml /
+COPY dist/compiler-${WHEEL_VERSION}-*.whl /
+
+ENV UV_PROJECT_ENVIRONMENT=/compiler
+RUN uv sync --locked --no-install-project --no-dev --python 3.12
+
+RUN uv pip install --no-deps /compiler-${WHEEL_VERSION}-*.whl --target=/compiler && \
+    rm /compiler-${WHEEL_VERSION}-*.whl
+
 FROM alpine:3.22.0
 
 WORKDIR /
 COPY --from=python39 /compiler compiler/py3.9
 COPY --from=python310 /compiler compiler/py3.10
+COPY --from=python311 /compiler compiler/py3.11
+COPY --from=python312 /compiler compiler/py3.12
 
 COPY --from=base-common compile.sh compiler/compile.sh
 COPY --from=base-common entrypoint.sh entrypoint.sh
