@@ -28,6 +28,12 @@ Suggestion would be to match the interface defined in the TFX compiler:
 
 The pipeline definition should be written to the output file defined in `--output_file`.
 
+## Supported Python versions
+
+We aim to track current Python versions and follow Python's release lifecycle, dropping each version once it reaches
+[end of life](https://devguide.python.org/versions/). We advise using the newest version the compilers support
+(currently 3.12) for your model images. The matrix below lists the versions each compiler currently builds.
+
 ## Integration test matrix
 
 `make integration-test` injects the built compiler into per-version model images and
@@ -39,12 +45,12 @@ The TFX compiler ships one ABI-specific build per Python version (`/compiler/py3
 through `/compiler/py3.12`). Each model image runs the latest supported TFX for its
 Python version.
 
-| Python | TFX | Env dir | Model image |
-|--------|--------|-----------------------------------|-------------------|
-| 3.9    | 1.9.1  | `integration/penguin-39`      | `penguin:3.9`     |
-| 3.10   | 1.21.0 | `integration/penguin-310-121` | `penguin:3.10-121`|
-| 3.11   | 1.21.0 | `integration/penguin-311-121` | `penguin:3.11-121`|
-| 3.12   | 1.21.0 | `integration/penguin-312-121` | `penguin:3.12-121`|
+| Python | TFX    | Env dir                       | Model image        |
+|--------|--------|-------------------------------|--------------------|
+| 3.9    | 1.9.1  | `integration/penguin-39`      | `penguin:3.9`      |
+| 3.10   | 1.21.0 | `integration/penguin-310-121` | `penguin:3.10-121` |
+| 3.11   | 1.21.0 | `integration/penguin-311-121` | `penguin:3.11-121` |
+| 3.12   | 1.21.0 | `integration/penguin-312-121` | `penguin:3.12-121` |
 
 ### KFP-SDK (`compilers/kfp-sdk`)
 
@@ -52,7 +58,7 @@ The KFP-SDK compiler is a single pure-Python build (built on 3.12, pinning `clic
 it still imports on 3.9). The matrix covers the oldest and newest supported Python
 versions.
 
-| Python | KFP           | Env dir / source                        | Model image                      |
-|--------|---------------|-----------------------------------------|----------------------------------|
-| 3.9    | >=2.17.0,<3   | `integration/quickstart-39`             | `kfpsdk-quickstart:3.9`          |
-| 3.12   | >=2.17.0,<3   | `docs-gen/includes/master/kfpsdk-quickstart` | `kfp-operator-kfpsdk-quickstart` |
+| Python | KFP         | Env dir / source                             | Model image                      |
+|--------|-------------|----------------------------------------------|----------------------------------|
+| 3.9    | >=2.17.0,<3 | `integration/quickstart-39`                  | `kfpsdk-quickstart:3.9`          |
+| 3.12   | >=2.17.0,<3 | `docs-gen/includes/master/kfpsdk-quickstart` | `kfp-operator-kfpsdk-quickstart` |
