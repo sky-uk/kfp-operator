@@ -19,7 +19,9 @@ Before starting any upgrade, ensure you have:
 - **Maintenance Window**: Scheduled downtime if required
 - **Rollback Plan**: Clear rollback procedure documented
 
-> **Important**: Always test upgrades in a non-production environment first.
+> [!IMPORTANT]
+>
+> Always test upgrades in a non-production environment first.
 
 ---
 
@@ -58,7 +60,9 @@ Use this procedure when upgrading to a **stable, released version** of the KFP O
    helm template kfp-operator ./helm-chart -f values.yaml --dry-run
    ```
 
-> **Tip**: If you're using default Helm values without a custom `values.yaml`, you can skip this step as the stored version is automatically set to the latest stable version.
+> [!TIP]
+>
+> If you're using default Helm values without a custom `values.yaml`, you can skip this step as the stored version is automatically set to the latest stable version.
 
 #### Step 2: Perform the Upgrade
 
@@ -122,11 +126,12 @@ Use this procedure when upgrading to a **stable, released version** of the KFP O
    EOF
    ```
 
-> **Success Indicators**:
-> - All operator pods are `Running`
-> - Existing resources show `Ready` status
-> - No error messages in operator logs
-> - Test resources can be created successfully
+**Success Indicators**:
+
+- All operator pods are `Running`
+- Existing resources show `Ready` status
+- No error messages in operator logs
+- Test resources can be created successfully
 
 ---
 
@@ -141,7 +146,9 @@ Use this procedure when upgrading to **development or pre-release versions** whi
 - Contributing to operator development and testing
 - Gradual migration to new CRD versions
 
-> **Warning**: Unstable versions are not recommended for production use. Always test thoroughly in non-production environments.
+> [!WARNING]
+>
+> Unstable versions are not recommended for production use. Always test thoroughly in non-production environments.
 
 ### Understanding the Strategy
 
@@ -323,7 +330,7 @@ helm upgrade kfp-operator kfp-operator/kfp-operator \
   --version=0.7.0  # Specific stable version
 ```
 
-> **Safe Rollback**: As long as the unstable version was never set as the stored version, rollback is guaranteed to work without data loss.
+As long as the unstable version was never set as the stored version, rollback is guaranteed to work without data loss.
 
 #### Emergency Rollback
 
@@ -552,4 +559,4 @@ If you encounter critical issues during upgrade:
 3. **Community Support**: Post in GitHub Discussions with detailed error information
 4. **Emergency Issues**: Create GitHub issue with `urgent` label
 
-> **Remember**: When in doubt, rollback first, then investigate. The stored version strategy ensures safe rollbacks are always possible.
+> [!NB] **When in doubt, rollback first**, then investigate. The stored version strategy ensures safe rollbacks are always possible.

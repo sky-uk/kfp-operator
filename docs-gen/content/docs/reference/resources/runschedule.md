@@ -30,7 +30,8 @@ spec:
 ```
 
 Note the usage of `metadata.generateName` which tells Kubernetes to generate a new name based on the given prefix for every new resource.
-> In general, we expect users to deploy [RunConfigurations](../runconfiguration) to configure the lifecycle of their runs, leaving the management of `RunSchedules` to the operator.
+
+In general, we expect users to deploy [RunConfigurations](../runconfiguration) to configure the lifecycle of their runs, leaving the management of `RunSchedules` to the operator.
 
 ## Fields
 

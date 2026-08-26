@@ -10,7 +10,9 @@ seamless management and execution of machine learning workflows.
 
 ![VAI Provider]({{< param "subpath" >}}/master/images/vai.svg)
 
-> Note: VAI does not support the `experiment` resource
+> [!IMPORTANT]
+>
+> VAI does not support the `experiment` resource.
 
 ## Deployment and Usage
 

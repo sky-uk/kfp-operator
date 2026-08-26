@@ -9,5 +9,6 @@
 &lt;li&gt;&lt;strong&gt;Maintenance Window&lt;/strong&gt;: Scheduled downtime if required&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Rollback Plan&lt;/strong&gt;: Clear rollback procedure documented&lt;/li&gt;
 &lt;/ul&gt;
-&lt;blockquote&gt;
-&lt;p&gt;&lt;strong&gt;Important&lt;/strong&gt;: Always test upgrades in a non-production environment first.&lt;/p&gt;</description></item></channel></rss>
+&lt;div class="td-alert td-alert--md alert alert-important" role="alert"&gt;&lt;div class="td-alert-heading alert-heading" role="heading"&gt;Important&lt;/div&gt;
+ &lt;div class="td-alert-body"&gt;
+ &lt;p&gt;Always test upgrades in a non-production environment first.&lt;/p&gt;</description></item></channel></rss>
