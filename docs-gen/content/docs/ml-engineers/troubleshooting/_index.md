@@ -206,6 +206,19 @@ spec:
       value: "0.001"  # String value, will be converted
 ```
 
+#### Problem: Empty artifact list in run completion event
+
+**Symptoms**: A run succeeds and the model is pushed, but the run completion event (and the RunConfiguration's
+`status.latestRuns.succeeded.artifacts`) contains an empty artifact list.
+
+**Causes**:
+- The `COMPONENT` or `OUTPUT` in the artifact `path` does not exactly match the
+  executed task name and output name respectively
+
+**Solutions**:
+- Find the exact task name and update the artifact `path` `COMPONENT` to match. See
+  [Naming the COMPONENT and OUTPUT](../../reference/resources/run/#naming-the-component-and-output).
+
 ### Enable Debug Logging
 
 #### Pipeline-Level Debugging
