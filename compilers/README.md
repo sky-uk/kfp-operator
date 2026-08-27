@@ -34,15 +34,9 @@ We aim to track current Python versions and follow Python's release lifecycle, d
 [end of life](https://devguide.python.org/versions/). We advise using the newest version the compilers support
 (currently 3.12) for your model images. The matrix below lists the versions each compiler currently builds.
 
-## Integration test matrix
-
-`make integration-test` injects the built compiler into per-version model images and
-compiles a sample pipeline in each.
-
 ### TFX (`compilers/tfx`)
 
-The TFX compiler ships one ABI-specific build per Python version (`/compiler/py3.9`
-through `/compiler/py3.12`). Each model image runs the latest supported TFX for its
+The TFX compiler ships one ABI-specific build per Python version. Each model image runs the latest supported TFX for its
 Python version.
 
 | Python | TFX    | Env dir                       | Model image        |
@@ -54,9 +48,7 @@ Python version.
 
 ### KFP-SDK (`compilers/kfp-sdk`)
 
-The KFP-SDK compiler is a single pure-Python build (built on 3.12, pinning `click<8.2` so
-it still imports on 3.9). The matrix covers the oldest and newest supported Python
-versions.
+The KFP-SDK compiler is a single pure-Python build. The matrix covers the oldest and newest supported Python versions.
 
 | Python | KFP         | Env dir / source                             | Model image                      |
 |--------|-------------|----------------------------------------------|----------------------------------|
