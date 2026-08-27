@@ -17,7 +17,7 @@ Please refer to the [development guide](DEVELOPMENT.md) to get started.
 PRs are squashed and merged into the `master` branch, and the PR title will form
 the commit message on master by default. The required format is:
 
-```
+```text
 <type>(<scope>): <short summary>
   │       │             │
   │       │             └─⫸ Summary in present tense. Not capitalized. No period at the end.

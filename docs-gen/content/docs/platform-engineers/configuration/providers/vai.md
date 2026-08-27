@@ -39,7 +39,7 @@ The following GCP APIs need to be enabled in the configured `vaiProject`:
 #### Log Sink
 A [Vertex AI log](https://cloud.google.com/vertex-ai/docs/pipelines/logging) sink needs to be created that:
 - captures pipeline state changes as
-  ```resource.type="aiplatform.googleapis.com/PipelineJob" jsonPayload.state="PIPELINE_STATE_SUCCEEDED" OR "PIPELINE_STATE_FAILED" OR "PIPELINE_STATE_CANCELLED"```
+  `resource.type="aiplatform.googleapis.com/PipelineJob" jsonPayload.state="PIPELINE_STATE_SUCCEEDED" OR "PIPELINE_STATE_FAILED" OR "PIPELINE_STATE_CANCELLED"`
 - writes state changes to Pub/Sub on to a Pipeline Events topic (see below for required subscription)
 
 #### Pub Sub

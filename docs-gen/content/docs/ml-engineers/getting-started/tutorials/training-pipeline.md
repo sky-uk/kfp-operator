@@ -103,7 +103,7 @@ print(f'TFX version: {tfx.__version__}')
 ```
 
 Expected output:
-```
+```text
 Pipeline build successful!
 TFX version: 1.14.0
 ```

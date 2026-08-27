@@ -182,7 +182,7 @@ kubectl logs -n kfp-operator-system deployment/kfp-operator-controller-manager
 ```
 
 Expected output:
-```
+```text
 NAME                                           READY   STATUS    RESTARTS   AGE
 kfp-operator-controller-manager-xxx-xxx        2/2     Running   0          2m
 ```
