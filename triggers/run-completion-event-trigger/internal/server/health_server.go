@@ -42,10 +42,10 @@ func (hs *HealthServer) Check(
 		}, nil
 	default:
 		return &healthpb.HealthCheckResponse{
-				Status: healthpb.HealthCheckResponse_SERVICE_UNKNOWN,
-			}, fmt.Errorf(
-				"Unexpected service name [%s]. Expected 'liveness' or 'readiness'",
-				req.GetService(),
-			)
+			Status: healthpb.HealthCheckResponse_SERVICE_UNKNOWN,
+		}, fmt.Errorf(
+			"Unexpected service name [%s]. Expected 'liveness' or 'readiness'",
+			req.GetService(),
+		)
 	}
 }
