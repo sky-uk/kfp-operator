@@ -30,6 +30,18 @@ quickstart-39:
 	cp integration/quickstart-39/pyproject.toml integration/quickstart-39/uv.lock $$STAGING_DIR && \
 	docker build --build-arg PYTHON_VERSION=3.9.21-slim --build-arg UV_VERSION=${UV_VERSION} -t kfpsdk-quickstart:3.9 $$STAGING_DIR
 
+quickstart-310:
+	STAGING_DIR=$$(mktemp -d) && \
+	$(quickstart-staging) && \
+	cp integration/quickstart-310/pyproject.toml integration/quickstart-310/uv.lock $$STAGING_DIR && \
+	docker build --build-arg PYTHON_VERSION=3.10-slim --build-arg UV_VERSION=${UV_VERSION} -t kfpsdk-quickstart:3.10 $$STAGING_DIR
+
+quickstart-311:
+	STAGING_DIR=$$(mktemp -d) && \
+	$(quickstart-staging) && \
+	cp integration/quickstart-311/pyproject.toml integration/quickstart-311/uv.lock $$STAGING_DIR && \
+	docker build --build-arg PYTHON_VERSION=3.11-slim --build-arg UV_VERSION=${UV_VERSION} -t kfpsdk-quickstart:3.11 $$STAGING_DIR
+
 quickstart-docs:
 	$(MAKE) -C ../../docs-gen/includes/master/kfpsdk-quickstart docker-build
 
@@ -42,16 +54,18 @@ format: ## Format and fix source files in place
 test: build ## Run unit tests
 	uv run pytest
 
-quickstart-images: quickstart-39 quickstart-docs
+quickstart-images: quickstart-39 quickstart-310 quickstart-311 quickstart-docs
 
 integration-test: docker-build ## Build and run integration tests
-	$(MAKE) -j2 quickstart-images
+	$(MAKE) -j4 quickstart-images
 	docker volume create kfpsdk-integration-test-shared; \
 	trap 'docker volume rm kfpsdk-integration-test-shared' EXIT; \
 	docker run --rm -v kfpsdk-integration-test-shared:/shared alpine chmod 777 /shared && \
 	docker run --rm -v kfpsdk-integration-test-shared:/shared ${IMG} /shared && \
 	( \
 	  docker run --rm -v kfpsdk-integration-test-shared:/shared --entrypoint /shared/compile.sh kfpsdk-quickstart:3.9 --output_file /shared/pipeline_v3.9.json --pipeline_config /pipeline/pipeline.yaml & PID39=$$!; \
+	  docker run --rm -v kfpsdk-integration-test-shared:/shared --entrypoint /shared/compile.sh kfpsdk-quickstart:3.10 --output_file /shared/pipeline_v3.10.json --pipeline_config /pipeline/pipeline.yaml & PID310=$$!; \
+	  docker run --rm -v kfpsdk-integration-test-shared:/shared --entrypoint /shared/compile.sh kfpsdk-quickstart:3.11 --output_file /shared/pipeline_v3.11.json --pipeline_config /pipeline/pipeline.yaml & PID311=$$!; \
 	  docker run --rm -v kfpsdk-integration-test-shared:/shared -v ./integration:/pipeline --entrypoint /shared/compile.sh kfp-operator-kfpsdk-quickstart:${VERSION} --output_file /shared/pipeline_v3.12.json --pipeline_config /pipeline/pipeline.yaml & PID312=$$!; \
-	  wait $$PID39 && wait $$PID312 \
+	  wait $$PID39 && wait $$PID310 && wait $$PID311 && wait $$PID312 \
 	)
