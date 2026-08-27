@@ -13,7 +13,7 @@ dependencies = [
 dev = [
     "kfp>=2.17.0,<3",
     "pytest>=8",
-    "ruff>=0.16.3",
+    "ruff>=0.16.4",
 ]
 
 [project.scripts]
