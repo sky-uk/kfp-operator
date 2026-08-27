@@ -52,9 +52,11 @@ Python version.
 
 ### KFP-SDK (`compilers/kfp-sdk`)
 
-The KFP-SDK compiler is a single pure-Python build. The matrix covers the oldest and newest supported Python versions.
+The KFP-SDK compiler is a single pure-Python build. The matrix covers all supported Python versions.
 
 | Python | KFP         | Env dir / source                             | Model image                      |
 |--------|-------------|----------------------------------------------|----------------------------------|
 | 3.9    | >=2.17.0,<3 | `integration/quickstart-39`                  | `kfpsdk-quickstart:3.9`          |
+| 3.10   | >=2.17.0,<3 | `integration/quickstart-310`                 | `kfpsdk-quickstart:3.10`         |
+| 3.11   | >=2.17.0,<3 | `integration/quickstart-311`                 | `kfpsdk-quickstart:3.11`         |
 | 3.12   | >=2.17.0,<3 | `docs-gen/includes/master/kfpsdk-quickstart` | `kfp-operator-kfpsdk-quickstart` |
