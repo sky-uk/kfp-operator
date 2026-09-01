@@ -12,6 +12,9 @@ To create a TFX pipeline:
 - the fully qualified name of the Python function creating TFX pipeline components under `spec.framework.parameters[].components`.
 - any required [beam arguments](https://www.tensorflow.org/tfx/guide/beam#beam_pipeline_arguments) under `spec.framework.parameters[].beamArgs`.
 
+> [!NOTE]
+>
+> We aim to track current Python versions and follow Python's release lifecycle, dropping each version once it reaches [end of life](https://devguide.python.org/versions/). We advise using the newest version the compilers support (currently 3.12).
 
 ## TFX Parameters
 
