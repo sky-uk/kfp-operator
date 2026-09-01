@@ -4,8 +4,9 @@ resources:
 
 namespace: kfp-operator-system
 
-patchesStrategicMerge:
-- patches/cainjection_in_manifests.yaml
+# [CERTMANAGER] CA injection is handled by the 'replacements' in
+# config/default/kustomization.yaml, which populate the cert-manager.io/inject-ca-from
+# annotation on the webhook configuration.
 
 configurations:
 - kustomizeconfig.yaml
