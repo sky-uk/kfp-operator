@@ -79,10 +79,12 @@ updates:
       - "major"
 
 # kfp-sdk modules
-# setuptools version below 83 to support Python 3.9
+# setuptools below 83 and click below 8.2 keep the compiler compatible with
+# Python 3.9 model images while 3.9 is deprecated but not yet decommissioned
 - package-ecosystem: "uv"
   directories:
   - "/compilers/kfp-sdk"
+  - "/compilers/kfp-sdk/integration/**"
   - "/docs-gen/includes/master/kfpsdk-quickstart"
   schedule:
     interval: "weekly"
@@ -96,6 +98,8 @@ updates:
   ignore:
   - dependency-name: "setuptools"
     versions: [">=83"]
+  - dependency-name: "click"
+    versions: [">=8.2"]
   open-pull-requests-limit: 10
   groups:
     uv-minor-and-patch:

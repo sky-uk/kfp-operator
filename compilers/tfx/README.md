@@ -9,6 +9,8 @@ The version differs from those of the resulting containers (which are based on `
 
 ## Usage
 
+The TFX compiler ships one build per Python version, from 3.9 through 3.12.
+
 This module is meant to be used inside Argo workflows as part of the Kubeflow Pipelines Operator.
 
 It requires a valid configuration file similar to [pipeline_conf.yaml](acceptance/pipeline_conf.yaml).

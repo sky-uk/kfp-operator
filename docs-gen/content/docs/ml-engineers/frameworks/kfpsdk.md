@@ -11,6 +11,10 @@ To create a KFP SDK pipeline:
   - the `kfpsdk` framework in `spec.framework.name`. This needs to match the name specified in the Provider.
   - the fully qualified name of the Python function that creates a KFP SDK pipeline under `spec.framework.parameters[].pipeline`.
 
+> [!NOTE]
+>
+> We aim to track current Python versions and follow Python's release lifecycle, dropping each version once it reaches [end of life](https://devguide.python.org/versions/). We advise using the newest version the compilers support (currently 3.12).
+
 ## KFP SDK Parameters
 
 | Name       | Description                                                                                                                                                                                                                               |
@@ -21,8 +25,8 @@ To create a KFP SDK pipeline:
 
 The KFP SDK compiler automatically injects the following environment variables during compilation:
 
-| Variable | Description |
-| -------- | ----------- |
+| Variable             | Description                                                                                                                                                                                                   |
+|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `KFP_PIPELINE_IMAGE` | Set to the value of `spec.image` from the Pipeline resource. Use this in your pipeline code to dynamically set component base images, e.g. `@dsl.component(base_image=os.environ.get("KFP_PIPELINE_IMAGE"))`. |
 
 ## KFP SDK Pipeline resource example

@@ -1,0 +1,12 @@
+[project]
+name = "kfpsdk-integration"
+version = "0.1.0"
+description = "Integration test environment for KFP-SDK quickstart pipeline"
+requires-python = ">=3.9,<3.10"
+dependencies = [
+    "kfp>=2.17.0,<3",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
