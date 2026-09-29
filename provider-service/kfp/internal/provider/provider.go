@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	sigsyaml "sigs.k8s.io/yaml"
 )
 
 type KfpProvider struct {
@@ -105,23 +105,29 @@ var _ resource.Provider = &KfpProvider{}
 // extractPipelineSpec extracts the bare KFP IR PipelineSpec from a compiled pipeline.
 // TFX compiles pipelines into a Vertex PipelineJob wrapper containing a nested
 // pipelineSpec. For TFX pipelines, the nested pipelineSpec is extracted.
-// For non-TFX pipelines (e.g. kfp-sdk), the compiled pipeline is returned unchanged.
-func extractPipelineSpec(compiledPipeline json.RawMessage, frameworkName string) (json.RawMessage, error) {
+// For non-TFX pipelines (e.g. kfp-sdk), the compiled pipeline is returned unchanged,
+// including any following platformSpec document.
+func extractPipelineSpec(compiledPipeline []byte, frameworkName string) ([]byte, error) {
 	if strings.ToLower(frameworkName) != "tfx" {
 		return compiledPipeline, nil
 	}
 
-	var wrapper map[string]json.RawMessage
-	if err := json.Unmarshal(compiledPipeline, &wrapper); err != nil {
+	var wrapper map[string]any
+	if err := sigsyaml.Unmarshal(compiledPipeline, &wrapper); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal TFX pipeline spec: %w", err)
 	}
 
-	if pipelineSpec, ok := wrapper["pipelineSpec"]; ok {
-		return pipelineSpec, nil
+	pipelineSpec, ok := wrapper["pipelineSpec"]
+	if !ok {
+		// No wrapper detected, return as-is (already a bare pipelineSpec)
+		return compiledPipeline, nil
 	}
 
-	// No wrapper detected, return as-is (already a bare pipelineSpec)
-	return compiledPipeline, nil
+	encoded, err := sigsyaml.Marshal(pipelineSpec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode TFX pipeline spec: %w", err)
+	}
+	return encoded, nil
 }
 
 func (p *KfpProvider) CreatePipeline(
@@ -133,21 +139,22 @@ func (p *KfpProvider) CreatePipeline(
 		return "", fmt.Errorf("failed to fetch resource name %v", err)
 	}
 
-	pdw.CompiledPipeline, err = extractPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	compiledPipeline, err := extractPipelineSpec([]byte(pdw.CompiledPipeline), pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
 	}
 
-	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
+	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
 	if err != nil {
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
+	pdw.CompiledPipeline = resource.CompiledPipeline(compiledPipeline)
 
 	log.FromContext(ctx).Info("Creating pipeline", "name", pipelineName, "spec", string(pdw.CompiledPipeline))
 
 	pipelineId, err := p.pipelineUploadService.UploadPipeline(
 		ctx,
-		pdw.CompiledPipeline,
+		compiledPipeline,
 		pipelineName,
 	)
 	if err != nil {
@@ -165,23 +172,23 @@ func (p *KfpProvider) UpdatePipeline(
 		return "", fmt.Errorf("failed to delete pipeline versions %v", err)
 	}
 
-	var err error
-	pdw.CompiledPipeline, err = extractPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	compiledPipeline, err := extractPipelineSpec([]byte(pdw.CompiledPipeline), pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
 	}
 
-	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
+	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
 	if err != nil {
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
+	pdw.CompiledPipeline = resource.CompiledPipeline(compiledPipeline)
 
 	log.FromContext(ctx).Info("Updating pipeline", "name", pdw.PipelineDefinition.Name, "spec", string(pdw.CompiledPipeline))
 
 	if err := p.pipelineUploadService.UploadPipelineVersion(
 		ctx,
 		id,
-		pdw.CompiledPipeline,
+		compiledPipeline,
 		pdw.PipelineDefinition.Version,
 	); err != nil {
 		return "", fmt.Errorf("failed to upload pipeline version %v", err)

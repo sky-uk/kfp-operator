@@ -3,7 +3,6 @@ package provider
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,6 +10,7 @@ import (
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	sigsyaml "sigs.k8s.io/yaml"
 )
 
 type GcsFileHandler struct {
@@ -82,8 +82,9 @@ func (g *GcsFileHandler) Delete(ctx context.Context, id string, bucket string) e
 	return nil
 }
 
-// Read reads and returns the unmarshalled from the location inferred by the
-// GCS bucket name and file path.
+// Read reads the pipeline spec from the location inferred by the GCS bucket
+// name and file path. Compiled pipelines may contain a following platformSpec
+// document; only the first document is returned for Vertex submission.
 func (g *GcsFileHandler) Read(
 	ctx context.Context,
 	bucket string,
@@ -101,7 +102,7 @@ func (g *GcsFileHandler) Read(
 	}
 
 	raw := map[string]any{}
-	err = json.Unmarshal(buf.Bytes(), &raw)
+	err = sigsyaml.Unmarshal(buf.Bytes(), &raw)
 	if err != nil {
 		return nil, err
 	}

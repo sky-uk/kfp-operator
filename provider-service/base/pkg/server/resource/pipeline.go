@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
@@ -19,7 +18,7 @@ func (*Pipeline) Type() string {
 func (p *Pipeline) Create(ctx context.Context, body []byte) (base.Output, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	pdw := PipelineDefinitionWrapper{}
-	if err := json.Unmarshal(body, &pdw); err != nil {
+	if err := unmarshalBody(body, &pdw); err != nil {
 		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while creating Pipeline")
 		return base.Output{}, &UserError{err}
 	}
@@ -39,7 +38,7 @@ func (p *Pipeline) Create(ctx context.Context, body []byte) (base.Output, error)
 func (p *Pipeline) Update(ctx context.Context, id string, body []byte) (base.Output, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	pdw := PipelineDefinitionWrapper{}
-	if err := json.Unmarshal(body, &pdw); err != nil {
+	if err := unmarshalBody(body, &pdw); err != nil {
 		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while updating Pipeline")
 		return base.Output{}, &UserError{err}
 	}

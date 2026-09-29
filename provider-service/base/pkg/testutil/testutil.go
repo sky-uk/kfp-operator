@@ -3,15 +3,14 @@
 package testutil
 
 import (
-	"encoding/json"
-	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"time"
 
+	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -53,7 +52,6 @@ func RandomPipelineDefinition() base.PipelineDefinition {
 func RandomPipelineDefinitionWrapper() resource.PipelineDefinitionWrapper {
 	return resource.PipelineDefinitionWrapper{
 		PipelineDefinition: RandomPipelineDefinition(),
-		CompiledPipeline:   json.RawMessage{},
 	}
 }
 

@@ -5,7 +5,6 @@ package provider
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -91,8 +90,8 @@ var _ = Describe("Provider", func() {
 				pdw := testutil.RandomPipelineDefinitionWrapper()
 				mockFileHandler.On(
 					"Write",
-					mock.MatchedBy(func(j json.RawMessage) bool {
-						return bytes.Equal(j, pdw.CompiledPipeline)
+					mock.MatchedBy(func(content []byte) bool {
+						return bytes.Equal(content, []byte(pdw.CompiledPipeline))
 					}),
 					vaiProvider.config.Parameters.PipelineBucket,
 					fmt.Sprintf(

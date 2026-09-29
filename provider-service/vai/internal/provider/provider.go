@@ -157,7 +157,7 @@ func (vaip *VAIProvider) UpdatePipeline(
 
 	if err = vaip.fileHandler.Write(
 		ctx,
-		pdw.CompiledPipeline,
+		[]byte(pdw.CompiledPipeline),
 		vaip.config.Parameters.PipelineBucket,
 		storageObject,
 	); err != nil {

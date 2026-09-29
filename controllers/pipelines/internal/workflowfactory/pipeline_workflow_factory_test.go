@@ -11,8 +11,10 @@ import (
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	sigsyaml "sigs.k8s.io/yaml"
 	"strings"
 )
 
@@ -119,6 +121,25 @@ var _ = Describe("PipelineParamsCreator", func() {
 					"name":  "a",
 					"value": "b",
 				}))
+			})
+
+			It("serialises the workflow resource definition as YAML", func() {
+				yamlProvider := *provider.DeepCopy()
+				frameworks := append([]pipelineshub.Framework(nil), yamlProvider.Spec.Frameworks...)
+				frameworks[0].Patches = nil
+				yamlProvider.Spec.Frameworks = frameworks
+
+				factory := &ResourceWorkflowFactory[*pipelineshub.Pipeline, providers.PipelineDefinition]{
+					DefinitionCreator: creator.pipelineDefinition,
+				}
+				definition, err := factory.resourceDefinition(yamlProvider, pipeline)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(strings.TrimSpace(definition)).NotTo(HavePrefix("{"))
+
+				var decoded map[string]any
+				Expect(sigsyaml.Unmarshal([]byte(definition), &decoded)).To(Succeed())
+				Expect(decoded).To(HaveKeyWithValue("name", "pipelineNamespace/pipelineName"))
+				Expect(decoded).To(HaveKeyWithValue("image", "pipelineImage"))
 			})
 		})
 	})

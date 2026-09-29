@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
@@ -19,7 +18,7 @@ func (*RunSchedule) Type() string {
 func (rs *RunSchedule) Create(ctx context.Context, body []byte) (base.Output, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	rsd := base.RunScheduleDefinition{}
-	if err := json.Unmarshal(body, &rsd); err != nil {
+	if err := unmarshalBody(body, &rsd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while creating RunSchedule")
 		return base.Output{}, &UserError{err}
 	}
@@ -39,7 +38,7 @@ func (rs *RunSchedule) Create(ctx context.Context, body []byte) (base.Output, er
 func (rs *RunSchedule) Update(ctx context.Context, id string, body []byte) (base.Output, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	rsd := base.RunScheduleDefinition{}
-	if err := json.Unmarshal(body, &rsd); err != nil {
+	if err := unmarshalBody(body, &rsd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while updating RunSchedule")
 		return base.Output{}, &UserError{err}
 	}
