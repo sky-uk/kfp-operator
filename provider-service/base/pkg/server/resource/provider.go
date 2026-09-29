@@ -2,16 +2,18 @@ package resource
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
-// CompiledPipeline represents the output of the python compile step, and
-// describes what vertex ai or kubeflow pipelines should do.
+// PipelineDefinitionWrapper is the pipeline create and update request.
+// CompiledPipeline is the compiler output. YAML requests carry it as a string
+// so every document, including platformSpec, reaches the provider unchanged.
+// JSON requests may still carry the legacy object form.
 type PipelineDefinitionWrapper struct {
 	PipelineDefinition base.PipelineDefinition `json:"pipelineDefinition"`
-	CompiledPipeline   json.RawMessage         `json:"compiledPipeline,omitempty"`
+	CompiledPipeline   CompiledPipeline        `json:"compiledPipeline,omitempty"`
 }
 
 type Provider interface {

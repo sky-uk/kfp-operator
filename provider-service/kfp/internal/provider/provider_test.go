@@ -18,6 +18,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
+	sigsyaml "sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Provider", func() {
@@ -169,7 +170,7 @@ var _ = Describe("Provider", func() {
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(nil)
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return([]byte(pdw.CompiledPipeline), nil)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -187,7 +188,7 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if UploadPipeline fails", func() {
 				expectedErr := errors.New("failed")
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return([]byte(pdw.CompiledPipeline), nil)
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return("", expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
@@ -197,7 +198,7 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if DeletePipelineVersions fails", func() {
 				expectedErr := errors.New("failed")
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return([]byte(pdw.CompiledPipeline), nil)
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
@@ -208,7 +209,7 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if UploadPipelineVersion fails", func() {
 				expectedErr := errors.New("failed")
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return([]byte(pdw.CompiledPipeline), nil)
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(expectedErr)
@@ -223,7 +224,7 @@ var _ = Describe("Provider", func() {
 			It("should return id if pipeline versions are cleaned up and version is updated", func() {
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(nil)
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return([]byte(pdw.CompiledPipeline), nil)
 				result, err := provider.UpdatePipeline(ctx, pdw, id)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -246,7 +247,7 @@ var _ = Describe("Provider", func() {
 					expectedErr := errors.New("failed")
 					pipelineService.On("DeletePipelineVersions", id).Return(nil)
 					pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(expectedErr)
-					labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+					labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return([]byte(pdw.CompiledPipeline), nil)
 
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
@@ -549,11 +550,13 @@ var _ = Describe("Provider", func() {
 				"runtimeConfig": map[string]any{},
 			}
 			compiled, _ := json.Marshal(wrapper)
-			expected, _ := json.Marshal(innerSpec)
 
 			result, err := extractPipelineSpec(compiled, "TfX")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(MatchJSON(expected))
+
+			var got map[string]any
+			Expect(sigsyaml.Unmarshal(result, &got)).To(Succeed())
+			Expect(got).To(Equal(innerSpec))
 		})
 
 		It("should return compiled pipeline unchanged for non-TFX frameworks", func() {
@@ -565,6 +568,14 @@ var _ = Describe("Provider", func() {
 			result, err := extractPipelineSpec(compiled, "kfpsdk")
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(MatchJSON(compiled))
+		})
+
+		It("should keep a following platformSpec document for non-TFX frameworks", func() {
+			compiled := []byte("schemaVersion: 2.1.0\n---\nplatforms:\n  kubernetes:\n    a: b\n")
+
+			result, err := extractPipelineSpec(compiled, "kfpsdk")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(compiled))
 		})
 	})
 

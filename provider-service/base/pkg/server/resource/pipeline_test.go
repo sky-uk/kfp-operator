@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/stretchr/testify/mock"
+	sigsyaml "sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Pipeline", Ordered, func() {
@@ -68,6 +69,56 @@ var _ = Describe("Pipeline", Ordered, func() {
 
 				Expect(err).To(Equal(expectedErr))
 				Expect(response).To(Equal(base.Output{}))
+			})
+		})
+	})
+
+	Context("YAML and legacy compiled pipelines", func() {
+		When("a yaml request carries every compiled document", func() {
+			It("passes the compiled pipeline through unchanged", func() {
+				body := []byte(`pipelineDefinition:
+  name: ns/pipeline
+  version: v1
+  image: img
+  framework:
+    name: kfpsdk
+compiledPipeline: |-
+  schemaVersion: 2.1.0
+  ---
+  platforms:
+    kubernetes:
+      a: b
+`)
+				pdw := PipelineDefinitionWrapper{}
+				Expect(unmarshalBody(body, &pdw)).To(Succeed())
+				Expect(string(pdw.CompiledPipeline)).To(Equal("schemaVersion: 2.1.0\n---\nplatforms:\n  kubernetes:\n    a: b"))
+
+				id := "some-id"
+				mockProvider.On("CreatePipeline", ignoreCtx, pdw).Return(id, nil)
+				resp, err := p.Create(ctx, body)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resp).To(Equal(base.Output{Id: id}))
+			})
+		})
+
+		When("a legacy json request carries a compiled object", func() {
+			It("normalises the compiled pipeline to yaml", func() {
+				body := []byte(`{"pipelineDefinition":{"name":"ns/pipeline","version":"v1","image":"img","framework":{"name":"tfx"}},"compiledPipeline":{"schemaVersion":"2.1.0","root":{}}}`)
+				pdw := PipelineDefinitionWrapper{}
+				Expect(unmarshalBody(body, &pdw)).To(Succeed())
+
+				var compiled map[string]any
+				Expect(sigsyaml.Unmarshal(pdw.CompiledPipeline, &compiled)).To(Succeed())
+				Expect(compiled).To(HaveKeyWithValue("schemaVersion", "2.1.0"))
+				Expect(compiled).To(HaveKey("root"))
+
+				id := "some-id"
+				mockProvider.On("CreatePipeline", ignoreCtx, pdw).Return(id, nil)
+				resp, err := p.Create(ctx, body)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resp).To(Equal(base.Output{Id: id}))
 			})
 		})
 	})

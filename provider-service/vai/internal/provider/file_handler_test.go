@@ -78,6 +78,18 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(readData).To(Equal(testData))
 			})
+
+			It("reads the pipeline spec and ignores a following platformSpec document", func() {
+				content := []byte("schemaVersion: \"2.1.0\"\npipelineInfo:\n  name: pipe\n---\nplatforms:\n  kubernetes:\n    a: b\n")
+				path := "test-folder/multi.yaml"
+				Expect(handler.Write(ctx, content, bucket, path)).To(Succeed())
+
+				readData, err := handler.Read(ctx, bucket, path)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(readData).To(HaveKeyWithValue("schemaVersion", "2.1.0"))
+				Expect(readData).To(HaveKey("pipelineInfo"))
+				Expect(readData).NotTo(HaveKey("platforms"))
+			})
 		})
 		When("Delete", func() {
 			It("should delete the file in the bucket", func() {

@@ -31,6 +31,8 @@ def compile(pipeline_config: str, output_file: str):
 
         pipeline_fn = load_fn(pipeline_config_contents, pipeline_environment)
 
+        # The output path must end in .yaml. KFP writes platformSpec as a second
+        # document only for YAML, and rejects that output when the path ends in .json.
         compiler.Compiler().compile(
             pipeline_fn, pipeline_name=sanitised_pipeline_name, package_path=output_file
         )

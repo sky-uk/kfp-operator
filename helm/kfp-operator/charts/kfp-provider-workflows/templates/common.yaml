@@ -9,7 +9,7 @@ spec:
     inputs:
       artifacts:
       - name: resource-definition
-        path: /resource-definition.json
+        path: /resource-definition.yaml
         raw:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
@@ -17,7 +17,7 @@ spec:
       command:
       - ash
       image: mikefarah/yq:4.45.1
-      source: yq e -r '.image' /resource-definition.json
+      source: yq e -r '.image' /resource-definition.yaml
     metadata:
       {{- .Values.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.argo.stepTimeoutSeconds.default }}
@@ -42,7 +42,7 @@ spec:
     inputs:
       artifacts:
       - name: body
-        path: /body.json
+        path: /body.yaml
       parameters:
       - name: provider-service-url
     outputs:
@@ -60,7 +60,7 @@ spec:
       - |
         HTTP_RESPONSE=$(
           curl -v -s -o /tmp/provider-output.json -w "%{response_code}" -X POST \
-              -H "Content-Type: application/json" \
+              -H "Content-Type: application/yaml" \
               --data-binary @{{`{{inputs.artifacts.body.path}}`}} \
               "{{`{{workflow.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}"
         )
@@ -73,7 +73,7 @@ spec:
     inputs:
       artifacts:
       - name: body
-        path: /body.json
+        path: /body.yaml
       parameters:
       - name: url-encoded-resource-id
       - name: provider-service-url
@@ -91,7 +91,7 @@ spec:
       args:
       - |
         HTTP_RESPONSE=$(
-          curl -v -o /tmp/provider-output.json -w "%{response_code}" -X PUT -H "Content-Type: application/json" \
+          curl -v -o /tmp/provider-output.json -w "%{response_code}" -X PUT -H "Content-Type: application/yaml" \
               --data-binary @{{`{{inputs.artifacts.body.path}}`}} \
               "{{`{{workflow.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}/{{`{{inputs.parameters.url-encoded-resource-id}}`}}"
         )

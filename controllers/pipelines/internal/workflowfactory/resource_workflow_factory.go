@@ -16,6 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	sigsyaml "sigs.k8s.io/yaml"
 )
 
 type WorkflowFactory[R pipelineshub.Resource] interface {
@@ -86,7 +87,7 @@ func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMe
 	}
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionJson(provider pipelineshub.Provider, resource R) (string, error) {
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinition(provider pipelineshub.Provider, resource R) (string, error) {
 	patches, resourceDefinition, err := workflows.DefinitionCreator(provider, resource)
 	if err != nil {
 		return "", err
@@ -97,12 +98,18 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 		return "", err
 	}
 
-	patchedJsonString, err := PatchJson(patches, marshalled)
+	patchedJSON, err := PatchJson(patches, marshalled)
 	if err != nil {
 		return "", err
 	}
 
-	return patchedJsonString, nil
+	// Patches stay JSON. The workflow and provider API consume YAML.
+	asYAML, err := sigsyaml.JSONToYAML([]byte(patchedJSON))
+	if err != nil {
+		return "", err
+	}
+
+	return string(asYAML), nil
 }
 
 func checkResourceNamespaceAllowed(
@@ -120,7 +127,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionJson(provider, resource)
+	resourceDefinition, err := workflows.resourceDefinition(provider, resource)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +189,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionJson(provider, resource)
+	resourceDefinition, err := workflows.resourceDefinition(provider, resource)
 	if err != nil {
 		return nil, err
 	}
