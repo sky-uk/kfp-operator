@@ -65,7 +65,16 @@ integration-test-up: ## Spin up a minikube cluster for integration tests
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
+	# Install MinIO
+	kubectl apply -n argo -f config/testing/minio.yaml
 	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
+	kubectl rollout status deployment/minio -n argo --timeout=5m
+	# Create artifact bucket
+	kubectl delete pod minio-setup -n argo --ignore-not-found
+	kubectl run minio-setup --image=docker.io/bitnamilegacy/minio:2025.5.24-debian-12-r5 --restart=Never -n argo --command -- \
+		sh -c 'mc alias set local http://minio:9000 admin password && mc mb --ignore-existing local/my-bucket'
+	kubectl wait --for=jsonpath='{.status.phase}'=Succeeded pod/minio-setup -n argo --timeout=2m
+	kubectl delete pod minio-setup -n argo --ignore-not-found
 	# Proxy K8s API
 	nohup kubectl proxy --port=8080 > /dev/null 2>&1 & echo $$! > config/testing/pids
 
