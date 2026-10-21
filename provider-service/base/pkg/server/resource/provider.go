@@ -7,10 +7,8 @@ import (
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
-// PipelineDefinitionWrapper is the pipeline create and update request.
-// CompiledPipeline is the compiler output. YAML requests carry it as a string
-// so every document, including platformSpec, reaches the provider unchanged.
-// JSON requests may still carry the legacy object form.
+// PipelineDefinitionWrapper is the pipeline create-compiled and
+// update-compiled workflow input.
 type PipelineDefinitionWrapper struct {
 	PipelineDefinition base.PipelineDefinition `json:"pipelineDefinition"`
 	CompiledPipeline   CompiledPipeline        `json:"compiledPipeline,omitempty"`
