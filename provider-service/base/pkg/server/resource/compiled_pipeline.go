@@ -8,9 +8,15 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// CompiledPipeline is the opaque compiler output submitted to a provider.
-// A YAML string preserves multiple documents, including a KFP platformSpec.
-// A JSON object is accepted for one release and normalised to YAML.
+// CompiledPipeline is an opaque compiler output submitted to a provider.
+// It is represented as a byte slice containing the pipeline in YAML form.
+//
+// When decoding from JSON, CompiledPipeline accepts either:
+//  - a YAML document encoded as a JSON string (quoted): the string contents
+//    are used verbatim, preserving multi-document YAML such as a KFP platformSpec;
+//  - a JSON object: the object is converted to YAML and stored.
+//
+// MarshalJSON encodes the stored YAML as a JSON string.
 type CompiledPipeline []byte
 
 func (c *CompiledPipeline) UnmarshalJSON(data []byte) error {
