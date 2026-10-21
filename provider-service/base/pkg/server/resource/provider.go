@@ -10,8 +10,8 @@ import (
 // PipelineDefinitionWrapper is the pipeline create-compiled and
 // update-compiled workflow input.
 type PipelineDefinitionWrapper struct {
-	PipelineDefinition base.PipelineDefinition `json:"pipelineDefinition"`
-	CompiledPipeline   CompiledPipeline        `json:"compiledPipeline,omitempty"`
+	PipelineDefinition base.PipelineDefinition `json:"pipelineDefinition" yaml:"pipelineDefinition"`
+	CompiledPipeline   CompiledPipeline        `json:"compiledPipeline,omitempty" yaml:"compiledPipeline,omitempty"`
 }
 
 type Provider interface {
