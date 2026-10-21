@@ -107,7 +107,7 @@ var _ resource.Provider = &KfpProvider{}
 // pipelineSpec. For TFX pipelines, the nested pipelineSpec is extracted.
 // For non-TFX pipelines (e.g. kfp-sdk), the compiled pipeline is returned unchanged,
 // including any following platformSpec document.
-func extractPipelineSpec(compiledPipeline []byte, frameworkName string) ([]byte, error) {
+func extractPipelineSpec(compiledPipeline resource.CompiledPipeline, frameworkName string) (resource.CompiledPipeline, error) {
 	if strings.ToLower(frameworkName) != "tfx" {
 		return compiledPipeline, nil
 	}
@@ -127,7 +127,7 @@ func extractPipelineSpec(compiledPipeline []byte, frameworkName string) ([]byte,
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode TFX pipeline spec: %w", err)
 	}
-	return encoded, nil
+	return resource.CompiledPipeline(encoded), nil
 }
 
 func (p *KfpProvider) CreatePipeline(
@@ -139,16 +139,17 @@ func (p *KfpProvider) CreatePipeline(
 		return "", fmt.Errorf("failed to fetch resource name %v", err)
 	}
 
-	compiledPipeline, err := extractPipelineSpec([]byte(pdw.CompiledPipeline), pdw.PipelineDefinition.Framework.Name)
+	compiledPipeline, err := extractPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
 	}
 
-	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
+	updated, err := p.labelService.InsertLabelsIntoParameters([]byte(compiledPipeline), label.LabelKeys)
 	if err != nil {
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
-	pdw.CompiledPipeline = resource.CompiledPipeline(compiledPipeline)
+	compiledPipeline = resource.CompiledPipeline(updated)
+	pdw.CompiledPipeline = compiledPipeline
 
 	log.FromContext(ctx).Info("Creating pipeline", "name", pipelineName, "spec", string(pdw.CompiledPipeline))
 
@@ -172,16 +173,17 @@ func (p *KfpProvider) UpdatePipeline(
 		return "", fmt.Errorf("failed to delete pipeline versions %v", err)
 	}
 
-	compiledPipeline, err := extractPipelineSpec([]byte(pdw.CompiledPipeline), pdw.PipelineDefinition.Framework.Name)
+	compiledPipeline, err := extractPipelineSpec(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
 	}
 
-	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
+	updated, err := p.labelService.InsertLabelsIntoParameters([]byte(compiledPipeline), label.LabelKeys)
 	if err != nil {
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
-	pdw.CompiledPipeline = resource.CompiledPipeline(compiledPipeline)
+	compiledPipeline = resource.CompiledPipeline(updated)
+	pdw.CompiledPipeline = compiledPipeline
 
 	log.FromContext(ctx).Info("Updating pipeline", "name", pdw.PipelineDefinition.Name, "spec", string(pdw.CompiledPipeline))
 

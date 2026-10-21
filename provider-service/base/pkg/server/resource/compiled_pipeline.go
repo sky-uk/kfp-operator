@@ -12,9 +12,9 @@ import (
 // It is represented as a byte slice containing the pipeline in YAML form.
 //
 // When decoding from JSON, CompiledPipeline accepts either:
-//  - a YAML document encoded as a JSON string (quoted): the string contents
-//    are used verbatim, preserving multi-document YAML such as a KFP platformSpec;
-//  - a JSON object: the object is converted to YAML and stored.
+//   - a YAML document encoded as a JSON string (quoted): the string contents
+//     are used verbatim, preserving multi-document YAML such as a KFP platformSpec;
+//   - a JSON object: the object is converted to YAML and stored.
 //
 // MarshalJSON encodes the stored YAML as a JSON string.
 type CompiledPipeline []byte
