@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
+	"sigs.k8s.io/yaml"
 )
 
 type Experiment struct {
@@ -18,7 +19,7 @@ func (*Experiment) Type() string {
 func (e *Experiment) Create(ctx context.Context, body []byte) (base.Output, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	ed := base.ExperimentDefinition{}
-	if err := unmarshalBody(body, &ed); err != nil {
+	if err := yaml.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while creating Experiment")
 		return base.Output{}, &UserError{err}
 	}
@@ -38,7 +39,7 @@ func (e *Experiment) Create(ctx context.Context, body []byte) (base.Output, erro
 func (e *Experiment) Update(ctx context.Context, id string, body []byte) (base.Output, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	ed := base.ExperimentDefinition{}
-	if err := unmarshalBody(body, &ed); err != nil {
+	if err := yaml.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while updating Experiment")
 		return base.Output{}, &UserError{err}
 	}

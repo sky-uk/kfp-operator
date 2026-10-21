@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
+	"sigs.k8s.io/yaml"
 )
 
 type Run struct {
@@ -19,7 +20,7 @@ func (r *Run) Create(ctx context.Context, body []byte) (base.Output, error) {
 	logger := logr.FromContextOrDiscard(ctx)
 	rd := base.RunDefinition{}
 
-	if err := unmarshalBody(body, &rd); err != nil {
+	if err := yaml.Unmarshal(body, &rd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunDefinition while creating Run")
 		return base.Output{}, &UserError{err}
 	}

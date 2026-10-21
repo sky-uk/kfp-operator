@@ -90,7 +90,7 @@ compiledPipeline: |-
       a: b
 `)
 				pdw := PipelineDefinitionWrapper{}
-				Expect(unmarshalBody(body, &pdw)).To(Succeed())
+				Expect(yaml.Unmarshal(body, &pdw)).To(Succeed())
 				Expect(string(pdw.CompiledPipeline)).To(Equal("schemaVersion: 2.1.0\n---\nplatforms:\n  kubernetes:\n    a: b"))
 
 				id := "some-id"
@@ -106,7 +106,7 @@ compiledPipeline: |-
 			It("normalises the compiled pipeline to yaml", func() {
 				body := []byte(`{"pipelineDefinition":{"name":"ns/pipeline","version":"v1","image":"img","framework":{"name":"tfx"}},"compiledPipeline":{"schemaVersion":"2.1.0","root":{}}}`)
 				pdw := PipelineDefinitionWrapper{}
-				Expect(unmarshalBody(body, &pdw)).To(Succeed())
+				Expect(yaml.Unmarshal(body, &pdw)).To(Succeed())
 
 				var compiled map[string]any
 				Expect(yaml.Unmarshal(pdw.CompiledPipeline, &compiled)).To(Succeed())
