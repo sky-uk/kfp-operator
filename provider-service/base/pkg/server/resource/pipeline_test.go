@@ -29,7 +29,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 	})
 
 	Context("Create", func() {
-		When("valid json passed, and provider returns success", func() {
+		When("a valid request is made and the provider succeeds", func() {
 			It("returns the id of the resource", func() {
 				pdw := PipelineDefinitionWrapper{}
 				jsonPipeline, err := json.Marshal(pdw)
@@ -45,7 +45,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 			})
 		})
 
-		When("invalid json is passed", func() {
+		When("an invalid request body is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
 				response, err := p.Create(ctx, invalidJson)
@@ -124,7 +124,7 @@ compiledPipeline: |-
 	})
 
 	Context("Update", func() {
-		When("valid json passed, and provider operations succeed", func() {
+		When("a valid request is made and the provider succeeds", func() {
 			It("returns no error", func() {
 				pdw := PipelineDefinitionWrapper{}
 				jsonPipeline, err := json.Marshal(pdw)
@@ -141,7 +141,7 @@ compiledPipeline: |-
 			})
 		})
 
-		When("invalid json is passed", func() {
+		When("an invalid request body is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
 				resp, err := p.Update(ctx, "some-id", invalidJson)
