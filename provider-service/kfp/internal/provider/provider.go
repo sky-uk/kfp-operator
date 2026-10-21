@@ -16,7 +16,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	sigsyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 type KfpProvider struct {
@@ -113,7 +113,7 @@ func extractPipelineSpec(compiledPipeline []byte, frameworkName string) ([]byte,
 	}
 
 	var wrapper map[string]any
-	if err := sigsyaml.Unmarshal(compiledPipeline, &wrapper); err != nil {
+	if err := yaml.Unmarshal(compiledPipeline, &wrapper); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal TFX pipeline spec: %w", err)
 	}
 
@@ -123,7 +123,7 @@ func extractPipelineSpec(compiledPipeline []byte, frameworkName string) ([]byte,
 		return compiledPipeline, nil
 	}
 
-	encoded, err := sigsyaml.Marshal(pipelineSpec)
+	encoded, err := yaml.Marshal(pipelineSpec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode TFX pipeline spec: %w", err)
 	}

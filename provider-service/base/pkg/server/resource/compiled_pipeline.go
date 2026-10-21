@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	sigsyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 // CompiledPipeline is the opaque compiler output submitted to a provider.
@@ -29,7 +29,7 @@ func (c *CompiledPipeline) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	asYAML, err := sigsyaml.JSONToYAML(data)
+	asYAML, err := yaml.JSONToYAML(data)
 	if err != nil {
 		return fmt.Errorf("compiledPipeline must be a YAML string or JSON object: %w", err)
 	}

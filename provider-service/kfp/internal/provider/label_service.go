@@ -8,7 +8,7 @@ import (
 
 	"github.com/tidwall/sjson"
 	yamlv3 "go.yaml.in/yaml/v3"
-	sigsyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 type LabelService interface {
@@ -48,7 +48,7 @@ func (dls DefaultLabelService) InsertLabelsIntoParameters(pipeline []byte, label
 		return nil, fmt.Errorf("compiled pipeline is empty")
 	}
 
-	specJSON, err := sigsyaml.YAMLToJSON(documents[0])
+	specJSON, err := yaml.YAMLToJSON(documents[0])
 	if err != nil {
 		return nil, fmt.Errorf("failed to read compiled pipeline: %w", err)
 	}
@@ -59,7 +59,7 @@ func (dls DefaultLabelService) InsertLabelsIntoParameters(pipeline []byte, label
 		}
 	}
 
-	specYAML, err := sigsyaml.JSONToYAML(specJSON)
+	specYAML, err := yaml.JSONToYAML(specJSON)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode compiled pipeline: %w", err)
 	}

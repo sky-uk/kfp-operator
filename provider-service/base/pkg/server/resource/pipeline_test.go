@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/stretchr/testify/mock"
-	sigsyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Pipeline", Ordered, func() {
@@ -109,7 +109,7 @@ compiledPipeline: |-
 				Expect(unmarshalBody(body, &pdw)).To(Succeed())
 
 				var compiled map[string]any
-				Expect(sigsyaml.Unmarshal(pdw.CompiledPipeline, &compiled)).To(Succeed())
+				Expect(yaml.Unmarshal(pdw.CompiledPipeline, &compiled)).To(Succeed())
 				Expect(compiled).To(HaveKeyWithValue("schemaVersion", "2.1.0"))
 				Expect(compiled).To(HaveKey("root"))
 

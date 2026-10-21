@@ -16,7 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	sigsyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 type WorkflowFactory[R pipelineshub.Resource] interface {
@@ -104,7 +104,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 	}
 
 	// Patches stay JSON. The workflow and provider API consume YAML.
-	asYAML, err := sigsyaml.JSONToYAML([]byte(patchedJSON))
+	asYAML, err := yaml.JSONToYAML([]byte(patchedJSON))
 	if err != nil {
 		return "", err
 	}

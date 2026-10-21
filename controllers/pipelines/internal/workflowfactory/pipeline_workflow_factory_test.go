@@ -14,7 +14,7 @@ import (
 	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	sigsyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 	"strings"
 )
 
@@ -137,7 +137,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 				Expect(strings.TrimSpace(definition)).NotTo(HavePrefix("{"))
 
 				var decoded map[string]any
-				Expect(sigsyaml.Unmarshal([]byte(definition), &decoded)).To(Succeed())
+				Expect(yaml.Unmarshal([]byte(definition), &decoded)).To(Succeed())
 				Expect(decoded).To(HaveKeyWithValue("name", "pipelineNamespace/pipelineName"))
 				Expect(decoded).To(HaveKeyWithValue("image", "pipelineImage"))
 			})

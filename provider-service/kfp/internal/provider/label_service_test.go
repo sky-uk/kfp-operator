@@ -5,7 +5,7 @@ package provider
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	sigsyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("LabelService", func() {
@@ -24,7 +24,7 @@ var _ = Describe("LabelService", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				var got map[string]any
-				Expect(sigsyaml.Unmarshal(result, &got)).To(Succeed())
+				Expect(yaml.Unmarshal(result, &got)).To(Succeed())
 				Expect(got["testParamPath"]).To(Equal(map[string]any{
 					"label1": map[string]any{"test": "test"},
 					"label2": map[string]any{"test": "test"},
@@ -44,12 +44,12 @@ var _ = Describe("LabelService", func() {
 				Expect(documents).To(HaveLen(2))
 
 				var spec map[string]any
-				Expect(sigsyaml.Unmarshal(documents[0], &spec)).To(Succeed())
+				Expect(yaml.Unmarshal(documents[0], &spec)).To(Succeed())
 				parameters := spec["root"].(map[string]any)["inputDefinitions"].(map[string]any)["parameters"].(map[string]any)
 				Expect(parameters).To(HaveKey("label1"))
 
 				var platform map[string]any
-				Expect(sigsyaml.Unmarshal(documents[1], &platform)).To(Succeed())
+				Expect(yaml.Unmarshal(documents[1], &platform)).To(Succeed())
 				Expect(platform).To(HaveKey("platforms"))
 			})
 		})

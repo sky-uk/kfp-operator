@@ -18,7 +18,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
-	sigsyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Provider", func() {
@@ -555,7 +555,7 @@ var _ = Describe("Provider", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			var got map[string]any
-			Expect(sigsyaml.Unmarshal(result, &got)).To(Succeed())
+			Expect(yaml.Unmarshal(result, &got)).To(Succeed())
 			Expect(got).To(Equal(innerSpec))
 		})
 

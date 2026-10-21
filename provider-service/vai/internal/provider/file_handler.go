@@ -10,7 +10,7 @@ import (
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	sigsyaml "sigs.k8s.io/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 type GcsFileHandler struct {
@@ -102,7 +102,7 @@ func (g *GcsFileHandler) Read(
 	}
 
 	raw := map[string]any{}
-	err = sigsyaml.Unmarshal(buf.Bytes(), &raw)
+	err = yaml.Unmarshal(buf.Bytes(), &raw)
 	if err != nil {
 		return nil, err
 	}
