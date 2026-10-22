@@ -38,14 +38,20 @@ func NewDefaultLabelService() LabelService {
 	}
 }
 
-// InsertLabelsIntoParameters injects each label as an optional string parameter
-// into root.inputDefinitions.parameters of the PipelineSpec. Any trailing
-// PlatformSpec document is preserved unchanged.
+// InsertLabelsIntoParameters adds each label as a parameter of the PipelineSpec
+// at the configured path (root.inputDefinitions.parameters by default),
+// replacing any existing entry with the same name. Missing intermediate maps
+// are created. It returns an error if the pipeline is empty or the path exists
+// but is not a mapping.
+//
+// The YAML is edited as a node tree rather than decoded into Go values, so
+// everything outside the inserted entries keeps its original text and quoting.
+// A trailing PlatformSpec document is preserved.
 func (dls DefaultLabelService) InsertLabelsIntoParameters(
 	pipeline resource.CompiledPipeline,
 	labels []string,
 ) (resource.CompiledPipeline, error) {
-	documents, err := splitYAMLDocuments([]byte(pipeline))
+	documents, err := decodeYAMLDocuments([]byte(pipeline))
 	if err != nil {
 		return nil, err
 	}
@@ -53,55 +59,36 @@ func (dls DefaultLabelService) InsertLabelsIntoParameters(
 		return nil, fmt.Errorf("compiled pipeline is empty")
 	}
 
-	var spec map[string]any
-	if err := yamlv3.Unmarshal(documents[0], &spec); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal PipelineSpec: %w", err)
+	// The defaults are plain scalars, so encoding them is safe. Encoding
+	// arbitrary values via Node.Encode is not: it round-trips through the
+	// emitter described on encodeYAMLDocuments.
+	var defaults yamlv3.Node
+	if err := defaults.Encode(dls.parameterDefaults); err != nil {
+		return nil, fmt.Errorf("failed to encode label parameter defaults: %w", err)
 	}
 
-	parameters, err := getOrCreateNestedMap(spec, dls.parameterPath...)
+	parameters, err := getOrCreateNestedMapping(documents[0].Content[0], dls.parameterPath...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to access pipeline parameters: %w", err)
 	}
 
 	for _, label := range labels {
-		parameters[label] = dls.parameterDefaults
+		setMappingEntry(parameters, label, &defaults)
 	}
 
-	specYAML, err := yamlv3.Marshal(spec)
+	encoded, err := encodeYAMLDocuments(documents)
 	if err != nil {
-		return nil, fmt.Errorf("failed to encode compiled pipeline: %w", err)
+		return nil, err
 	}
-	documents[0] = specYAML
-	return resource.CompiledPipeline(joinYAMLDocuments(documents)), nil
+	return resource.CompiledPipeline(encoded), nil
 }
 
-// getOrCreateNestedMap traverses m along path, creating intermediate maps as
-// needed, and returns the innermost map.
-func getOrCreateNestedMap(m map[string]any, path ...string) (map[string]any, error) {
-	current := m
-	for _, key := range path {
-		val, ok := current[key]
-		if !ok {
-			nested := map[string]any{}
-			current[key] = nested
-			current = nested
-			continue
-		}
-		nested, ok := val.(map[string]any)
-		if !ok {
-			return nil, fmt.Errorf("expected map at key %q, got %T", key, val)
-		}
-		current = nested
-	}
-	return current, nil
-}
-
-// splitYAMLDocuments splits a multi-document YAML byte slice into individual
-// documents. A KFP IR YAML contains a PipelineSpec and an optional PlatformSpec
-// as separate documents.
-func splitYAMLDocuments(pipeline []byte) ([][]byte, error) {
+// decodeYAMLDocuments decodes a multi-document YAML byte slice into one node
+// tree per document. A KFP IR YAML contains a PipelineSpec and an optional
+// PlatformSpec as separate documents. Empty documents are skipped.
+func decodeYAMLDocuments(pipeline []byte) ([]*yamlv3.Node, error) {
 	decoder := yamlv3.NewDecoder(bytes.NewReader(pipeline))
-	var documents [][]byte
+	var documents []*yamlv3.Node
 	for {
 		var document yamlv3.Node
 		err := decoder.Decode(&document)
@@ -111,28 +98,82 @@ func splitYAMLDocuments(pipeline []byte) ([][]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode compiled pipeline: %w", err)
 		}
-		if document.Kind == 0 {
+		if document.Kind == 0 || len(document.Content) == 0 {
 			continue
 		}
-		encoded, err := yamlv3.Marshal(&document)
-		if err != nil {
-			return nil, fmt.Errorf("failed to re-encode YAML document: %w", err)
-		}
-		documents = append(documents, encoded)
+		documents = append(documents, &document)
 	}
 	return documents, nil
 }
 
-// joinYAMLDocuments concatenates YAML documents into a single byte slice,
-// separated by --- markers.
-func joinYAMLDocuments(documents [][]byte) []byte {
-	var encoded bytes.Buffer
-	for i, document := range documents {
-		if i > 0 {
-			encoded.WriteString("---\n")
-		}
-		encoded.Write(bytes.TrimSpace(document))
-		encoded.WriteByte('\n')
+// getOrCreateNestedMapping traverses the mapping node root along path,
+// creating intermediate mappings as needed, and returns the innermost mapping.
+func getOrCreateNestedMapping(root *yamlv3.Node, path ...string) (*yamlv3.Node, error) {
+	if root.Kind != yamlv3.MappingNode {
+		return nil, fmt.Errorf("expected a mapping at the document root, got %s", root.Tag)
 	}
-	return encoded.Bytes()
+
+	current := root
+	for _, key := range path {
+		next := mappingValue(current, key)
+		if next == nil {
+			next = &yamlv3.Node{Kind: yamlv3.MappingNode, Tag: "!!map"}
+			setMappingEntry(current, key, next)
+		} else if next.Kind != yamlv3.MappingNode {
+			return nil, fmt.Errorf("expected map at key %q, got %s", key, next.Tag)
+		}
+		current = next
+	}
+	return current, nil
+}
+
+// mappingValue returns the value stored under key in the mapping node m, or
+// nil if the key is absent.
+func mappingValue(m *yamlv3.Node, key string) *yamlv3.Node {
+	for i := 0; i+1 < len(m.Content); i += 2 {
+		if m.Content[i].Value == key {
+			return m.Content[i+1]
+		}
+	}
+	return nil
+}
+
+// setMappingEntry sets key to value in the mapping node m, replacing an
+// existing entry or appending a new one.
+func setMappingEntry(m *yamlv3.Node, key string, value *yamlv3.Node) {
+	if existing := mappingValue(m, key); existing != nil {
+		*existing = *value
+		return
+	}
+	keyNode := &yamlv3.Node{Kind: yamlv3.ScalarNode, Tag: "!!str", Value: key}
+	m.Content = append(m.Content, keyNode, value)
+}
+
+// encodeYAMLDocuments encodes document node trees into a single multi-document
+// YAML byte slice, separated by --- markers.
+//
+// The encoder must indent by 2. go.yaml.in/yaml/v3 writes the block scalar
+// indentation indicator (e.g. "|4") from the encoder's indent width, but
+// indents list item content by only 2. With any other width, block scalars
+// that begin with a blank line or whitespace get an indicator that does not
+// match their content and cannot be parsed back. Some KFP API server versions
+// (e.g. 2.14.4) hang on such input. The KFP SDK emits these scalars in every
+// executor command.
+//
+// TODO: revisit once a release of go.yaml.in/yaml contains the fix for
+// https://github.com/yaml/go-yaml/issues/76 (fixed on main by
+// https://github.com/yaml/go-yaml/pull/414, not yet in a v3 release).
+func encodeYAMLDocuments(documents []*yamlv3.Node) ([]byte, error) {
+	var encoded bytes.Buffer
+	encoder := yamlv3.NewEncoder(&encoded)
+	encoder.SetIndent(2)
+	for _, document := range documents {
+		if err := encoder.Encode(document); err != nil {
+			return nil, fmt.Errorf("failed to encode compiled pipeline: %w", err)
+		}
+	}
+	if err := encoder.Close(); err != nil {
+		return nil, fmt.Errorf("failed to encode compiled pipeline: %w", err)
+	}
+	return encoded.Bytes(), nil
 }
