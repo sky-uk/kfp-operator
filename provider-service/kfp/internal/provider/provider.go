@@ -180,9 +180,8 @@ func (p *KfpProvider) UpdatePipeline(
 	if err != nil {
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
-	pdw.CompiledPipeline = compiledPipeline
 
-	log.FromContext(ctx).Info("Updating pipeline", "name", pdw.PipelineDefinition.Name, "spec", string(pdw.CompiledPipeline))
+	log.FromContext(ctx).Info("Updating pipeline", "name", pdw.PipelineDefinition.Name, "spec", string(compiledPipeline))
 
 	if err := p.pipelineUploadService.UploadPipelineVersion(
 		ctx,
