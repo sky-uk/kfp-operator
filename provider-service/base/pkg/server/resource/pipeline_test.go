@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/stretchr/testify/mock"
+	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Pipeline", Ordered, func() {
@@ -28,7 +29,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 	})
 
 	Context("Create", func() {
-		When("valid json passed, and provider returns success", func() {
+		When("a valid request is made and the provider succeeds", func() {
 			It("returns the id of the resource", func() {
 				pdw := PipelineDefinitionWrapper{}
 				jsonPipeline, err := json.Marshal(pdw)
@@ -44,7 +45,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 			})
 		})
 
-		When("invalid json is passed", func() {
+		When("an invalid request body is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
 				response, err := p.Create(ctx, invalidJson)
@@ -72,8 +73,58 @@ var _ = Describe("Pipeline", Ordered, func() {
 		})
 	})
 
+	Context("YAML and legacy compiled pipelines", func() {
+		When("a yaml request carries every compiled document", func() {
+			It("passes the compiled pipeline through unchanged", func() {
+				body := []byte(`pipelineDefinition:
+  name: ns/pipeline
+  version: v1
+  image: img
+  framework:
+    name: kfpsdk
+compiledPipeline: |-
+  schemaVersion: 2.1.0
+  ---
+  platforms:
+    kubernetes:
+      a: b
+`)
+				pdw := PipelineDefinitionWrapper{}
+				Expect(yaml.Unmarshal(body, &pdw)).To(Succeed())
+				Expect(string(pdw.CompiledPipeline)).To(Equal("schemaVersion: 2.1.0\n---\nplatforms:\n  kubernetes:\n    a: b"))
+
+				id := "some-id"
+				mockProvider.On("CreatePipeline", ignoreCtx, pdw).Return(id, nil)
+				resp, err := p.Create(ctx, body)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resp).To(Equal(base.Output{Id: id}))
+			})
+		})
+
+		When("a legacy json request carries a compiled object", func() {
+			It("normalises the compiled pipeline to yaml", func() {
+				body := []byte(`{"pipelineDefinition":{"name":"ns/pipeline","version":"v1","image":"img","framework":{"name":"tfx"}},"compiledPipeline":{"schemaVersion":"2.1.0","root":{}}}`)
+				pdw := PipelineDefinitionWrapper{}
+				Expect(yaml.Unmarshal(body, &pdw)).To(Succeed())
+
+				var compiled map[string]any
+				Expect(yaml.Unmarshal(pdw.CompiledPipeline, &compiled)).To(Succeed())
+				Expect(compiled).To(HaveKeyWithValue("schemaVersion", "2.1.0"))
+				Expect(compiled).To(HaveKey("root"))
+
+				id := "some-id"
+				mockProvider.On("CreatePipeline", ignoreCtx, pdw).Return(id, nil)
+				resp, err := p.Create(ctx, body)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resp).To(Equal(base.Output{Id: id}))
+			})
+		})
+	})
+
 	Context("Update", func() {
-		When("valid json passed, and provider operations succeed", func() {
+		When("a valid request is made and the provider succeeds", func() {
 			It("returns no error", func() {
 				pdw := PipelineDefinitionWrapper{}
 				jsonPipeline, err := json.Marshal(pdw)
@@ -90,7 +141,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 			})
 		})
 
-		When("invalid json is passed", func() {
+		When("an invalid request body is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
 				resp, err := p.Update(ctx, "some-id", invalidJson)

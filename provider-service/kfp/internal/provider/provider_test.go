@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -18,6 +19,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
+	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Provider", func() {
@@ -537,8 +539,8 @@ var _ = Describe("Provider", func() {
 		})
 	})
 
-	Context("extractPipelineSpec", func() {
-		It("should extract pipelineSpec from wrapper for TFX framework (case-insensitive)", func() {
+	Context("unwrapTFXPipeline", func() {
+		It("should unwrap the Vertex PipelineJob envelope for TFX frameworks (case-insensitive)", func() {
 			innerSpec := map[string]any{
 				"pipelineInfo": map[string]any{"name": "test-pipeline"},
 				"root":         map[string]any{},
@@ -549,22 +551,32 @@ var _ = Describe("Provider", func() {
 				"runtimeConfig": map[string]any{},
 			}
 			compiled, _ := json.Marshal(wrapper)
-			expected, _ := json.Marshal(innerSpec)
 
-			result, err := extractPipelineSpec(compiled, "TfX")
+			result, err := unwrapTFXPipeline(resource.CompiledPipeline(compiled), "TfX")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(MatchJSON(expected))
+
+			var got map[string]any
+			Expect(yaml.Unmarshal(result, &got)).To(Succeed())
+			Expect(got).To(Equal(innerSpec))
 		})
 
-		It("should return compiled pipeline unchanged for non-TFX frameworks", func() {
+		It("should return the compiled pipeline unchanged for non-TFX frameworks", func() {
 			pipelineSpec := map[string]any{
 				"pipelineInfo": map[string]any{"name": "test"},
 			}
 			compiled, _ := json.Marshal(pipelineSpec)
 
-			result, err := extractPipelineSpec(compiled, "kfpsdk")
+			result, err := unwrapTFXPipeline(resource.CompiledPipeline(compiled), "kfpsdk")
 			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(MatchJSON(compiled))
+			Expect([]byte(result)).To(MatchJSON(compiled))
+		})
+
+		It("should preserve a trailing PlatformSpec document for non-TFX frameworks", func() {
+			compiled := resource.CompiledPipeline("schemaVersion: 2.1.0\n---\nplatforms:\n  kubernetes:\n    a: b\n")
+
+			result, err := unwrapTFXPipeline(compiled, "kfpsdk")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(compiled))
 		})
 	})
 

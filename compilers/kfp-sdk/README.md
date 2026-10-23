@@ -1,6 +1,10 @@
 ### KFP SDK Compiler
 
-KFP SDK Compiler is a tool that compiles a KFP SDK pipeline definition into a Kubeflow Pipelines representation.
+KFP SDK Compiler is a tool that compiles a KFP SDK pipeline definition into a
+Kubeflow Pipelines representation. The compiled file is YAML. When a pipeline
+uses platform features (for example Kubernetes node selectors), the KFP SDK
+appends a `platformSpec` as a second YAML document. The whole file is passed on
+to the provider.
 
 ### Usage
 
