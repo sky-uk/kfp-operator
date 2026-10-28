@@ -254,3 +254,70 @@ var _ = Context("IdentifyRunTriggerReason", func() {
 		),
 	)
 })
+
+var _ = Context("replacement schedule readiness", func() {
+	schedule := func(cron string, generation, observed int64, state apis.SynchronizationState) pipelineshub.RunSchedule {
+		return pipelineshub.RunSchedule{
+			ObjectMeta: metav1.ObjectMeta{Generation: generation},
+			Spec:       pipelineshub.RunScheduleSpec{Schedule: pipelineshub.Schedule{CronExpression: cron}},
+			Status: pipelineshub.Status{ObservedGeneration: observed, Conditions: []metav1.Condition{{
+				Type: apis.ConditionTypes.SynchronizationSucceeded, Reason: string(state),
+				Message: "provider rejected replacement", ObservedGeneration: observed,
+			}}},
+		}
+	}
+
+	It("preserves the previous schedule until the replacement succeeds", func() {
+		old := schedule("0 0 * * *", 1, 1, apis.Succeeded)
+		newSchedule := schedule("0 1 * * *", 1, 0, apis.Succeeded)
+		desired := []pipelineshub.RunSchedule{newSchedule}
+		actual := []pipelineshub.RunSchedule{old}
+		Expect(allDesiredSchedulesSucceeded(desired, actual)).To(BeFalse())
+		state, _ := aggregateDesiredScheduleState(desired, actual)
+		Expect(state).To(Equal(apis.Updating))
+		actual = append(actual, newSchedule)
+		Expect(allDesiredSchedulesSucceeded(desired, actual)).To(BeFalse())
+		actual[1] = schedule("0 1 * * *", 1, 1, apis.Failed)
+		Expect(allDesiredSchedulesSucceeded(desired, actual)).To(BeFalse())
+		state, message := aggregateDesiredScheduleState(desired, actual)
+		Expect(state).To(Equal(apis.Failed))
+		Expect(message).To(Equal("provider rejected replacement"))
+		actual[1] = schedule("0 1 * * *", 1, 1, apis.Succeeded)
+		Expect(allDesiredSchedulesSucceeded(desired, actual)).To(BeTrue())
+		Expect(allDesiredSchedulesSucceeded(nil, actual)).To(BeTrue())
+	})
+
+	It("reconciles duplicate desired and owned schedules by count", func() {
+		want := schedule("0 1 * * *", 1, 1, apis.Succeeded)
+		Expect(unmatchedRunSchedules([]pipelineshub.RunSchedule{want, want}, []pipelineshub.RunSchedule{want})).To(HaveLen(1))
+		Expect(unmatchedRunSchedules([]pipelineshub.RunSchedule{want}, []pipelineshub.RunSchedule{want, want})).To(BeEmpty())
+		Expect(unmatchedRunSchedules([]pipelineshub.RunSchedule{want, want}, []pipelineshub.RunSchedule{want, want})).To(BeEmpty())
+	})
+
+	It("requires a separate successful resource for each identical desired schedule", func() {
+		want := schedule("0 1 * * *", 1, 1, apis.Succeeded)
+		Expect(allDesiredSchedulesSucceeded([]pipelineshub.RunSchedule{want, want}, []pipelineshub.RunSchedule{want})).To(BeFalse())
+		Expect(allDesiredSchedulesSucceeded([]pipelineshub.RunSchedule{want, want}, []pipelineshub.RunSchedule{want, want})).To(BeTrue())
+	})
+
+	It("keeps a successful duplicate rather than a stale one", func() {
+		want := schedule("0 1 * * *", 2, 2, apis.Succeeded)
+		stale := schedule("0 1 * * *", 2, 1, apis.Succeeded)
+		actual := []pipelineshub.RunSchedule{stale, want}
+		Expect(allDesiredSchedulesSucceeded([]pipelineshub.RunSchedule{want}, actual)).To(BeTrue())
+		Expect(unmatchedRunSchedules(actual, []pipelineshub.RunSchedule{want})).To(ConsistOf(stale))
+	})
+
+	It("does not trust stale or deleting resources", func() {
+		want := schedule("0 1 * * *", 2, 2, apis.Succeeded)
+		stale := schedule("0 1 * * *", 2, 1, apis.Succeeded)
+		Expect(allDesiredSchedulesSucceeded([]pipelineshub.RunSchedule{want}, []pipelineshub.RunSchedule{stale})).To(BeFalse())
+		deleting := want.DeepCopy()
+		now := metav1.Now()
+		deleting.DeletionTimestamp = &now
+		Expect(allDesiredSchedulesSucceeded([]pipelineshub.RunSchedule{want}, []pipelineshub.RunSchedule{*deleting})).To(BeFalse())
+		wrongCondition := want.DeepCopy()
+		wrongCondition.Status.Conditions[0].ObservedGeneration = 1
+		Expect(allDesiredSchedulesSucceeded([]pipelineshub.RunSchedule{want}, []pipelineshub.RunSchedule{*wrongCondition})).To(BeFalse())
+	})
+})

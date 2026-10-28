@@ -44,7 +44,9 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	It("preserves the existing schedule until its replacement succeeds", func() {
 		rc := createSucceededRcWithSchedule()
 		oldSchedule := rc.Spec.Triggers.Schedules[0]
-		rc.Spec.Triggers.Schedules = []pipelineshub.Schedule{pipelineshub.RandomSchedule()}
+		replacement := oldSchedule
+		replacement.CronExpression = oldSchedule.CronExpression + "-replacement"
+		rc.Spec.Triggers.Schedules = []pipelineshub.Schedule{replacement}
 		Expect(K8sClient.Update(Ctx, rc)).To(Succeed())
 
 		Eventually(func(g Gomega) {

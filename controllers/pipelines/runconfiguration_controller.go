@@ -302,8 +302,8 @@ func (r *RunConfigurationReconciler) syncStatus(
 		return
 	}
 
-	missingSchedules := apis.SliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
-	excessSchedules := apis.SliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
+	missingSchedules := unmatchedRunSchedules(desiredSchedules, dependentSchedules)
+	excessSchedules := unmatchedRunSchedules(dependentSchedules, desiredSchedules)
 	excessSchedulesNotMarkedForDeletion := lo.Filter(
 		excessSchedules, func(schedule pipelineshub.RunSchedule, _ int) bool {
 			return schedule.DeletionTimestamp == nil
@@ -532,17 +532,88 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(
 	return schedules, nil
 }
 
-func allDesiredSchedulesSucceeded(desired, actual []pipelineshub.RunSchedule) bool {
-	for _, want := range desired {
-		found := false
-		for _, existing := range actual {
-			if compareRunSchedules(want, existing) && existing.DeletionTimestamp == nil &&
-				existing.Status.Conditions.GetSyncStateFromReason() == apis.Succeeded {
-				found = true
+// unmatchedRunSchedules compares schedules as a multiset, so duplicate triggers
+// cannot hide a missing replacement or an excess owned resource.
+func unmatchedRunSchedules(schedules, other []pipelineshub.RunSchedule) []pipelineshub.RunSchedule {
+	used := make([]bool, len(other))
+	var unmatched []pipelineshub.RunSchedule
+	// When removing duplicate owned resources, retain a successful schedule
+	// before one that has not yet reached its provider.
+	ordered := slices.Clone(schedules)
+	slices.SortStableFunc(ordered, func(a, b pipelineshub.RunSchedule) int {
+		aReady := scheduleStateCurrent(a) && a.Status.Conditions.GetSyncStateFromReason() == apis.Succeeded
+		bReady := scheduleStateCurrent(b) && b.Status.Conditions.GetSyncStateFromReason() == apis.Succeeded
+		if aReady == bReady {
+			return 0
+		}
+		if aReady {
+			return -1
+		}
+		return 1
+	})
+	for _, schedule := range ordered {
+		match := -1
+		for i, candidate := range other {
+			if !used[i] && compareRunSchedules(schedule, candidate) {
+				match = i
 				break
 			}
 		}
+		if match == -1 {
+			unmatched = append(unmatched, schedule)
+		} else {
+			used[match] = true
+		}
+	}
+	return unmatched
+}
+
+// matchedDesiredSchedules returns the state of each desired schedule using a distinct
+// live owned resource. A successful schedule cannot satisfy two identical triggers.
+func matchedDesiredSchedules(desired, actual []pipelineshub.RunSchedule) ([]pipelineshub.RunSchedule, bool) {
+	matched := make([]pipelineshub.RunSchedule, 0, len(desired))
+	used := make([]bool, len(actual))
+	complete := true
+	for _, want := range desired {
+		found := false
+		best := -1
+		for i, existing := range actual {
+			if used[i] || existing.DeletionTimestamp != nil || !compareRunSchedules(want, existing) {
+				continue
+			}
+			if best == -1 {
+				best = i
+			}
+			if scheduleStateCurrent(existing) && existing.Status.Conditions.GetSyncStateFromReason() == apis.Succeeded {
+				best = i
+				break
+			}
+		}
+		if best != -1 {
+			used[best] = true
+			matched = append(matched, actual[best])
+			found = true
+		}
 		if !found {
+			complete = false
+		}
+	}
+	return matched, complete
+}
+
+func scheduleStateCurrent(schedule pipelineshub.RunSchedule) bool {
+	condition := schedule.Status.Conditions.SynchronizationSucceeded()
+	return schedule.Status.ObservedGeneration == schedule.Generation &&
+		condition.ObservedGeneration == schedule.Generation
+}
+
+func allDesiredSchedulesSucceeded(desired, actual []pipelineshub.RunSchedule) bool {
+	matched, complete := matchedDesiredSchedules(desired, actual)
+	if !complete {
+		return false
+	}
+	for _, schedule := range matched {
+		if !scheduleStateCurrent(schedule) || schedule.Status.Conditions.GetSyncStateFromReason() != apis.Succeeded {
 			return false
 		}
 	}
@@ -550,13 +621,10 @@ func allDesiredSchedulesSucceeded(desired, actual []pipelineshub.RunSchedule) bo
 }
 
 func aggregateDesiredScheduleState(desired, actual []pipelineshub.RunSchedule) (apis.SynchronizationState, string) {
-	for _, want := range desired {
-		for _, existing := range actual {
-			if compareRunSchedules(want, existing) && existing.DeletionTimestamp == nil {
-				if existing.Status.Conditions.GetSyncStateFromReason() == apis.Failed {
-					return apis.Failed, existing.Status.Conditions.SynchronizationSucceeded().Message
-				}
-			}
+	matched, _ := matchedDesiredSchedules(desired, actual)
+	for _, schedule := range matched {
+		if scheduleStateCurrent(schedule) && schedule.Status.Conditions.GetSyncStateFromReason() == apis.Failed {
+			return apis.Failed, schedule.Status.Conditions.SynchronizationSucceeded().Message
 		}
 	}
 	return apis.Updating, "Waiting for replacement runschedules to succeed before deleting existing schedules"
