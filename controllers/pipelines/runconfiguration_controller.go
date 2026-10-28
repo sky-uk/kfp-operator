@@ -319,6 +319,13 @@ func (r *RunConfigurationReconciler) syncStatus(
 			}
 		}
 
+		// Keep existing schedules until every replacement has been applied by
+		// its provider. A Kubernetes Create alone does not establish readiness.
+		if len(desiredSchedules) > 0 && !allDesiredSchedulesSucceeded(desiredSchedules, dependentSchedules) {
+			state, message = aggregateDesiredScheduleState(desiredSchedules, dependentSchedules)
+			return
+		}
+
 		for _, excessSchedule := range excessSchedulesNotMarkedForDeletion {
 			if err = r.EC.Client.Delete(ctx, &excessSchedule); err != nil {
 				return
@@ -523,6 +530,36 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(
 	}
 
 	return schedules, nil
+}
+
+func allDesiredSchedulesSucceeded(desired, actual []pipelineshub.RunSchedule) bool {
+	for _, want := range desired {
+		found := false
+		for _, existing := range actual {
+			if compareRunSchedules(want, existing) && existing.DeletionTimestamp == nil &&
+				existing.Status.Conditions.GetSyncStateFromReason() == apis.Succeeded {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+func aggregateDesiredScheduleState(desired, actual []pipelineshub.RunSchedule) (apis.SynchronizationState, string) {
+	for _, want := range desired {
+		for _, existing := range actual {
+			if compareRunSchedules(want, existing) && existing.DeletionTimestamp == nil {
+				if existing.Status.Conditions.GetSyncStateFromReason() == apis.Failed {
+					return apis.Failed, existing.Status.Conditions.SynchronizationSucceeded().Message
+				}
+			}
+		}
+	}
+	return apis.Updating, "Waiting for replacement runschedules to succeed before deleting existing schedules"
 }
 
 func aggregateState(dependencies []pipelineshub.RunSchedule) (aggState apis.SynchronizationState, message string) {

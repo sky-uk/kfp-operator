@@ -41,6 +41,45 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		}).Should(Succeed())
 	})
 
+	It("preserves the existing schedule until its replacement succeeds", func() {
+		rc := createSucceededRcWithSchedule()
+		oldSchedule := rc.Spec.Triggers.Schedules[0]
+		rc.Spec.Triggers.Schedules = []pipelineshub.Schedule{pipelineshub.RandomSchedule()}
+		Expect(K8sClient.Update(Ctx, rc)).To(Succeed())
+
+		Eventually(func(g Gomega) {
+			schedules, err := findOwnedRunSchedules(Ctx, K8sClient, rc)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(schedules).To(HaveLen(2))
+		}).Should(Succeed())
+
+		Expect(updateOwnedSchedules(rc, func(schedule *pipelineshub.RunSchedule) {
+			if schedule.Spec.Schedule != oldSchedule {
+				schedule.Status.Conditions = schedule.Status.Conditions.SetReasonForSyncState(apis.Failed)
+			}
+		})).To(Succeed())
+		Eventually(matchRunConfiguration(rc, func(g Gomega, fetched *pipelineshub.RunConfiguration) {
+			g.Expect(fetched.Status.Conditions.SynchronizationSucceeded().Reason).To(Equal(string(apis.Failed)))
+		})).Should(Succeed())
+		Consistently(func(g Gomega) {
+			schedules, err := findOwnedRunSchedules(Ctx, K8sClient, rc)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(schedules).To(HaveLen(2))
+		}, "1s", "100ms").Should(Succeed())
+
+		Expect(updateOwnedSchedules(rc, func(schedule *pipelineshub.RunSchedule) {
+			if schedule.Spec.Schedule != oldSchedule {
+				schedule.Status.Conditions = schedule.Status.Conditions.SetReasonForSyncState(apis.Succeeded)
+			}
+		})).To(Succeed())
+		Eventually(func(g Gomega) {
+			schedules, err := findOwnedRunSchedules(Ctx, K8sClient, rc)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(schedules).To(HaveLen(1))
+			g.Expect(schedules[0].Spec.Schedule).To(Equal(rc.Spec.Triggers.Schedules[0]))
+		}).Should(Succeed())
+	})
+
 	It("deletes RunSchedule owned resources that are not in the triggers", func() {
 		runConfiguration := createSucceededRcWithSchedule()
 
