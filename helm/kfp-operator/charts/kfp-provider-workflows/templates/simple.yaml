@@ -36,7 +36,7 @@ spec:
             raw:
               data: |
                 {{`{{workflow.parameters.resource-definition}}`}}
-            path: /body.json
+            path: /body.yaml
           parameters:
           - name: provider-service-url
             value: '{{`{{workflow.parameters.provider-service-url}}`}}'
@@ -88,7 +88,7 @@ spec:
             raw:
               data: |
                 {{`{{workflow.parameters.resource-definition}}`}}
-            path: /body.json
+            path: /body.yaml
           parameters:
           - name: url-encoded-resource-id
             value: '{{`{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}`}}'

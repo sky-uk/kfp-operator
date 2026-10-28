@@ -15,11 +15,11 @@ spec:
         raw:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
-        path: /resource-definition.json
+        path: /resource-definition.yaml
     outputs:
       artifacts:
       - name: resource
-        path: /tmp/resource.json
+        path: /tmp/resource.yaml
     metadata:
       {{- .Values.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.argo.stepTimeoutSeconds.compile }}
@@ -33,9 +33,9 @@ spec:
         name: shared
       args:
       - --output_file
-      - /tmp/resource.json
+      - /tmp/resource.yaml
       - --{{`{{workflow.parameters.resource-kind}}`}}_config
-      - /resource-definition.json
+      - /resource-definition.yaml
       {{- include "kfp-provider-workflows.notEmptyYaml" .Values.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared
@@ -50,13 +50,13 @@ spec:
     inputs:
       artifacts:
         - name: resource
-          path: /resource.json
+          path: /resource.yaml
         - name: resource-definition
-          path: /resource-definition.json
+          path: /resource-definition.yaml
     outputs:
       artifacts:
         - name: combined
-          path: /tmp/combined.json
+          path: /tmp/combined.yaml
     metadata:
       {{- .Values.argo.metadata | toYaml | nindent 6 }}
     container:
@@ -64,14 +64,9 @@ spec:
       command: [sh,-c]
       args:
         - |
-          RESOURCE_DEFINITION=$(cat {{`{{inputs.artifacts.resource-definition.path}}`}})
-          RESOURCE=$(cat {{`{{inputs.artifacts.resource.path}}`}})
-
-          echo "Combining resource definition and resource"
-          COMBINED=$(printf '{"pipelineDefinition": %s, "compiledPipeline": %s}' "$RESOURCE_DEFINITION" "$RESOURCE")
-
-          echo "Combined resource file:"
-          printf "%s" "$COMBINED" | tee /tmp/combined.json
+          set -eu
+          echo "Combining resource definition and compiled pipeline"
+          yq -n '.pipelineDefinition = load("{{`{{inputs.artifacts.resource-definition.path}}`}}") | .compiledPipeline = load_str("{{`{{inputs.artifacts.resource.path}}`}}")' | tee /tmp/combined.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -128,7 +123,7 @@ spec:
             raw:
               data: |
                 {{`{{workflow.parameters.resource-definition}}`}}
-            path: /resource-definition.json
+            path: /resource-definition.yaml
     - - name: provider
         templateRef:
           name: common-steps
@@ -197,7 +192,7 @@ spec:
             raw:
               data: |
                 {{`{{workflow.parameters.resource-definition}}`}}
-            path: /resource-definition.json
+            path: /resource-definition.yaml
     - - name: url-encode-resource-id
         templateRef:
           name: common-steps
