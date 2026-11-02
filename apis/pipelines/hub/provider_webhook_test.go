@@ -30,7 +30,7 @@ var _ = Describe("ProviderValidator Webhook", func() {
 		When("podTemplateEnv contains no reserved names", func() {
 			It("should not error", func() {
 				provider.Spec.PodTemplateEnv = []corev1.EnvVar{
-					{Name: "KUBE_FEATURE_WatchListClient", Value: "true"},
+					{Name: "LOG_LEVEL", Value: "debug"},
 					{Name: "HTTPS_PROXY", Value: "http://proxy:3128"},
 				}
 
