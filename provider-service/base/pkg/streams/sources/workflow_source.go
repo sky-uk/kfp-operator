@@ -82,19 +82,17 @@ func (ws *WorkflowSource) start(ctx context.Context, namespace string) error {
 		return err
 	}
 
-	workflowListOptions := metav1.ListOptions{
-		LabelSelector: labels.NewSelector().
-			Add(*kfpOperatorExistsRequirement).
-			Add(*workflowUpdateTriggeredRequirement).
-			String(),
-	}
+	labelSelector := labels.NewSelector().
+		Add(*kfpOperatorExistsRequirement).
+		Add(*workflowUpdateTriggeredRequirement).
+		String()
 
 	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(
 		ws.K8sClient.Client,
 		disableCacheResync,
 		namespace,
 		func(listOptions *metav1.ListOptions) {
-			*listOptions = workflowListOptions
+			listOptions.LabelSelector = labelSelector
 		},
 	)
 	informer := factory.ForResource(argoWorkflowsGvr)

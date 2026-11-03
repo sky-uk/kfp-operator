@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -61,10 +60,6 @@ const (
 
 var _ = BeforeSuite(func() {
 	ctx := context.Background()
-
-	// This is required because envtest doesn't fully support WatchList semantics in K8s 1.35.
-	// See: https://github.com/kubernetes/kubernetes/issues/135895
-	os.Setenv("KUBE_FEATURE_WatchListClient", "false")
 
 	testEnv := &envtest.Environment{
 		DownloadBinaryAssets: true,

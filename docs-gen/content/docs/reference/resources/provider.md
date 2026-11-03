@@ -27,7 +27,7 @@ as updates are not propagated or checked and will result in runtime errors on th
 | `spec.parameters`          | Parameters specific to each provider, i.e. [KFP](#kubeflow-specific-parameters) and [VAI](#vertex-ai-specific-parameters)                                                                                                                                                                                     | `gcs://kubeflow-pipelines-bucket`         |
 | `spec.frameworks[]`        | A list of [frameworks](#framework) supported by the provider.                                                                                                                                                                                                                                                 |                                           |
 | `spec.allowedNamespaces[]` | A list of namespaces that resources can reference this provider from. If a resource tries to reference this provider from a namespace not in the `allowedNamespaces` list, the resource will fail. If no allowedNamespaces list is configured, then resources can reference this provider from any namespace. | ```- default ```                          |
-| `spec.podTemplateEnv[]`    | A list of [environment variables](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#envvar-v1-core) applied to this provider's service container. These merge over the global `defaultProviderValues.podTemplateSpec` env with per-provider precedence (an entry replaces a global entry of the same name; new names are appended). | ```- name: KUBE_FEATURE_WatchListClient```<br>```  value: "false" ``` |
+| `spec.podTemplateEnv[]`    | A list of [environment variables](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#envvar-v1-core) applied to this provider's service container. These merge over the global `defaultProviderValues.podTemplateSpec` env with per-provider precedence (an entry replaces a global entry of the same name; new names are appended). | ```- name: HTTPS_PROXY```<br>```  value: "http://proxy:3128" ``` |
 | `spec.podTemplateVolumes[]`      | A list of [volumes](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#volume-v1-core) applied to this provider's service pod. These merge over the global `defaultProviderValues.podTemplateSpec` volumes with per-provider precedence (an entry replaces a global entry of the same name; new names are appended). | ```- name: kfp-sa-token```<br>```  projected:```<br>```    sources:```<br>```    - serviceAccountToken:```<br>```        path: token```<br>```        audience: pipelines.kubeflow.org``` |
 | `spec.podTemplateVolumeMounts[]` | A list of [volume mounts](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#volumemount-v1-core) applied to this provider's service container. These merge over the global `defaultProviderValues.podTemplateSpec` volume mounts with per-provider precedence (an entry replaces a global entry of the same mount path; new paths are appended). | ```- name: kfp-sa-token```<br>```  mountPath: /var/run/secrets/kfp```<br>```  readOnly: true``` |
 
@@ -85,8 +85,8 @@ spec:
   - default
   - my-namespace
   podTemplateEnv:
-  - name: KUBE_FEATURE_WatchListClient
-    value: "false"
+  - name: HTTPS_PROXY
+    value: "http://proxy:3128"
   podTemplateVolumes:
   - name: kfp-sa-token
     projected:
