@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
-	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("addHackedTFXPlatformSpec", func() {
@@ -34,7 +33,7 @@ platforms:
         stale: {}
 `)
 
-	It("adds a configMapAsVolume to every container executor only, replacing any existing platform spec", func() {
+	It("replaces the platform spec with ConfigMap volume and env config for container executors", func() {
 		result, err := addHackedTFXPlatformSpec(pipeline, "TFX")
 		Expect(err).ToNot(HaveOccurred())
 
@@ -43,7 +42,7 @@ platforms:
 		Expect(documents).To(HaveLen(2))
 
 		var platformSpec map[string]any
-		Expect(yaml.Unmarshal([]byte(result[indexOfSecondDocument(result):]), &platformSpec)).To(Succeed())
+		Expect(documents[1].Decode(&platformSpec)).To(Succeed())
 
 		executors := platformSpec["platforms"].(map[string]any)["kubernetes"].(map[string]any)["deploymentSpec"].(map[string]any)["executors"].(map[string]any)
 		Expect(executors).To(HaveLen(2))
@@ -57,10 +56,21 @@ platforms:
 					"optional":      false,
 				},
 			},
+			"configMapAsEnv": []any{
+				map[string]any{
+					"configMapName": hackEnvConfigMapName,
+					"keyToEnv": []any{
+						map[string]any{
+							"configMapKey": hackEnvConfigMapKey,
+							"envVar":       hackEnvVarName,
+						},
+					},
+				},
+			},
 		}))
 	})
 
-	It("preserves the pipeline spec as the first document", func() {
+	It("keeps the pipeline spec as the first document", func() {
 		result, err := addHackedTFXPlatformSpec(pipeline, "tfx")
 		Expect(err).ToNot(HaveOccurred())
 
@@ -73,11 +83,11 @@ platforms:
 		Expect(first).To(HaveKey("root"))
 	})
 
-	It("uses a ConfigMap name that is a valid pod volume name (lowercase DNS-1123 label)", func() {
+	It("uses a DNS-1123 label as the volume ConfigMap name", func() {
 		Expect(hackConfigMapName).To(MatchRegexp(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`))
 	})
 
-	It("leaves non-TFX pipelines untouched", func() {
+	It("leaves non-TFX pipelines unchanged", func() {
 		result, err := addHackedTFXPlatformSpec(pipeline, "kfpsdk")
 		Expect(err).ToNot(HaveOccurred())
 		Expect(result).To(Equal(pipeline))
@@ -91,13 +101,3 @@ platforms:
 		Expect(twice).To(Equal(once))
 	})
 })
-
-func indexOfSecondDocument(pipeline resource.CompiledPipeline) int {
-	s := string(pipeline)
-	for i := 0; i+4 <= len(s); i++ {
-		if s[i:i+4] == "---\n" && (i == 0 || s[i-1] == '\n') {
-			return i + 4
-		}
-	}
-	return 0
-}

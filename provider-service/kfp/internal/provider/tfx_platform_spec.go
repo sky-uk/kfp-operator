@@ -10,30 +10,25 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
 
-// HACK: hard-coded volume configuration for TFX pipelines.
-//
-// This is a temporary, deliberately inelegant mechanism to verify that the
-// executor pods KFP spins up can be given an extra volume + volume mount (used
-// to mount a ConfigMap). Replace the placeholder values below with the real
-// ones once confirmed. If this works, it should be replaced by a proper,
-// configurable mechanism.
-//
-// NOTE: the KFP driver uses the ConfigMap name verbatim as the pod volume name,
-// so it must be a valid lowercase DNS-1123 label (no uppercase, no underscores).
+// Hard-coded ConfigMap settings applied to TFX executor pods. The pod volume is
+// named after the ConfigMap, so hackConfigMapName must be a lowercase DNS-1123
+// label.
 const (
+	// Mounted as a volume.
 	hackConfigMapName = "foo-config"
 	hackMountPath     = "/etc/placeholder"
+
+	// Exposed as an env var. The ConfigMap and key must exist, otherwise the pod
+	// fails with CreateContainerConfigError.
+	hackEnvConfigMapName = "bar-env-config"
+	hackEnvConfigMapKey  = "some-key"
+	hackEnvVarName       = "SOME_ENV_VAR"
 )
 
-// addHackedTFXPlatformSpec appends (or replaces) a KFP PlatformSpec document
-// that mounts hackConfigMapName at hackMountPath into every container executor
-// of the pipeline, when the framework is TFX. Other frameworks are returned
-// unchanged.
-//
-// A KFP IR YAML is a PipelineSpec followed by an optional PlatformSpec as a
-// second document. The KFP driver reads
-// platforms.kubernetes.deploymentSpec.executors.<executor>.configMapAsVolume
-// and adds both the pod Volume and the container VolumeMount for it.
+// addHackedTFXPlatformSpec replaces the PlatformSpec document of a TFX pipeline
+// with one that, on every container executor, mounts hackConfigMapName at
+// hackMountPath and sets hackEnvVarName from hackEnvConfigMapKey of
+// hackEnvConfigMapName. Other frameworks are returned unchanged.
 func addHackedTFXPlatformSpec(
 	pipeline resource.CompiledPipeline,
 	frameworkName string,
@@ -55,7 +50,7 @@ func addHackedTFXPlatformSpec(
 		return nil, err
 	}
 	if len(executorNames) == 0 {
-		// Nothing to mount into; leave the pipeline as it is.
+		// No container executors.
 		return pipeline, nil
 	}
 
@@ -67,6 +62,17 @@ func addHackedTFXPlatformSpec(
 					"configMapName": hackConfigMapName,
 					"mountPath":     hackMountPath,
 					"optional":      false,
+				},
+			},
+			"configMapAsEnv": []any{
+				map[string]any{
+					"configMapName": hackEnvConfigMapName,
+					"keyToEnv": []any{
+						map[string]any{
+							"configMapKey": hackEnvConfigMapKey,
+							"envVar":       hackEnvVarName,
+						},
+					},
 				},
 			},
 		}
@@ -85,7 +91,7 @@ func addHackedTFXPlatformSpec(
 		return nil, fmt.Errorf("failed to encode platform spec: %w", err)
 	}
 
-	// Keep the PipelineSpec only; any existing PlatformSpec is replaced.
+	// Replaces any existing PlatformSpec.
 	encoded, err := encodeYAMLDocuments([]*yamlv3.Node{documents[0], &platformSpec})
 	if err != nil {
 		return nil, err
@@ -93,9 +99,8 @@ func addHackedTFXPlatformSpec(
 	return resource.CompiledPipeline(encoded), nil
 }
 
-// containerExecutorNames returns the sorted names of the executors in
-// deploymentSpec.executors that run a user container. Importer and resolver
-// executors are skipped as they don't run in an executor pod of their own.
+// containerExecutorNames returns the sorted names of the executors that run a
+// container, excluding importer and resolver executors.
 func containerExecutorNames(pipelineSpec *yamlv3.Node) ([]string, error) {
 	if pipelineSpec.Kind != yamlv3.MappingNode {
 		return nil, fmt.Errorf("expected a mapping at the pipeline spec root, got %s", pipelineSpec.Tag)
