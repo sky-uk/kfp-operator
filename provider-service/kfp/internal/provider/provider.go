@@ -147,6 +147,12 @@ func (p *KfpProvider) CreatePipeline(
 	if err != nil {
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
+
+	// HACK: hard-coded volume mounts for TFX executors, see tfx_platform_spec.go
+	compiledPipeline, err = addHackedTFXPlatformSpec(compiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	if err != nil {
+		return "", fmt.Errorf("failed to add TFX platform spec %v", err)
+	}
 	pdw.CompiledPipeline = compiledPipeline
 
 	log.FromContext(ctx).Info("Creating pipeline", "name", pipelineName, "spec", string(pdw.CompiledPipeline))
@@ -179,6 +185,12 @@ func (p *KfpProvider) UpdatePipeline(
 	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
 	if err != nil {
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
+	}
+
+	// HACK: hard-coded volume mounts for TFX executors, see tfx_platform_spec.go
+	compiledPipeline, err = addHackedTFXPlatformSpec(compiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	if err != nil {
+		return "", fmt.Errorf("failed to add TFX platform spec %v", err)
 	}
 
 	log.FromContext(ctx).Info("Updating pipeline", "name", pdw.PipelineDefinition.Name, "spec", string(compiledPipeline))
