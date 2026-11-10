@@ -1,5 +1,4 @@
 import click
-import inspect
 import yaml
 import sys
 import importlib
@@ -32,12 +31,8 @@ def compile(pipeline_config: str, output_file: str):
         runner_config_kwargs = dict(
             display_name=pipeline_config_contents['name'],
             default_image=pipeline_config_contents['image'],
+            use_pipeline_spec_2_1=use_pipeline_spec_2_1,
         )
-
-        # use_pipeline_spec_2_1 is only available in TFX >= 1.15
-        config_params = inspect.signature(kubeflow_dag_runner.KubeflowV2DagRunnerConfig.__init__).parameters
-        if 'use_pipeline_spec_2_1' in config_params:
-            runner_config_kwargs['use_pipeline_spec_2_1'] = use_pipeline_spec_2_1
 
         install_runtime_parameter_defaults()
 
