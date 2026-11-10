@@ -8,6 +8,8 @@ import os
 from tfx.v1.orchestration import experimental as kubeflow_dag_runner
 from tfx.orchestration import pipeline
 
+from compiler.runtime_parameters import install_runtime_parameter_defaults
+
 
 @click.command()
 @click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
@@ -36,6 +38,8 @@ def compile(pipeline_config: str, output_file: str):
         config_params = inspect.signature(kubeflow_dag_runner.KubeflowV2DagRunnerConfig.__init__).parameters
         if 'use_pipeline_spec_2_1' in config_params:
             runner_config_kwargs['use_pipeline_spec_2_1'] = use_pipeline_spec_2_1
+
+        install_runtime_parameter_defaults()
 
         dag_runner = kubeflow_dag_runner.KubeflowV2DagRunner(
             config=kubeflow_dag_runner.KubeflowV2DagRunnerConfig(**runner_config_kwargs),
