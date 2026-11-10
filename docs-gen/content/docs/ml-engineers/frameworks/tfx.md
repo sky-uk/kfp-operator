@@ -16,13 +16,14 @@ To create a TFX pipeline:
 >
 > We aim to track current Python versions and follow Python's release lifecycle, dropping each version once it reaches [end of life](https://devguide.python.org/versions/). We advise using the newest version the compilers support (currently 3.12).
 
+Pipelines must use TFX 1.15 or later, and are compiled to PipelineSpec 2.1. Defaults set on a `RuntimeParameter` are kept, so those parameters can be left out of a Run.
+
 ## TFX Parameters
 
 | Name                  | Description                                                                                        |
 |-----------------------|----------------------------------------------------------------------------------------------------|
 | `components`          | Fully qualified name of the Python function creating TFX pipeline components.                      |
 | `beamArgs[]`          | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline. |
-| `usePipelineSpec2_1`  | Boolean. Use PipelineSpec 2.1 when `true` (default), or 2.0 when `false`.                          |
 
 
 ### TFX Pipeline resource example
