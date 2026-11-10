@@ -3,6 +3,13 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 
 FROM python:3.10.19-trixie
 ARG WHEEL_VERSION
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libbrotli1=1.1.0-2+deb13u1 \
+        libbrotli-dev=1.1.0-2+deb13u1 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=uv /uv /bin/uv
 
 # Force pure-Python protobuf to avoid C++ ABI conflicts between
