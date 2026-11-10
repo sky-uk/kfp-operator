@@ -1,5 +1,6 @@
 import click
 import inspect
+import json
 import yaml
 import sys
 import importlib
@@ -42,15 +43,27 @@ def compile(pipeline_config: str, output_file: str):
             output_filename=output_file
         )
 
-        dag_runner.run(
+        # TFX chooses its writer from the output file extension. For `.yaml` it builds a header
+        # comment that assumes the PipelineSpec 2.1 schema (`parameterType`) and raises KeyError
+        # for 2.0. To keep both schema versions working we write the file ourselves.
+        pipeline_job = dag_runner.run(
             pipeline.Pipeline(
                 pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
                 components=components,
                 enable_cache=False,
                 metadata_connection_config=None,
                 beam_pipeline_args=beam_cli_args
-            )
+            ),
+            write_out=False
         )
+
+        # Always the full PipelineJob as JSON, regardless of extension. JSON is valid YAML, so
+        # `.yaml` outputs remain readable by YAML consumers.
+        output_dir = os.path.dirname(output_file)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+        with open(output_file, "w") as output_stream:
+            json.dump(pipeline_job, output_stream, sort_keys=True)
 
         click.secho(f'{output_file} written', fg='green')
 
