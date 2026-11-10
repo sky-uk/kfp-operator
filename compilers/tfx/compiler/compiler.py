@@ -7,7 +7,7 @@ import os
 from tfx.v1.orchestration import experimental as kubeflow_dag_runner
 from tfx.orchestration import pipeline
 
-from compiler.runtime_parameters import install_runtime_parameter_defaults
+from compiler.runtime_parameters import runtime_parameter_defaults
 
 
 @click.command()
@@ -26,8 +26,6 @@ def compile(pipeline_config: str, output_file: str):
 
         components = load_fn(framework_parameters.get('components', ""), pipeline_config_contents.get('env', []))()
 
-        install_runtime_parameter_defaults()
-
         dag_runner = kubeflow_dag_runner.KubeflowV2DagRunner(
             config=kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
                 display_name=pipeline_config_contents['name'],
@@ -37,15 +35,16 @@ def compile(pipeline_config: str, output_file: str):
             output_filename=output_file
         )
 
-        dag_runner.run(
-            pipeline.Pipeline(
-                pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
-                components=components,
-                enable_cache=False,
-                metadata_connection_config=None,
-                beam_pipeline_args=beam_cli_args
+        with runtime_parameter_defaults():
+            dag_runner.run(
+                pipeline.Pipeline(
+                    pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
+                    components=components,
+                    enable_cache=False,
+                    metadata_connection_config=None,
+                    beam_pipeline_args=beam_cli_args
+                )
             )
-        )
 
         click.secho(f'{output_file} written', fg='green')
 

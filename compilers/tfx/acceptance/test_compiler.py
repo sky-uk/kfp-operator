@@ -38,7 +38,10 @@ def test_runtime_parameter_defaults_are_kept():
     with TemporaryDirectory() as tmp_dir:
         output_file_path = os.path.join(tmp_dir, 'pipeline.yaml')
 
-        result = runner.invoke(compiler.compile, ['--pipeline_config', 'acceptance/runtime_parameter_pipeline_conf.yaml', '--output_file', output_file_path])
+        result = runner.invoke(compiler.compile, [
+            '--pipeline_config', 'acceptance/runtime_parameter_pipeline_conf.yaml',
+            '--output_file', output_file_path,
+        ])
 
         assert result.exit_code == 0
 

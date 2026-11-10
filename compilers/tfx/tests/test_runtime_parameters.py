@@ -2,14 +2,13 @@ import pytest
 from tfx.orchestration import data_types
 from tfx.orchestration.kubeflow.v2 import compiler_utils
 
-from compiler.runtime_parameters import install_runtime_parameter_defaults
+from compiler.runtime_parameters import runtime_parameter_defaults
 
 
 @pytest.fixture
-def build_parameter_type_spec(monkeypatch):
-    monkeypatch.setattr(compiler_utils, "build_parameter_type_spec", compiler_utils.build_parameter_type_spec)
-    install_runtime_parameter_defaults()
-    return compiler_utils.build_parameter_type_spec
+def build_parameter_type_spec():
+    with runtime_parameter_defaults():
+        yield compiler_utils.build_parameter_type_spec
 
 
 @pytest.mark.parametrize("ptype, default, kind, expected", [
@@ -35,7 +34,7 @@ def test_default_is_kept_and_parameter_is_optional(build_parameter_type_spec, pt
     data_types.RuntimeParameter(name="p", ptype=int, default=""),
     "constant",
     5,
-])
+], ids=["no-default", "falsy-default-of-another-type", "string-constant", "int-constant"])
 def test_parameter_without_a_usable_default_stays_required(build_parameter_type_spec, value):
     spec = build_parameter_type_spec(value)
 
@@ -43,7 +42,19 @@ def test_parameter_without_a_usable_default_stays_required(build_parameter_type_
     assert spec.is_optional is False
 
 
-def test_install_does_not_wrap_twice(build_parameter_type_spec):
-    install_runtime_parameter_defaults()
+def test_original_builder_is_restored():
+    original = compiler_utils.build_parameter_type_spec
 
-    assert compiler_utils.build_parameter_type_spec is build_parameter_type_spec
+    with runtime_parameter_defaults():
+        assert compiler_utils.build_parameter_type_spec is not original
+
+    assert compiler_utils.build_parameter_type_spec is original
+
+
+def test_original_builder_is_restored_after_an_error():
+    original = compiler_utils.build_parameter_type_spec
+
+    with pytest.raises(RuntimeError), runtime_parameter_defaults():
+        raise RuntimeError
+
+    assert compiler_utils.build_parameter_type_spec is original
