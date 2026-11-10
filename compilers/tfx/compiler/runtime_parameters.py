@@ -1,39 +1,45 @@
-def apply_runtime_parameter_default(parameter_spec, value):
+from kfp.pipeline_spec import pipeline_spec_pb2
+from tfx.orchestration import data_types
+from tfx.orchestration.kubeflow.v2 import compiler_utils
+
+_NUMBER_TYPES = (
+    pipeline_spec_pb2.ParameterType.NUMBER_INTEGER,
+    pipeline_spec_pb2.ParameterType.NUMBER_DOUBLE,
+)
+
+
+def _apply_runtime_parameter_default(parameter_spec, value):
     """Copy a TFX RuntimeParameter default onto a KFP ParameterSpec.
 
     TFX records the default on RuntimeParameter and then drops it when building
     the spec. A missing default makes the parameter required.
     """
-    default = getattr(value, "default", None)
-    if default is None:
+    if not isinstance(value, data_types.RuntimeParameter) or value.default is None:
         return parameter_spec
 
-    if isinstance(default, bool):
-        parameter_spec.default_value.bool_value = default
-    elif isinstance(default, int):
+    default = value.default
+    parameter_type = parameter_spec.parameter_type
+    if parameter_type in _NUMBER_TYPES and isinstance(default, (int, float)):
         parameter_spec.default_value.number_value = default
-    elif isinstance(default, float):
-        parameter_spec.default_value.number_value = default
-    elif isinstance(default, str):
-        parameter_spec.default_value.string_value = default
+    elif parameter_type == pipeline_spec_pb2.ParameterType.STRING and isinstance(default, (str, int, float)):
+        parameter_spec.default_value.string_value = str(default)
     else:
         return parameter_spec
 
-    parameter_spec.is_optional = True
+    # kfp-pipeline-spec 0.1.14 has no is_optional; KFP still applies the default without it.
+    if "is_optional" in parameter_spec.DESCRIPTOR.fields_by_name:
+        parameter_spec.is_optional = True
     return parameter_spec
 
 
 def install_runtime_parameter_defaults():
-    """Make TFX's parameter spec builders keep RuntimeParameter defaults."""
-    import tfx.orchestration.kubeflow.v2.compiler_utils as compiler_utils
+    """Make TFX's pipeline spec 2.1 parameter builder keep RuntimeParameter defaults."""
+    original = compiler_utils.build_parameter_type_spec
+    if getattr(original, "_applies_runtime_parameter_default", False):
+        return
 
-    for name in ("build_parameter_type_spec", "build_parameter_type_spec_legacy"):
-        original = getattr(compiler_utils, name, None)
-        if original is None or getattr(original, "_applies_runtime_parameter_default", False):
-            continue
+    def build(value):
+        return _apply_runtime_parameter_default(original(value), value)
 
-        def build(value, build_spec=original):
-            return apply_runtime_parameter_default(build_spec(value), value)
-
-        build._applies_runtime_parameter_default = True
-        setattr(compiler_utils, name, build)
+    build._applies_runtime_parameter_default = True
+    compiler_utils.build_parameter_type_spec = build

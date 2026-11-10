@@ -1,49 +1,49 @@
-from compiler.runtime_parameters import apply_runtime_parameter_default
+import pytest
+from tfx.orchestration import data_types
+from tfx.orchestration.kubeflow.v2 import compiler_utils
+
+from compiler.runtime_parameters import install_runtime_parameter_defaults
 
 
-class _Value:
-    def __init__(self):
-        self.string_value = ""
-        self.number_value = 0
-        self.bool_value = False
+@pytest.fixture
+def build_parameter_type_spec(monkeypatch):
+    monkeypatch.setattr(compiler_utils, "build_parameter_type_spec", compiler_utils.build_parameter_type_spec)
+    install_runtime_parameter_defaults()
+    return compiler_utils.build_parameter_type_spec
 
 
-class _Spec:
-    def __init__(self):
-        self.default_value = _Value()
-        self.is_optional = False
+@pytest.mark.parametrize("ptype, default, kind, expected", [
+    (str, "us", "string_value", "us"),
+    (str, "", "string_value", ""),
+    (int, 0, "number_value", 0),
+    (int, 5, "number_value", 5),
+    (float, 0.5, "number_value", 0.5),
+    (int, True, "number_value", 1),
+    (None, 5, "string_value", "5"),
+    (str, 0, "string_value", "0"),
+])
+def test_default_is_kept_and_parameter_is_optional(build_parameter_type_spec, ptype, default, kind, expected):
+    spec = build_parameter_type_spec(data_types.RuntimeParameter(name="p", ptype=ptype, default=default))
 
-
-class _Parameter:
-    def __init__(self, default):
-        self.default = default
-
-
-def test_string_default_is_copied_and_optional():
-    spec = apply_runtime_parameter_default(_Spec(), _Parameter("us"))
-
-    assert spec.default_value.string_value == "us"
+    assert spec.default_value.WhichOneof("kind") == kind
+    assert getattr(spec.default_value, kind) == expected
     assert spec.is_optional is True
 
 
-def test_empty_string_and_zero_are_kept():
-    empty = apply_runtime_parameter_default(_Spec(), _Parameter(""))
-    zero = apply_runtime_parameter_default(_Spec(), _Parameter(0))
+@pytest.mark.parametrize("value", [
+    data_types.RuntimeParameter(name="p", ptype=str),
+    data_types.RuntimeParameter(name="p", ptype=int, default=""),
+    "constant",
+    5,
+])
+def test_parameter_without_a_usable_default_stays_required(build_parameter_type_spec, value):
+    spec = build_parameter_type_spec(value)
 
-    assert empty.default_value.string_value == ""
-    assert empty.is_optional is True
-    assert zero.default_value.number_value == 0
-    assert zero.is_optional is True
-
-
-def test_missing_default_stays_required():
-    spec = apply_runtime_parameter_default(_Spec(), _Parameter(None))
-
-    assert spec.default_value.string_value == ""
+    assert not spec.HasField("default_value")
     assert spec.is_optional is False
 
 
-def test_value_without_a_default_attribute_is_unchanged():
-    spec = apply_runtime_parameter_default(_Spec(), "constant")
+def test_install_does_not_wrap_twice(build_parameter_type_spec):
+    install_runtime_parameter_defaults()
 
-    assert spec.is_optional is False
+    assert compiler_utils.build_parameter_type_spec is build_parameter_type_spec

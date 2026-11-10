@@ -26,16 +26,14 @@ def compile(pipeline_config: str, output_file: str):
 
         components = load_fn(framework_parameters.get('components', ""), pipeline_config_contents.get('env', []))()
 
-        runner_config_kwargs = dict(
-            display_name=pipeline_config_contents['name'],
-            default_image=pipeline_config_contents['image'],
-            use_pipeline_spec_2_1=True,
-        )
-
         install_runtime_parameter_defaults()
 
         dag_runner = kubeflow_dag_runner.KubeflowV2DagRunner(
-            config=kubeflow_dag_runner.KubeflowV2DagRunnerConfig(**runner_config_kwargs),
+            config=kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
+                display_name=pipeline_config_contents['name'],
+                default_image=pipeline_config_contents['image'],
+                use_pipeline_spec_2_1=True,
+            ),
             output_filename=output_file
         )
 
