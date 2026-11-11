@@ -17,10 +17,12 @@ from tfx_kfp_v2_shim._patches import (
     TYPE_INFERENCE_RULES,
     _collect_artifact_keys,
     _enrich_input_artifacts,
+    local_path_to_s3_uri,
     patch_compiler_utils,
     patch_entrypoint_utils,
     patch_path_utils,
     patch_run_executor,
+    s3_uri_to_local_path,
 )
 
 
@@ -56,10 +58,11 @@ class FakeMetadata:
 class FakeArtifact:
     """Mimics pipeline_pb2.RuntimeArtifact."""
 
-    def __init__(self, type_schema, metadata=None, properties=None):
+    def __init__(self, type_schema, metadata=None, properties=None, uri=""):
         self.type = type_schema
         self.metadata = metadata or FakeMetadata()
         self.properties = properties or {}
+        self.uri = uri
 
 
 class FakeArtifactList:
@@ -274,6 +277,46 @@ class TestPatchParseRawArtifactDict:
 
         # Artifact type should remain unset
         assert art.type.schema_title is None
+
+
+# ── Tests: Patch 9 (S3 artifact URIs ↔ launcher local paths) ────────────
+
+
+class TestPatchS3LocalPaths:
+    def _make_module(self, translate_result=None):
+        mod = types.ModuleType("fake_entrypoint_utils")
+        mod._parse_raw_artifact = MagicMock(side_effect=lambda art, _: art.uri)
+        mod.parse_raw_artifact_dict = MagicMock(return_value={})
+        mod.translate_executor_output = MagicMock(return_value=translate_result or {})
+        patch_entrypoint_utils(mod)
+        return mod
+
+    def test_s3_uri_mapped_to_local_path_before_parse(self):
+        mod = self._make_module()
+        art = FakeArtifact(FakeTypeSchema(schema_title="tfx.Examples"), uri="s3://bucket/a/b")
+
+        assert mod._parse_raw_artifact(art, {}) == "/s3/bucket/a/b"
+
+    @pytest.mark.parametrize("uri", ["gs://bucket/a/b", "/local/a/b", ""])
+    def test_non_s3_uri_unchanged_on_parse(self, uri):
+        mod = self._make_module()
+        art = FakeArtifact(FakeTypeSchema(schema_title="tfx.Examples"), uri=uri)
+
+        assert mod._parse_raw_artifact(art, {}) == uri
+
+    def test_local_path_mapped_back_to_s3_uri_after_translate(self):
+        s3_art = types.SimpleNamespace(uri="/s3/bucket/a/b")
+        gcs_art = types.SimpleNamespace(uri="gs://bucket/c")
+        result = {"model": FakeArtifactList([s3_art]), "other": FakeArtifactList([gcs_art])}
+        mod = self._make_module(translate_result=result)
+
+        assert mod.translate_executor_output({}, {}) is result
+        assert s3_art.uri == "s3://bucket/a/b"
+        assert gcs_art.uri == "gs://bucket/c"
+
+    def test_round_trip(self):
+        uri = "s3://bucket/pipeline/run/component/examples"
+        assert local_path_to_s3_uri(s3_uri_to_local_path(uri)) == uri
 
 
 # ── Tests: Patch 5 (path_utils) ─────────────────────────────────────────

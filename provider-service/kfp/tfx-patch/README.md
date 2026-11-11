@@ -21,16 +21,20 @@ A `scratch`-based image containing the `tfx_kfp_v2_shim` package. It installs a 
 | 6 | `tfx.v1.orchestration.experimental` | Re-export `KubeflowV2DagRunner` removed by `kfp>=2` |
 | 7 | `kubeflow_v2_entrypoint_utils` | Delete zero-byte GCS directory markers after each executor run |
 | 8 | `kubeflow_v2_run_executor` | Force-exit(0) after output metadata is written, to bypass a C++ destructor crash ("pure virtual method called") during interpreter shutdown |
+| 9 | `kubeflow_v2_entrypoint_utils` | Map `s3://` artifact URIs to the launcher's local `/s3/` paths for the executor, and back to `s3://` in the executor output |
+| 10 | `tfx.dsl.io.fileio` | Register a `boto3`-backed `s3://` fileio plugin for paths that are not artifacts, such as the Pusher's `push_destination` (only if `boto3` is installed) |
 
-Patches 1–4 and 6–8 are safe for all environments. Patch 5 changes TFX's model layout and breaks Vertex AI — use `--vertex-compatible` to skip it.
+Patches 1–4 and 6–10 are safe for all environments. Patch 5 changes TFX's model layout and breaks Vertex AI — use `--vertex-compatible` to skip it.
 
 Patch 8 is applied as a **source edit** at install time (`install_shim.patch_run_executor_source`), not via the runtime hook: the executor container runs `python -m ...kubeflow_v2_run_executor`, i.e. as `__main__`, which the import hook cannot patch (runpy uses the loader's `get_code`, bypassing `exec_module`).
 
 Patches 5 and 7 work around a KFP launcher bug ([kubeflow/pipelines#13476](https://github.com/kubeflow/pipelines/issues/13476)). They become redundant once that is fixed upstream.
 
+Patches 9 and 10 replace TensorFlow's S3 filesystem, which no longer works from TensorFlow 2.18 (TFX 1.18) because the `tensorflow-io` plugin fails to load ([tensorflow/io#2104](https://github.com/tensorflow/io/issues/2104)). The KFP launcher already downloads input artifacts to `/s3/<bucket>/<key>` and uploads outputs from there, so executors only touch local files.
+
 ## Supported TFX versions
 
-1.15, 1.16, 1.17
+1.15, 1.16, 1.17, 1.21
 
 ## Usage
 
