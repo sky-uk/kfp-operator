@@ -29,6 +29,30 @@ def test_cli():
         pipeline = json.load(f)
         assert pipeline['pipelineSpec']['schemaVersion'] == '2.1.0'
         assert pipeline['pipelineSpec']['pipelineInfo']['name'] == "namespace-test"
+        assert pipeline['pipelineSpec']['root']['inputDefinitions']['parameters']['push_destination'] == {
+            'parameterType': 'STRING',
+        }
+
+
+def test_runtime_parameter_defaults_are_kept():
+    with TemporaryDirectory() as tmp_dir:
+        output_file_path = os.path.join(tmp_dir, 'pipeline.yaml')
+
+        result = runner.invoke(compiler.compile, [
+            '--pipeline_config', 'acceptance/runtime_parameter_pipeline_conf.yaml',
+            '--output_file', output_file_path,
+        ])
+
+        assert result.exit_code == 0
+
+        with open(output_file_path) as f:
+            pipeline_spec = yaml.safe_load(f)
+        assert pipeline_spec['schemaVersion'] == '2.1.0'
+        assert pipeline_spec['root']['inputDefinitions']['parameters']['input_base'] == {
+            'parameterType': 'STRING',
+            'defaultValue': '/data',
+            'isOptional': True,
+        }
 
 
 def test_failure():

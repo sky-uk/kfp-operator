@@ -9,7 +9,7 @@ The version differs from those of the resulting containers (which are based on `
 
 ## Usage
 
-The TFX compiler ships one build per Python version, from 3.9 through 3.12.
+The TFX compiler ships one build per Python version, from 3.9 through 3.12, and requires TFX 1.15 or later.
 
 This module is meant to be used inside Argo workflows as part of the Kubeflow Pipelines Operator.
 

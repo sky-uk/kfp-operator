@@ -1,0 +1,6 @@
+name: namespace/runtime-parameters
+image: test-pipeline
+framework:
+  name: tfx
+  parameters:
+    components: acceptance.runtime_parameter_pipeline.create_components

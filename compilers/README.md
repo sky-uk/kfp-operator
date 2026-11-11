@@ -45,10 +45,11 @@ Python version.
 
 | Python | TFX    | Env dir                       | Model image        |
 |--------|--------|-------------------------------|--------------------|
-| 3.9    | 1.9.1  | `integration/penguin-39`      | `penguin:3.9`      |
 | 3.10   | 1.21.0 | `integration/penguin-310-121` | `penguin:3.10-121` |
 | 3.11   | 1.21.0 | `integration/penguin-311-121` | `penguin:3.11-121` |
 | 3.12   | 1.21.0 | `integration/penguin-312-121` | `penguin:3.12-121` |
+
+The 3.9 build is deprecated and has no integration test.
 
 ### KFP-SDK (`compilers/kfp-sdk`)
 
