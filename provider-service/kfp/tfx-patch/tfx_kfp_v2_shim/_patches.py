@@ -89,7 +89,7 @@ def patch_compiler_utils(mod: ModuleType) -> None:
     mod.TITLE_TO_CLASS_PATH.update(added)
 
 
-# ── Patches 2, 3, 4, 7 ──────────────────────────────────────────────────
+# ── Patches 2, 3, 4, 7, 9 ───────────────────────────────────────────────
 
 def patch_entrypoint_utils(mod: ModuleType) -> None:
     """Apply all entrypoint_utils patches."""
@@ -107,14 +107,30 @@ def patch_entrypoint_utils(mod: ModuleType) -> None:
 # Issue:   KFP v2 collapses distinct TFX types to the same system.* title
 #          (e.g. Examples and Dataset both become system.Dataset).
 # Solution: Inspect artifact metadata keys to infer the correct TFX type.
+#
+# ── Patch 9 ──────────────────────────────────────────────────────────────
+# Issue:   TensorFlow 2.18+ has no working S3 filesystem: tensorflow-io's
+#          plugin no longer loads (tensorflow/io#2104). TFX executors read
+#          and write artifact URIs through TensorFlow and Beam, so s3://
+#          artifacts fail on TFX 1.18+.
+# Solution: The KFP launcher downloads input artifacts to /s3/<bucket>/<key>
+#           before the executor runs and uploads output artifacts from there
+#           afterwards. Hand the executor those local paths, then translate
+#           them back to s3:// in the executor output so the launcher uploads
+#           them and MLMD records the real URIs.
 
 def _patch_parse_raw_artifact(mod: ModuleType) -> None:
-    """Wrap _parse_raw_artifact: guard null schema and infer types from keys."""
+    """Wrap _parse_raw_artifact: guard null schema, infer types from keys and
+    map s3:// URIs to the launcher's local paths."""
     import yaml
 
     original = mod._parse_raw_artifact
 
     def _patched(artifact_pb, name_from_id):
+        uri = getattr(artifact_pb, "uri", "")
+        if uri and uri.startswith(S3_SCHEME):
+            artifact_pb.uri = s3_uri_to_local_path(uri)
+
         type_schema = artifact_pb.type
         kind = type_schema.WhichOneof("kind")
 
@@ -181,7 +197,8 @@ def _patch_parse_raw_artifact_dict(mod: ModuleType) -> None:
 #           any zero-byte blobs whose name ends with "/".
 
 def _patch_translate_executor_output(mod: ModuleType) -> None:
-    """Wrap translate_executor_output: delete GCS directory markers from outputs."""
+    """Wrap translate_executor_output: delete GCS directory markers from outputs
+    and map the launcher's local S3 paths back to s3:// URIs (patch 9)."""
     original = mod.translate_executor_output
 
     @functools.lru_cache(maxsize=1)
@@ -194,7 +211,12 @@ def _patch_translate_executor_output(mod: ModuleType) -> None:
             for art in artifacts:
                 if art.uri and art.uri.startswith("gs://"):
                     _delete_gcs_directory_markers(art.uri, _get_client())
-        return original(output_dict, name_from_id)
+        result = original(output_dict, name_from_id)
+        for artifact_list in result.values():
+            for art in artifact_list.artifacts:
+                if art.uri and art.uri.startswith(LAUNCHER_S3_ROOT):
+                    art.uri = local_path_to_s3_uri(art.uri)
+        return result
 
     mod.translate_executor_output = _patched
 
@@ -264,7 +286,49 @@ def patch_run_executor(mod: ModuleType) -> None:
     mod._run_executor = _patched
 
 
+# ── Patch 10 ─────────────────────────────────────────────────────────────
+# Issue:   Patch 9 only covers artifact URIs. Other paths, such as the
+#          Pusher's push_destination, still go through TFX fileio, whose
+#          default plugin hands s3:// to TensorFlow, which cannot open it on
+#          TensorFlow 2.18+.
+# Solution: Register a boto3-backed fileio plugin for s3:// that takes
+#           priority over the TensorFlow plugin. Skipped if boto3 is not
+#           installed.
+
+def patch_fileio(mod: ModuleType) -> None:
+    """Register the boto3-backed s3:// filesystem with TFX fileio."""
+    try:
+        import boto3  # noqa: F401
+    except ImportError:
+        log.info("boto3 not installed; s3:// fileio plugin not registered")
+        return
+
+    from tfx.dsl.io import filesystem, filesystem_registry
+
+    from tfx_kfp_v2_shim._s3_filesystem import PRIORITY, build_s3_filesystem
+
+    filesystem_registry.DEFAULT_FILESYSTEM_REGISTRY.register(
+        build_s3_filesystem(filesystem.Filesystem, filesystem.NotFoundError),
+        priority=PRIORITY,
+    )
+
+
 # ── Helpers ──────────────────────────────────────────────────────────────
+
+# Mirrors LocalPathForURI in the KFP v2 launcher.
+S3_SCHEME = "s3://"
+LAUNCHER_S3_ROOT = "/s3/"
+
+
+def s3_uri_to_local_path(uri: str) -> str:
+    """Map ``s3://bucket/key`` to the launcher's ``/s3/bucket/key``."""
+    return LAUNCHER_S3_ROOT + uri[len(S3_SCHEME):]
+
+
+def local_path_to_s3_uri(path: str) -> str:
+    """Map the launcher's ``/s3/bucket/key`` back to ``s3://bucket/key``."""
+    return S3_SCHEME + path[len(LAUNCHER_S3_ROOT):]
+
 
 def _delete_gcs_directory_markers(uri: str, client) -> None:
     """Delete zero-byte blobs ending with ``/`` under *uri*."""
