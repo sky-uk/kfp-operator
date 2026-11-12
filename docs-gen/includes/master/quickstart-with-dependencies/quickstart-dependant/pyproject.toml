@@ -8,7 +8,7 @@ dependencies = [
     "tfx==1.15.1",
     "shapely<2",
     "kfp==1.8.22",
-    "setuptools~=70.0",
+    "setuptools>=70,<82",
     "dill==0.3.1.1",
 ]
 
