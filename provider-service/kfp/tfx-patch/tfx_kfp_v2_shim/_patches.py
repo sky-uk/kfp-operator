@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import functools
+import importlib.util
 import inspect
 import logging
 import os
@@ -10,6 +11,10 @@ import sys
 from types import ModuleType
 
 log = logging.getLogger(__name__)
+
+# Mirrors LocalPathForURI in the KFP v2 launcher.
+S3_SCHEME = "s3://"
+LAUNCHER_S3_ROOT = "/s3/"
 
 
 # TFX 1.15 removed simple_artifacts.File but artifact.Artifact can't be
@@ -297,9 +302,7 @@ def patch_run_executor(mod: ModuleType) -> None:
 
 def patch_fileio(mod: ModuleType) -> None:
     """Register the boto3-backed s3:// filesystem with TFX fileio."""
-    try:
-        import boto3  # noqa: F401
-    except ImportError:
+    if importlib.util.find_spec("boto3") is None:
         log.info("boto3 not installed; s3:// fileio plugin not registered")
         return
 
@@ -311,23 +314,19 @@ def patch_fileio(mod: ModuleType) -> None:
         build_s3_filesystem(filesystem.Filesystem, filesystem.NotFoundError),
         priority=PRIORITY,
     )
+    log.debug("Registered boto3-backed s3:// fileio plugin at priority %d", PRIORITY)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 
-# Mirrors LocalPathForURI in the KFP v2 launcher.
-S3_SCHEME = "s3://"
-LAUNCHER_S3_ROOT = "/s3/"
-
-
 def s3_uri_to_local_path(uri: str) -> str:
     """Map ``s3://bucket/key`` to the launcher's ``/s3/bucket/key``."""
-    return LAUNCHER_S3_ROOT + uri[len(S3_SCHEME):]
+    return LAUNCHER_S3_ROOT + uri.removeprefix(S3_SCHEME)
 
 
 def local_path_to_s3_uri(path: str) -> str:
     """Map the launcher's ``/s3/bucket/key`` back to ``s3://bucket/key``."""
-    return S3_SCHEME + path[len(LAUNCHER_S3_ROOT):]
+    return S3_SCHEME + path.removeprefix(LAUNCHER_S3_ROOT)
 
 
 def _delete_gcs_directory_markers(uri: str, client) -> None:

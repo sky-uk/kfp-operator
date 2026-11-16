@@ -92,6 +92,7 @@ class FakeNotFoundError(IOError):
 def client(monkeypatch):
     fake = FakeS3Client(page_size=2)
     monkeypatch.setattr(_s3_filesystem, "_client", lambda: fake)
+    monkeypatch.setattr(_s3_filesystem, "_client_error", lambda: FakeClientError)
     return fake
 
 
@@ -117,6 +118,17 @@ def test_write_then_read_binary_and_text(fs, client):
         assert f.read() == b"\x00\x01"
     with fs.open(b"s3://bucket/dir/file.txt") as f:
         assert f.read() == "hello"
+
+
+@pytest.mark.parametrize("mode", ["wb", "w"])
+def test_failed_write_does_not_upload(fs, client, mode):
+    client.put_object("bucket", "file", b"original")
+
+    with pytest.raises(RuntimeError), fs.open("s3://bucket/file", mode) as f:
+        f.write(b"partial" if "b" in mode else "partial")
+        raise RuntimeError("write failed")
+
+    assert client.objects[("bucket", "file")] == b"original"
 
 
 def test_open_missing_raises_not_found(fs):
@@ -169,6 +181,19 @@ def test_walk_topdown_and_bottomup(fs, client):
         "s3://bucket/root",
     ]
     assert list(fs.walk("s3://bucket/missing")) == []
+
+
+def test_walk_reports_listing_errors_to_onerror(fs, client, monkeypatch):
+    error = FakeClientError("AccessDenied")
+
+    def list_objects_v2(**_):
+        raise error
+
+    monkeypatch.setattr(client, "list_objects_v2", list_objects_v2)
+    errors = []
+
+    assert list(fs.walk("s3://bucket/root", onerror=errors.append)) == []
+    assert errors == [error]
 
 
 def test_glob(fs, client):
@@ -229,6 +254,8 @@ def test_stat(fs, client):
     assert file_stat.length == 3
     assert not file_stat.is_directory
     assert file_stat.mtime_nsec > 0
-    assert fs.stat("s3://bucket/dir").is_directory
+    assert fs.stat("s3://bucket/dir") == _s3_filesystem.S3Stat(
+        length=0, mtime_nsec=0, is_directory=True
+    )
     with pytest.raises(FakeNotFoundError):
         fs.stat("s3://bucket/missing")

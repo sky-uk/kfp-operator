@@ -12,6 +12,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from tfx_kfp_v2_shim import _patches, _s3_filesystem
 from tfx_kfp_v2_shim._hook import TfxShimFinder
 from tfx_kfp_v2_shim._patches import (
     TYPE_INFERENCE_RULES,
@@ -20,6 +21,7 @@ from tfx_kfp_v2_shim._patches import (
     local_path_to_s3_uri,
     patch_compiler_utils,
     patch_entrypoint_utils,
+    patch_fileio,
     patch_path_utils,
     patch_run_executor,
     s3_uri_to_local_path,
@@ -317,6 +319,41 @@ class TestPatchS3LocalPaths:
     def test_round_trip(self):
         uri = "s3://bucket/pipeline/run/component/examples"
         assert local_path_to_s3_uri(s3_uri_to_local_path(uri)) == uri
+
+
+# ── Tests: Patch 10 (s3:// fileio plugin registration) ──────────────────
+
+
+class TestPatchFileio:
+    @pytest.fixture
+    def registry(self, monkeypatch):
+        """Install fake tfx.dsl.io modules and return the fake registry."""
+        registry = MagicMock()
+        filesystem = types.SimpleNamespace(Filesystem=object, NotFoundError=IOError)
+        io_mod = types.ModuleType("tfx.dsl.io")
+        io_mod.filesystem = filesystem
+        io_mod.filesystem_registry = types.SimpleNamespace(DEFAULT_FILESYSTEM_REGISTRY=registry)
+        for name in ("tfx", "tfx.dsl"):
+            monkeypatch.setitem(sys.modules, name, types.ModuleType(name))
+        monkeypatch.setitem(sys.modules, "tfx.dsl.io", io_mod)
+        return registry
+
+    def test_registers_s3_plugin_when_boto3_installed(self, registry, monkeypatch):
+        monkeypatch.setattr(_patches.importlib.util, "find_spec", lambda name: object())
+
+        patch_fileio(types.ModuleType("fake_fileio"))
+
+        registry.register.assert_called_once()
+        plugin = registry.register.call_args.args[0]
+        assert plugin.SUPPORTED_SCHEMES == ["s3://"]
+        assert registry.register.call_args.kwargs == {"priority": _s3_filesystem.PRIORITY}
+
+    def test_skips_registration_without_boto3(self, registry, monkeypatch):
+        monkeypatch.setattr(_patches.importlib.util, "find_spec", lambda name: None)
+
+        patch_fileio(types.ModuleType("fake_fileio"))
+
+        registry.register.assert_not_called()
 
 
 # ── Tests: Patch 5 (path_utils) ─────────────────────────────────────────
