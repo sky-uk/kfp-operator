@@ -2323,7 +2323,7 @@ dependencies = [
 requires-dist = [
     { name = "dill", specifier = "==0.3.1.1" },
     { name = "kfp", specifier = "==2.0.0" },
-    { name = "setuptools", specifier = "~=70.0" },
+    { name = "setuptools", specifier = ">=70,<82" },
     { name = "shapely", specifier = "<2" },
     { name = "tfx", specifier = "==1.15.1" },
 ]
