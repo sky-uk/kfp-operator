@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -10,30 +11,105 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
 
-// Hard-coded ConfigMap settings applied to TFX executor pods. The pod volume is
-// named after the ConfigMap, so hackConfigMapName must be a lowercase DNS-1123
-// label.
+// Environment variables read from the provider service container. The volume
+// pair and the env pair are each optional, but both variables of a pair must be
+// set together.
 const (
-	// Mounted as a volume.
-	hackConfigMapName = "foo-config"
-	hackMountPath     = "/etc/placeholder"
+	// The ConfigMap is mounted as a volume named after it, so it must be a
+	// lowercase DNS-1123 label.
+	volumeConfigMapEnvVar = "TFX_EXECUTOR_VOLUME_CONFIGMAP"
+	volumeMountPathEnvVar = "TFX_EXECUTOR_VOLUME_MOUNT_PATH"
 
-	// Exposed as an env var. The ConfigMap and key must exist, otherwise the pod
-	// fails with CreateContainerConfigError.
-	hackEnvConfigMapName = "bar-env-config"
-	hackEnvConfigMapKey  = "some-key"
-	hackEnvVarName       = "SOME_ENV_VAR"
+	// The ConfigMap key is exposed as an env var of the same name. The ConfigMap
+	// and key must exist, otherwise the pod fails with CreateContainerConfigError.
+	envConfigMapEnvVar = "TFX_EXECUTOR_ENV_CONFIGMAP"
+	envKeyEnvVar       = "TFX_EXECUTOR_ENV_KEY"
 )
 
+type executorConfigMaps struct {
+	volumeConfigMap string
+	volumeMountPath string
+	envConfigMap    string
+	envKey          string
+}
+
+func (c executorConfigMaps) hasVolume() bool {
+	return c.volumeConfigMap != ""
+}
+
+func (c executorConfigMaps) hasEnv() bool {
+	return c.envConfigMap != ""
+}
+
+func executorConfigMapsFromEnv() (executorConfigMaps, error) {
+	c := executorConfigMaps{
+		volumeConfigMap: os.Getenv(volumeConfigMapEnvVar),
+		volumeMountPath: os.Getenv(volumeMountPathEnvVar),
+		envConfigMap:    os.Getenv(envConfigMapEnvVar),
+		envKey:          os.Getenv(envKeyEnvVar),
+	}
+
+	if err := requireTogether(volumeConfigMapEnvVar, c.volumeConfigMap, volumeMountPathEnvVar, c.volumeMountPath); err != nil {
+		return executorConfigMaps{}, err
+	}
+	if err := requireTogether(envConfigMapEnvVar, c.envConfigMap, envKeyEnvVar, c.envKey); err != nil {
+		return executorConfigMaps{}, err
+	}
+	return c, nil
+}
+
+func requireTogether(nameA, valueA, nameB, valueB string) error {
+	if (valueA == "") != (valueB == "") {
+		return fmt.Errorf("%s and %s must be set together", nameA, nameB)
+	}
+	return nil
+}
+
+// executorSpec returns the platform spec of a single container executor.
+func (c executorConfigMaps) executorSpec() map[string]any {
+	spec := map[string]any{}
+	if c.hasVolume() {
+		spec["configMapAsVolume"] = []any{
+			map[string]any{
+				"configMapName": c.volumeConfigMap,
+				"mountPath":     c.volumeMountPath,
+				"optional":      false,
+			},
+		}
+	}
+	if c.hasEnv() {
+		spec["configMapAsEnv"] = []any{
+			map[string]any{
+				"configMapName": c.envConfigMap,
+				"keyToEnv": []any{
+					map[string]any{
+						"configMapKey": c.envKey,
+						"envVar":       c.envKey,
+					},
+				},
+			},
+		}
+	}
+	return spec
+}
+
 // addHackedTFXPlatformSpec replaces the PlatformSpec document of a TFX pipeline
-// with one that, on every container executor, mounts hackConfigMapName at
-// hackMountPath and sets hackEnvVarName from hackEnvConfigMapKey of
-// hackEnvConfigMapName. Other frameworks are returned unchanged.
+// so that every container executor mounts the configured ConfigMap volume and
+// exposes the configured ConfigMap key as an env var. Pipelines of other
+// frameworks, or with nothing configured, are returned unchanged.
 func addHackedTFXPlatformSpec(
 	pipeline resource.CompiledPipeline,
 	frameworkName string,
 ) (resource.CompiledPipeline, error) {
-	if strings.ToLower(frameworkName) != "tfx" {
+	if !strings.EqualFold(frameworkName, "tfx") {
+		return pipeline, nil
+	}
+
+	configMaps, err := executorConfigMapsFromEnv()
+	if err != nil {
+		return nil, err
+	}
+	if !configMaps.hasVolume() && !configMaps.hasEnv() {
 		return pipeline, nil
 	}
 
@@ -50,32 +126,12 @@ func addHackedTFXPlatformSpec(
 		return nil, err
 	}
 	if len(executorNames) == 0 {
-		// No container executors.
 		return pipeline, nil
 	}
 
-	executors := map[string]any{}
+	executors := make(map[string]any, len(executorNames))
 	for _, name := range executorNames {
-		executors[name] = map[string]any{
-			"configMapAsVolume": []any{
-				map[string]any{
-					"configMapName": hackConfigMapName,
-					"mountPath":     hackMountPath,
-					"optional":      false,
-				},
-			},
-			"configMapAsEnv": []any{
-				map[string]any{
-					"configMapName": hackEnvConfigMapName,
-					"keyToEnv": []any{
-						map[string]any{
-							"configMapKey": hackEnvConfigMapKey,
-							"envVar":       hackEnvVarName,
-						},
-					},
-				},
-			},
-		}
+		executors[name] = configMaps.executorSpec()
 	}
 
 	var platformSpec yamlv3.Node
@@ -91,7 +147,6 @@ func addHackedTFXPlatformSpec(
 		return nil, fmt.Errorf("failed to encode platform spec: %w", err)
 	}
 
-	// Replaces any existing PlatformSpec.
 	encoded, err := encodeYAMLDocuments([]*yamlv3.Node{documents[0], &platformSpec})
 	if err != nil {
 		return nil, err

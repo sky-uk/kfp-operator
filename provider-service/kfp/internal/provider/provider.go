@@ -148,7 +148,7 @@ func (p *KfpProvider) CreatePipeline(
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
 
-	// Hard-coded ConfigMap config for TFX executors.
+	// Adds the configured ConfigMap volume and env var to TFX executors.
 	compiledPipeline, err = addHackedTFXPlatformSpec(compiledPipeline, pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to add TFX platform spec %v", err)
@@ -187,7 +187,7 @@ func (p *KfpProvider) UpdatePipeline(
 		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
 
-	// Hard-coded ConfigMap config for TFX executors.
+	// Adds the configured ConfigMap volume and env var to TFX executors.
 	compiledPipeline, err = addHackedTFXPlatformSpec(compiledPipeline, pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
 		return "", fmt.Errorf("failed to add TFX platform spec %v", err)
