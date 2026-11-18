@@ -3,14 +3,13 @@ include ../../../../../help.mk
 ##@ Build
 
 build: ## Build
-	uv sync
-	uv build
+	uv build --wheel
 
 ##@ Containers
 
 include ../../../../../docker-targets.mk
 
 IMG ?= kfp-operator-quickstart-base
-WHEEL_VERSION=$(shell uv run python -c "import importlib.metadata; print(importlib.metadata.version('penguin_examples'))" 2>/dev/null || echo "0.1.0")
+WHEEL_VERSION=$(shell uv version --short --frozen 2>/dev/null || echo "0.1.0")
 UV_VERSION=$(shell grep '^uv ' ../../../../../.tool-versions | awk '{print $$2}')
 DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-arg UV_VERSION=${UV_VERSION}
