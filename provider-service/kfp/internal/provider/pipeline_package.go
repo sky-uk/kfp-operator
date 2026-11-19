@@ -26,7 +26,8 @@ type PipelinePackage struct {
 
 // ParsePipelinePackage reads compiler output. The first YAML document is the
 // pipeline spec and an optional second document is the platform spec. TFX
-// wraps its pipeline spec in a Vertex AI PipelineJob, which is unwrapped.
+// wraps its pipeline spec in a Vertex AI PipelineJob, which ParsePipelinePackage
+// unwraps.
 func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName string) (*PipelinePackage, error) {
 	documents, err := decodeJSONDocuments(compiled)
 	if err != nil {
@@ -49,8 +50,8 @@ func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName stri
 		}
 	}
 
-	// Unknown fields are rejected, as the Kubeflow Pipelines API server rejects
-	// them on upload, so nothing is silently dropped when the package is written.
+	// Reject unknown fields, as the Kubeflow Pipelines API server does on
+	// upload, so that Marshal cannot drop one without an error.
 	pipelinePackage := &PipelinePackage{PipelineSpec: &pipelinespec.PipelineSpec{}}
 	if err := protojson.Unmarshal(pipelineSpecJSON, pipelinePackage.PipelineSpec); err != nil {
 		return nil, fmt.Errorf("invalid pipeline spec: %w", err)
@@ -74,9 +75,9 @@ func (p *PipelinePackage) Marshal() (resource.CompiledPipeline, error) {
 		documents = append(documents, p.PlatformSpec)
 	}
 
-	// protojson then JSONToYAML is how the Kubeflow Pipelines API server stores
-	// pipeline versions. It also avoids yaml.v3's encoder, which gives block
-	// scalars that start with whitespace the wrong indentation indicator.
+	// The Kubeflow Pipelines API server stores pipeline versions with protojson
+	// then JSONToYAML. This path avoids yaml.v3's encoder, which writes the wrong
+	// indentation indicator for block scalars that start with whitespace.
 	var encoded bytes.Buffer
 	for i, document := range documents {
 		asJSON, err := protojson.Marshal(document)
@@ -96,8 +97,8 @@ func (p *PipelinePackage) Marshal() (resource.CompiledPipeline, error) {
 }
 
 // decodeJSONDocuments splits multi-document YAML and converts each non-empty
-// document to JSON for protojson. Decoding with yaml.v3 then encoding/json
-// matches how the Kubeflow Pipelines API server reads an upload.
+// document to JSON for protojson. The Kubeflow Pipelines API server reads an
+// upload the same way, with yaml.v3 then encoding/json.
 func decodeJSONDocuments(compiled []byte) ([][]byte, error) {
 	decoder := yamlv3.NewDecoder(bytes.NewReader(compiled))
 	var documents [][]byte
@@ -122,7 +123,7 @@ func decodeJSONDocuments(compiled []byte) ([][]byte, error) {
 }
 
 // unwrapPipelineJob returns the pipelineSpec of a Vertex AI PipelineJob, or the
-// document unchanged if it is not wrapped.
+// document unchanged if it has no PipelineJob wrapper.
 func unwrapPipelineJob(document []byte) ([]byte, error) {
 	var pipelineJob map[string]json.RawMessage
 	if err := json.Unmarshal(document, &pipelineJob); err != nil {

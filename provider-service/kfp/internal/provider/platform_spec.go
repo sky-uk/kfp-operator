@@ -15,9 +15,9 @@ import (
 // Kubernetes executor settings from.
 const kubernetesPlatform = "kubernetes"
 
-// KubernetesExecutorConfig returns an executor's Kubernetes settings, which are
-// empty if it has none. Fields this provider does not know are left out, so
-// change settings with MergeKubernetesExecutorConfig rather than the result.
+// KubernetesExecutorConfig returns an executor's Kubernetes settings, or empty
+// settings if it has none. The result leaves out fields this provider does not
+// know, so use MergeKubernetesExecutorConfig to change settings.
 func (p *PipelinePackage) KubernetesExecutorConfig(executor string) (*kubernetesplatform.KubernetesExecutorConfig, error) {
 	executorConfig := &kubernetesplatform.KubernetesExecutorConfig{}
 	if settings := p.kubernetesExecutorStruct(executor); settings != nil {
@@ -29,10 +29,10 @@ func (p *PipelinePackage) KubernetesExecutorConfig(executor string) (*kubernetes
 }
 
 // MergeKubernetesExecutorConfig adds settings to an executor's Kubernetes
-// settings without overriding the pipeline's own: a field the executor already
-// sets is kept, except that a list field gains the items it does not already
-// have. Fields this provider does not know are kept, and settings with no
-// fields set change nothing.
+// settings and keeps the pipeline's own. If the executor sets a field, the
+// merge keeps the executor's value, apart from list fields, which gain the
+// items they lack. Fields this provider does not know pass through, and empty
+// settings change nothing.
 func (p *PipelinePackage) MergeKubernetesExecutorConfig(
 	executor string,
 	settings *kubernetesplatform.KubernetesExecutorConfig,
@@ -74,8 +74,9 @@ func (p *PipelinePackage) MergeKubernetesExecutorConfig(
 }
 
 // kubernetesField returns a field of an executor's Kubernetes settings and the
-// name it is set under. protojson reads either the JSON or the proto name of a
-// field, so both are looked up; an unset field is named by its JSON name.
+// name the settings use for it. protojson reads either the JSON or the proto
+// name of a field, so kubernetesField checks both, and names an unset field by
+// its JSON name.
 func kubernetesField(executorConfig *structpb.Struct, field protoreflect.FieldDescriptor) (string, *structpb.Value) {
 	for _, name := range []string{field.JSONName(), string(field.Name())} {
 		if value, isSet := executorConfig.Fields[name]; isSet {
