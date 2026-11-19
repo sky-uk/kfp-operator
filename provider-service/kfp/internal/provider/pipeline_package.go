@@ -17,10 +17,6 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// kubernetesPlatform is the platform spec key Kubeflow Pipelines reads
-// Kubernetes executor settings from.
-const kubernetesPlatform = "kubernetes"
-
 // PipelinePackage is a compiled pipeline in the form Kubeflow Pipelines
 // accepts: a pipeline spec and an optional platform spec.
 type PipelinePackage struct {
@@ -99,79 +95,6 @@ func (p *PipelinePackage) Marshal() (resource.CompiledPipeline, error) {
 	return resource.CompiledPipeline(encoded.Bytes()), nil
 }
 
-// deploymentConfig decodes the pipeline spec's deployment spec, which the
-// pipeline spec holds as an untyped struct. The result is only for reading:
-// fields this provider does not know are dropped from it, so changes are made
-// to the deployment spec itself.
-func (p *PipelinePackage) deploymentConfig() (*pipelinespec.PipelineDeploymentConfig, error) {
-	deploymentConfig := &pipelinespec.PipelineDeploymentConfig{}
-	if p.PipelineSpec.GetDeploymentSpec() == nil {
-		return deploymentConfig, nil
-	}
-	asJSON, err := protojson.Marshal(p.PipelineSpec.GetDeploymentSpec())
-	if err != nil {
-		return nil, fmt.Errorf("invalid deployment spec: %w", err)
-	}
-	if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(asJSON, deploymentConfig); err != nil {
-		return nil, fmt.Errorf("invalid deployment spec: %w", err)
-	}
-	return deploymentConfig, nil
-}
-
-// setAcceleratorType replaces the accelerator type an executor's container
-// requests, in each field that holds one.
-func (p *PipelinePackage) setAcceleratorType(executor string, acceleratorType string) {
-	accelerator := nestedStruct(p.PipelineSpec.GetDeploymentSpec(), "executors", executor, "container", "resources", "accelerator")
-	if accelerator == nil {
-		return
-	}
-	// KFP SDK writes the deprecated type alongside resourceType, and protojson
-	// reads either the JSON or the proto name of a field.
-	for _, name := range []string{"resourceType", "resource_type", "type"} {
-		if accelerator.Fields[name].GetStringValue() != "" {
-			accelerator.Fields[name] = structpb.NewStringValue(acceleratorType)
-		}
-	}
-}
-
-// kubernetesExecutorConfig returns the Kubernetes settings for an executor, or
-// nil if it has none. The settings stay an untyped struct so that fields this
-// provider does not know pass through unchanged.
-func (p *PipelinePackage) kubernetesExecutorConfig(executor string) *structpb.Struct {
-	return p.PlatformSpec.GetPlatforms()[kubernetesPlatform].GetDeploymentSpec().GetExecutors()[executor]
-}
-
-// ensureKubernetesExecutorConfig returns the Kubernetes settings for an
-// executor, creating the platform spec and the executor's entry if needed.
-func (p *PipelinePackage) ensureKubernetesExecutorConfig(executor string) *structpb.Struct {
-	if p.PlatformSpec == nil {
-		p.PlatformSpec = &pipelinespec.PlatformSpec{}
-	}
-	if p.PlatformSpec.Platforms == nil {
-		p.PlatformSpec.Platforms = map[string]*pipelinespec.SinglePlatformSpec{}
-	}
-	platform := p.PlatformSpec.Platforms[kubernetesPlatform]
-	if platform == nil {
-		platform = &pipelinespec.SinglePlatformSpec{}
-		p.PlatformSpec.Platforms[kubernetesPlatform] = platform
-	}
-	if platform.DeploymentSpec == nil {
-		platform.DeploymentSpec = &pipelinespec.PlatformDeploymentConfig{}
-	}
-	if platform.DeploymentSpec.Executors == nil {
-		platform.DeploymentSpec.Executors = map[string]*structpb.Struct{}
-	}
-	executorConfig := platform.DeploymentSpec.Executors[executor]
-	if executorConfig == nil {
-		executorConfig = &structpb.Struct{}
-		platform.DeploymentSpec.Executors[executor] = executorConfig
-	}
-	if executorConfig.Fields == nil {
-		executorConfig.Fields = map[string]*structpb.Value{}
-	}
-	return executorConfig
-}
-
 // decodeJSONDocuments splits multi-document YAML and converts each non-empty
 // document to JSON for protojson. Decoding with yaml.v3 then encoding/json
 // matches how the Kubeflow Pipelines API server reads an upload.
@@ -219,4 +142,28 @@ func nestedStruct(s *structpb.Struct, keys ...string) *structpb.Struct {
 		s = s.GetFields()[key].GetStructValue()
 	}
 	return s
+}
+
+// decodeStruct reads an untyped struct into message, dropping fields the
+// message does not have.
+func decodeStruct(s *structpb.Struct, message proto.Message) error {
+	asJSON, err := protojson.Marshal(s)
+	if err != nil {
+		return err
+	}
+	return protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(asJSON, message)
+}
+
+// structFromMessage converts a message to the untyped struct the pipeline and
+// platform specs hold their settings as.
+func structFromMessage(message proto.Message) (*structpb.Struct, error) {
+	asJSON, err := protojson.Marshal(message)
+	if err != nil {
+		return nil, err
+	}
+	s := &structpb.Struct{}
+	if err := protojson.Unmarshal(asJSON, s); err != nil {
+		return nil, err
+	}
+	return s, nil
 }

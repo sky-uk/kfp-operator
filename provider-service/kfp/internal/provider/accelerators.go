@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"errors"
 	"fmt"
 	"maps"
 	"os"
@@ -11,8 +10,6 @@ import (
 
 	"github.com/kubeflow/pipelines/api/v2alpha1/go/pipelinespec"
 	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	corev1 "k8s.io/api/core/v1"
 	k8sresource "k8s.io/apimachinery/pkg/api/resource"
@@ -59,8 +56,7 @@ func LoadAcceleratorConfig(path string) (*AcceleratorConfig, error) {
 
 // Apply places every executor that requests an accelerator. The requested type
 // is replaced with the configured resource type, and the configured node
-// selector and tolerations are added to the executor's Kubernetes settings. An
-// executor that already has a node selector keeps it.
+// selector and tolerations are merged into the executor's Kubernetes settings.
 //
 // A requested type that is not configured fails, unless the executor already
 // has a node selector. A nil or empty config changes nothing.
@@ -69,136 +65,115 @@ func (c *AcceleratorConfig) Apply(pipelinePackage *PipelinePackage) error {
 		return nil
 	}
 
-	deploymentConfig, err := pipelinePackage.deploymentConfig()
-	if err != nil {
-		return err
-	}
-
+	executors := nestedStruct(pipelinePackage.PipelineSpec.GetDeploymentSpec(), "executors").GetFields()
 	// Sorted so that a pipeline with several unplaceable executors always
 	// reports the same one.
-	for _, executor := range slices.Sorted(maps.Keys(deploymentConfig.GetExecutors())) {
-		request := deploymentConfig.GetExecutors()[executor].GetContainer().GetResources().GetAccelerator()
-		requested, isRequested := requestedAcceleratorType(request)
+	for _, executor := range slices.Sorted(maps.Keys(executors)) {
+		request := nestedStruct(executors[executor].GetStructValue(), "container", "resources", "accelerator")
+		requested, isRequested, err := requestedAcceleratorType(request)
+		if err != nil {
+			return fmt.Errorf("executor %q has an invalid accelerator request: %w", executor, err)
+		}
 		if !isRequested {
 			continue
 		}
 
 		configured, isConfigured := c.Accelerators[requested]
 		if !isConfigured {
-			if hasNodeSelector(pipelinePackage.kubernetesExecutorConfig(executor)) {
+			settings, err := pipelinePackage.KubernetesExecutorConfig(executor)
+			if err != nil {
+				return err
+			}
+			if settings.GetNodeSelector() != nil {
 				continue
 			}
-			// KFP SDK writes a type taken from a pipeline parameter as a
-			// placeholder, which the driver only resolves when the task runs.
-			if strings.Contains(requested, "{{$") {
-				return fmt.Errorf(
-					"executor %q requests accelerator type %q, which is only resolved at run time; set a fixed accelerator type",
-					executor, requested,
-				)
-			}
-			return fmt.Errorf(
-				"executor %q requests accelerator type %q, which is not configured; configured types: %s",
-				executor, requested, strings.Join(slices.Sorted(maps.Keys(c.Accelerators)), ", "),
-			)
+			return c.unconfiguredTypeError(executor, requested)
 		}
 
-		pipelinePackage.setAcceleratorType(executor, configured.ResourceType)
-		if err := configured.place(pipelinePackage, executor); err != nil {
+		setAcceleratorType(request, configured.ResourceType)
+		if err := pipelinePackage.MergeKubernetesExecutorConfig(executor, configured.placement()); err != nil {
 			return fmt.Errorf("failed to place executor %q: %w", executor, err)
 		}
 	}
 	return nil
 }
 
-// place adds the node selector and tolerations to the executor's Kubernetes
-// settings.
-func (a Accelerator) place(pipelinePackage *PipelinePackage, executor string) error {
-	if len(a.NodeSelector) == 0 && len(a.Tolerations) == 0 {
-		return nil
+// unconfiguredTypeError reports an executor that requests an accelerator type
+// with no configured placement.
+func (c *AcceleratorConfig) unconfiguredTypeError(executor string, requested string) error {
+	// KFP SDK writes a type taken from a pipeline parameter as a placeholder,
+	// which the driver only resolves when the task runs.
+	if strings.Contains(requested, "{{$") {
+		return fmt.Errorf(
+			"executor %q requests accelerator type %q, which is only resolved at run time; set a fixed accelerator type",
+			executor, requested,
+		)
 	}
-	executorConfig := pipelinePackage.ensureKubernetesExecutorConfig(executor)
+	return fmt.Errorf(
+		"executor %q requests accelerator type %q, which is not configured; configured types: %s",
+		executor, requested, strings.Join(slices.Sorted(maps.Keys(c.Accelerators)), ", "),
+	)
+}
 
-	if len(a.NodeSelector) > 0 && !hasNodeSelector(executorConfig) {
-		nodeSelector, err := structValue(&kubernetesplatform.NodeSelector{Labels: a.NodeSelector})
-		if err != nil {
-			return err
-		}
-		executorConfig.Fields["nodeSelector"] = nodeSelector
-	}
-
-	if len(a.Tolerations) == 0 {
-		return nil
-	}
-	tolerations := &structpb.ListValue{}
-	if existing, hasTolerations := executorConfig.Fields["tolerations"]; hasTolerations {
-		if existing.GetListValue() == nil {
-			return errors.New("tolerations is not a list")
-		}
-		tolerations = existing.GetListValue()
+// placement returns the Kubernetes settings that place an executor on the
+// accelerator's nodes.
+func (a Accelerator) placement() *kubernetesplatform.KubernetesExecutorConfig {
+	settings := &kubernetesplatform.KubernetesExecutorConfig{}
+	if len(a.NodeSelector) > 0 {
+		settings.NodeSelector = &kubernetesplatform.NodeSelector{Labels: a.NodeSelector}
 	}
 	for _, t := range a.Tolerations {
-		toleration, err := structValue(&kubernetesplatform.Toleration{
+		settings.Tolerations = append(settings.Tolerations, &kubernetesplatform.Toleration{
 			Key:               t.Key,
 			Operator:          string(t.Operator),
 			Value:             t.Value,
 			Effect:            string(t.Effect),
 			TolerationSeconds: t.TolerationSeconds,
 		})
-		if err != nil {
-			return err
-		}
-		if !slices.ContainsFunc(tolerations.Values, func(v *structpb.Value) bool { return proto.Equal(v, toleration) }) {
-			tolerations.Values = append(tolerations.Values, toleration)
-		}
 	}
-	executorConfig.Fields["tolerations"] = structpb.NewListValue(tolerations)
-	return nil
+	return settings
 }
 
-// requestedAcceleratorType returns the accelerator type an executor requests.
-// It follows the Kubeflow Pipelines driver, which only sets an accelerator
-// limit when both a type and a non-zero count are set, and prefers
-// resourceType and resourceCount over the deprecated type and count.
-func requestedAcceleratorType(
-	request *pipelinespec.PipelineDeploymentConfig_PipelineContainerSpec_ResourceSpec_AcceleratorConfig,
-) (string, bool) {
-	acceleratorType := request.GetResourceType()
-	if acceleratorType == "" {
-		acceleratorType = request.GetType()
+// requestedAcceleratorType returns the accelerator type an executor's
+// accelerator request asks for. It follows the Kubeflow Pipelines driver, which
+// only sets an accelerator limit when both a type and a non-zero count are set,
+// and prefers resourceType and resourceCount over the deprecated type and count.
+func requestedAcceleratorType(request *structpb.Struct) (string, bool, error) {
+	if request == nil {
+		return "", false, nil
 	}
-	count := request.GetResourceCount()
-	if count == "" && request.GetCount() > 0 {
-		count = strconv.FormatInt(request.GetCount(), 10)
+	accelerator := &pipelinespec.PipelineDeploymentConfig_PipelineContainerSpec_ResourceSpec_AcceleratorConfig{}
+	if err := decodeStruct(request, accelerator); err != nil {
+		return "", false, err
+	}
+
+	acceleratorType := accelerator.GetResourceType()
+	if acceleratorType == "" {
+		acceleratorType = accelerator.GetType()
+	}
+	count := accelerator.GetResourceCount()
+	if count == "" && accelerator.GetCount() > 0 {
+		count = strconv.FormatInt(accelerator.GetCount(), 10)
 	}
 	if acceleratorType == "" || count == "" {
-		return "", false
+		return "", false, nil
 	}
 	// A count that is not a quantity, such as a run-time placeholder, may still
 	// resolve to a non-zero count, so it counts as a request.
 	if quantity, err := k8sresource.ParseQuantity(count); err == nil && quantity.IsZero() {
-		return "", false
+		return "", false, nil
 	}
-	return acceleratorType, true
+	return acceleratorType, true, nil
 }
 
-// hasNodeSelector reports whether the executor's Kubernetes settings set a node
-// selector, under either the JSON or the proto field name that protojson reads.
-func hasNodeSelector(executorConfig *structpb.Struct) bool {
-	_, hasJSONName := executorConfig.GetFields()["nodeSelector"]
-	_, hasProtoName := executorConfig.GetFields()["node_selector"]
-	return hasJSONName || hasProtoName
-}
-
-// structValue converts a message to the untyped value Kubernetes settings are
-// held as.
-func structValue(message proto.Message) (*structpb.Value, error) {
-	asJSON, err := protojson.Marshal(message)
-	if err != nil {
-		return nil, err
+// setAcceleratorType replaces the type in each field of an accelerator request
+// that holds one.
+func setAcceleratorType(request *structpb.Struct, acceleratorType string) {
+	// KFP SDK writes the deprecated type alongside resourceType, and protojson
+	// reads either the JSON or the proto name of a field.
+	for _, name := range []string{"resourceType", "resource_type", "type"} {
+		if request.Fields[name].GetStringValue() != "" {
+			request.Fields[name] = structpb.NewStringValue(acceleratorType)
+		}
 	}
-	value := &structpb.Value{}
-	if err := protojson.Unmarshal(asJSON, value); err != nil {
-		return nil, err
-	}
-	return value, nil
 }
