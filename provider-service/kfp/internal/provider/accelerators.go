@@ -3,51 +3,20 @@ package provider
 import (
 	"fmt"
 	"maps"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/kubeflow/pipelines/api/v2alpha1/go/pipelinespec"
 	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/protobuf/types/known/structpb"
-	corev1 "k8s.io/api/core/v1"
 	k8sresource "k8s.io/apimachinery/pkg/api/resource"
-	"sigs.k8s.io/yaml"
 )
 
-type Accelerator struct {
-	ResourceType string              `json:"resourceType"`
-	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
-	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
-}
-
-// AcceleratorConfig maps accelerator types to where their executors run.
-type AcceleratorConfig struct {
-	Accelerators map[string]Accelerator `json:"accelerators"`
-}
-
-func LoadAcceleratorConfig(path string) (*AcceleratorConfig, error) {
-	contents, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read accelerator config: %w", err)
-	}
-
-	acceleratorConfig := &AcceleratorConfig{}
-	if err := yaml.UnmarshalStrict(contents, acceleratorConfig); err != nil {
-		return nil, fmt.Errorf("invalid accelerator config %s: %w", path, err)
-	}
-	for name, accelerator := range acceleratorConfig.Accelerators {
-		if accelerator.ResourceType == "" {
-			return nil, fmt.Errorf("invalid accelerator config %s: accelerator %q has no resourceType", path, name)
-		}
-	}
-	return acceleratorConfig, nil
-}
-
-// Apply sets the configured placement on each executor that requests an accelerator.
-func (c *AcceleratorConfig) Apply(pipelinePackage *PipelinePackage) error {
-	if c == nil || len(c.Accelerators) == 0 {
+// placeAccelerators sets the configured placement on each executor that requests an accelerator.
+func placeAccelerators(accelerators config.Accelerators, pipelinePackage *PipelinePackage) error {
+	if len(accelerators) == 0 {
 		return nil
 	}
 
@@ -62,7 +31,7 @@ func (c *AcceleratorConfig) Apply(pipelinePackage *PipelinePackage) error {
 			continue
 		}
 
-		configured, isConfigured := c.Accelerators[requested]
+		configured, isConfigured := accelerators[requested]
 		if !isConfigured {
 			settings, err := pipelinePackage.KubernetesExecutorConfig(executor)
 			if err != nil {
@@ -71,18 +40,18 @@ func (c *AcceleratorConfig) Apply(pipelinePackage *PipelinePackage) error {
 			if settings.GetNodeSelector() != nil {
 				continue
 			}
-			return c.unconfiguredTypeError(executor, requested)
+			return unconfiguredTypeError(accelerators, executor, requested)
 		}
 
 		setAcceleratorType(request, configured.ResourceType)
-		if err := pipelinePackage.MergeKubernetesExecutorConfig(executor, configured.placement()); err != nil {
+		if err := pipelinePackage.MergeKubernetesExecutorConfig(executor, placement(configured)); err != nil {
 			return fmt.Errorf("failed to place executor %q: %w", executor, err)
 		}
 	}
 	return nil
 }
 
-func (c *AcceleratorConfig) unconfiguredTypeError(executor string, requested string) error {
+func unconfiguredTypeError(accelerators config.Accelerators, executor string, requested string) error {
 	if strings.Contains(requested, "{{$") {
 		return fmt.Errorf(
 			"executor %q requests accelerator type %q, which is only resolved at run time; set a fixed accelerator type",
@@ -91,16 +60,16 @@ func (c *AcceleratorConfig) unconfiguredTypeError(executor string, requested str
 	}
 	return fmt.Errorf(
 		"executor %q requests accelerator type %q, which is not configured; configured types: %s",
-		executor, requested, strings.Join(slices.Sorted(maps.Keys(c.Accelerators)), ", "),
+		executor, requested, strings.Join(slices.Sorted(maps.Keys(accelerators)), ", "),
 	)
 }
 
-func (a Accelerator) placement() *kubernetesplatform.KubernetesExecutorConfig {
+func placement(accelerator config.Accelerator) *kubernetesplatform.KubernetesExecutorConfig {
 	settings := &kubernetesplatform.KubernetesExecutorConfig{}
-	if len(a.NodeSelector) > 0 {
-		settings.NodeSelector = &kubernetesplatform.NodeSelector{Labels: a.NodeSelector}
+	if len(accelerator.NodeSelector) > 0 {
+		settings.NodeSelector = &kubernetesplatform.NodeSelector{Labels: accelerator.NodeSelector}
 	}
-	for _, t := range a.Tolerations {
+	for _, t := range accelerator.Tolerations {
 		settings.Tolerations = append(settings.Tolerations, &kubernetesplatform.Toleration{
 			Key:               t.Key,
 			Operator:          string(t.Operator),

@@ -9,11 +9,11 @@ type Config struct {
 }
 
 type Parameters struct {
-	KfpNamespace             string `mapstructure:"kfpNamespace" yaml:"kfpNamespace,omitempty"`
-	KfpMultiUserMode         bool   `mapstructure:"kfpMultiUserMode" yaml:"kfpMultiUserMode,omitempty"`
-	RestKfpApiUrl            string `mapstructure:"restKfpApiUrl" yaml:"restKfpApiUrl,omitempty"`
-	GrpcMetadataStoreAddress string `mapstructure:"grpcMetadataStoreAddress" yaml:"grpcMetadataStoreAddress,omitempty"`
-	GrpcKfpApiAddress        string `mapstructure:"grpcKfpApiAddress" yaml:"grpcKfpApiAddress,omitempty"`
-	DefaultExperiment        string `mapstructure:"defaultExperiment" yaml:"defaultExperiment,omitempty"`
-	AcceleratorConfigPath    string `mapstructure:"acceleratorConfigPath" yaml:"acceleratorConfigPath,omitempty"`
+	KfpNamespace             string       `mapstructure:"kfpNamespace" yaml:"kfpNamespace,omitempty"`
+	KfpMultiUserMode         bool         `mapstructure:"kfpMultiUserMode" yaml:"kfpMultiUserMode,omitempty"`
+	RestKfpApiUrl            string       `mapstructure:"restKfpApiUrl" yaml:"restKfpApiUrl,omitempty"`
+	GrpcMetadataStoreAddress string       `mapstructure:"grpcMetadataStoreAddress" yaml:"grpcMetadataStoreAddress,omitempty"`
+	GrpcKfpApiAddress        string       `mapstructure:"grpcKfpApiAddress" yaml:"grpcKfpApiAddress,omitempty"`
+	DefaultExperiment        string       `mapstructure:"defaultExperiment" yaml:"defaultExperiment,omitempty"`
+	Accelerators             Accelerators `mapstructure:"accelerators" yaml:"accelerators,omitempty"`
 }
