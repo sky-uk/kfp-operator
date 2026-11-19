@@ -11,13 +11,8 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-// kubernetesPlatform is the platform spec key Kubeflow Pipelines reads
-// Kubernetes executor settings from.
 const kubernetesPlatform = "kubernetes"
 
-// KubernetesExecutorConfig returns an executor's Kubernetes settings, or empty
-// settings if it has none. The result leaves out fields this provider does not
-// know, so use MergeKubernetesExecutorConfig to change settings.
 func (p *PipelinePackage) KubernetesExecutorConfig(executor string) (*kubernetesplatform.KubernetesExecutorConfig, error) {
 	executorConfig := &kubernetesplatform.KubernetesExecutorConfig{}
 	if settings := p.kubernetesExecutorStruct(executor); settings != nil {
@@ -28,11 +23,7 @@ func (p *PipelinePackage) KubernetesExecutorConfig(executor string) (*kubernetes
 	return executorConfig, nil
 }
 
-// MergeKubernetesExecutorConfig adds settings to an executor's Kubernetes
-// settings and keeps the pipeline's own. If the executor sets a field, the
-// merge keeps the executor's value, apart from list fields, which gain the
-// items they lack. Fields this provider does not know pass through, and empty
-// settings change nothing.
+// MergeKubernetesExecutorConfig sets fields the executor doesn't and appends missing list items.
 func (p *PipelinePackage) MergeKubernetesExecutorConfig(
 	executor string,
 	settings *kubernetesplatform.KubernetesExecutorConfig,
@@ -73,10 +64,7 @@ func (p *PipelinePackage) MergeKubernetesExecutorConfig(
 	return nil
 }
 
-// kubernetesField returns a field of an executor's Kubernetes settings and the
-// name the settings use for it. protojson reads either the JSON or the proto
-// name of a field, so kubernetesField checks both, and names an unset field by
-// its JSON name.
+// kubernetesField checks both names, as protojson accepts either.
 func kubernetesField(executorConfig *structpb.Struct, field protoreflect.FieldDescriptor) (string, *structpb.Value) {
 	for _, name := range []string{field.JSONName(), string(field.Name())} {
 		if value, isSet := executorConfig.Fields[name]; isSet {
@@ -86,15 +74,10 @@ func kubernetesField(executorConfig *structpb.Struct, field protoreflect.FieldDe
 	return field.JSONName(), nil
 }
 
-// kubernetesExecutorStruct returns an executor's Kubernetes settings, or nil if
-// it has none. The settings stay an untyped struct so that fields this provider
-// does not know pass through unchanged.
 func (p *PipelinePackage) kubernetesExecutorStruct(executor string) *structpb.Struct {
 	return p.PlatformSpec.GetPlatforms()[kubernetesPlatform].GetDeploymentSpec().GetExecutors()[executor]
 }
 
-// ensureKubernetesExecutorStruct returns an executor's Kubernetes settings,
-// creating the platform spec and the executor's entry if needed.
 func (p *PipelinePackage) ensureKubernetesExecutorStruct(executor string) *structpb.Struct {
 	if p.PlatformSpec == nil {
 		p.PlatformSpec = &pipelinespec.PlatformSpec{}

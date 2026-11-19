@@ -16,26 +16,17 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// Accelerator describes how to place an executor that requests an accelerator
-// type.
 type Accelerator struct {
-	// ResourceType is the Kubernetes resource that replaces the requested
-	// accelerator type as the container's limit, e.g. nvidia.com/gpu.
-	ResourceType string `json:"resourceType"`
-	// NodeSelector goes on the executor unless the executor sets its own.
-	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-	// Tolerations go on the executor alongside any tolerations it sets.
-	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+	ResourceType string              `json:"resourceType"`
+	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
-// AcceleratorConfig maps each accelerator type a pipeline can request to the
-// placement of the executors that request it.
+// AcceleratorConfig maps accelerator types to where their executors run.
 type AcceleratorConfig struct {
 	Accelerators map[string]Accelerator `json:"accelerators"`
 }
 
-// LoadAcceleratorConfig reads an AcceleratorConfig from a YAML file, rejecting
-// unknown fields so that a misspelt field fails at start-up.
 func LoadAcceleratorConfig(path string) (*AcceleratorConfig, error) {
 	contents, err := os.ReadFile(path)
 	if err != nil {
@@ -54,20 +45,13 @@ func LoadAcceleratorConfig(path string) (*AcceleratorConfig, error) {
 	return acceleratorConfig, nil
 }
 
-// Apply places each executor that requests an accelerator. It replaces the
-// requested type with the configured resource type and merges the configured
-// node selector and tolerations into the executor's Kubernetes settings.
-//
-// Apply fails on a requested type the config lacks, unless the executor sets
-// its own node selector. A nil or empty config changes nothing.
+// Apply sets the configured placement on each executor that requests an accelerator.
 func (c *AcceleratorConfig) Apply(pipelinePackage *PipelinePackage) error {
 	if c == nil || len(c.Accelerators) == 0 {
 		return nil
 	}
 
 	executors := nestedStruct(pipelinePackage.PipelineSpec.GetDeploymentSpec(), "executors").GetFields()
-	// Visit executors in sorted order so that a pipeline with several
-	// unplaceable executors reports the same one on each upload.
 	for _, executor := range slices.Sorted(maps.Keys(executors)) {
 		request := nestedStruct(executors[executor].GetStructValue(), "container", "resources", "accelerator")
 		requested, isRequested, err := requestedAcceleratorType(request)
@@ -98,11 +82,7 @@ func (c *AcceleratorConfig) Apply(pipelinePackage *PipelinePackage) error {
 	return nil
 }
 
-// unconfiguredTypeError reports an executor that requests an accelerator type
-// with no configured placement.
 func (c *AcceleratorConfig) unconfiguredTypeError(executor string, requested string) error {
-	// KFP SDK writes a type taken from a pipeline parameter as a placeholder,
-	// which the driver resolves when the task runs, after the upload.
 	if strings.Contains(requested, "{{$") {
 		return fmt.Errorf(
 			"executor %q requests accelerator type %q, which is only resolved at run time; set a fixed accelerator type",
@@ -115,8 +95,6 @@ func (c *AcceleratorConfig) unconfiguredTypeError(executor string, requested str
 	)
 }
 
-// placement returns the Kubernetes settings that place an executor on the
-// accelerator's nodes.
 func (a Accelerator) placement() *kubernetesplatform.KubernetesExecutorConfig {
 	settings := &kubernetesplatform.KubernetesExecutorConfig{}
 	if len(a.NodeSelector) > 0 {
@@ -134,11 +112,7 @@ func (a Accelerator) placement() *kubernetesplatform.KubernetesExecutorConfig {
 	return settings
 }
 
-// requestedAcceleratorType returns the accelerator type an executor's
-// accelerator request asks for. It follows the Kubeflow Pipelines driver, which
-// skips the accelerator limit unless the request has both a type and a non-zero
-// count, and prefers resourceType and resourceCount over the deprecated type and
-// count.
+// requestedAcceleratorType follows the KFP driver, which needs a type and a non-zero count.
 func requestedAcceleratorType(request *structpb.Struct) (string, bool, error) {
 	if request == nil {
 		return "", false, nil
@@ -159,19 +133,13 @@ func requestedAcceleratorType(request *structpb.Struct) (string, bool, error) {
 	if acceleratorType == "" || count == "" {
 		return "", false, nil
 	}
-	// A count that is not a quantity, such as a run-time placeholder, may
-	// resolve to a non-zero count, so it counts as a request.
 	if quantity, err := k8sresource.ParseQuantity(count); err == nil && quantity.IsZero() {
 		return "", false, nil
 	}
 	return acceleratorType, true, nil
 }
 
-// setAcceleratorType replaces the type in each field of an accelerator request
-// that holds one.
 func setAcceleratorType(request *structpb.Struct, acceleratorType string) {
-	// KFP SDK writes the deprecated type alongside resourceType, and protojson
-	// reads either the JSON or the proto name of a field.
 	for _, name := range []string{"resourceType", "resource_type", "type"} {
 		if request.Fields[name].GetStringValue() != "" {
 			request.Fields[name] = structpb.NewStringValue(acceleratorType)
