@@ -6,8 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -207,9 +205,7 @@ schemaVersion: 2.1.0
 			})
 
 			It("should upload the same prepared pipeline as the pipeline and its version", func() {
-				provider.accelerators = &AcceleratorConfig{Accelerators: map[string]Accelerator{
-					"nvidia-t4": {ResourceType: "nvidia.com/gpu"},
-				}}
+				provider.config.Parameters.Accelerators = config.Accelerators{"nvidia-t4": {ResourceType: "nvidia.com/gpu"}}
 				prepared, err := provider.preparePipeline(gpuPdw)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(prepared)).To(ContainSubstring("resourceType: nvidia.com/gpu"))
@@ -285,9 +281,7 @@ schemaVersion: 2.1.0
 
 			When("an accelerator type is not configured", func() {
 				It("should return err and keep the existing pipeline versions", func() {
-					provider.accelerators = &AcceleratorConfig{Accelerators: map[string]Accelerator{
-						"nvidia-l4": {ResourceType: "nvidia.com/gpu"},
-					}}
+					provider.config.Parameters.Accelerators = config.Accelerators{"nvidia-l4": {ResourceType: "nvidia.com/gpu"}}
 					result, err := provider.UpdatePipeline(ctx, gpuPdw, id)
 
 					Expect(err).To(MatchError(ContainSubstring("failed to place accelerators")))
@@ -638,19 +632,6 @@ var _ = Describe("NewKfpProvider", func() {
 			provider, err := NewKfpProvider(cfg)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("bearer token"))
-			Expect(provider).To(BeNil())
-		})
-	})
-
-	When("the accelerator config cannot be loaded", func() {
-		It("returns an error before connecting", func() {
-			path := filepath.Join(GinkgoT().TempDir(), "accelerators.yaml")
-			Expect(os.WriteFile(path, []byte("accelerators:\n  nvidia-t4: {}\n"), 0o600)).To(Succeed())
-			cfg := &config.Config{
-				Parameters: config.Parameters{AcceleratorConfigPath: path},
-			}
-			provider, err := NewKfpProvider(cfg)
-			Expect(err).To(MatchError(ContainSubstring(`accelerator "nvidia-t4" has no resourceType`)))
 			Expect(provider).To(BeNil())
 		})
 	})

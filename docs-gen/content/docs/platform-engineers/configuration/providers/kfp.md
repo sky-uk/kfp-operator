@@ -33,19 +33,19 @@ Kubeflow. These events are then processed and sent to the operator's webhook to 
 
 Pipeline components can request an accelerator, such as a GPU, by type. You map each type to the Kubernetes resource
 the provider sets as the container's limit, and to the node selector and tolerations that schedule the component onto
-nodes with that accelerator. Pipeline authors request a type, and you keep the cluster's node labels and taints in one
-ConfigMap.
+nodes with that accelerator. Pipeline authors request a type, and you keep the cluster's node labels and taints on the
+Provider.
 
-List the types in a ConfigMap:
+List the types under the Provider's `parameters.accelerators`:
 
 ```yaml
-apiVersion: v1
-kind: ConfigMap
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Provider
 metadata:
-  name: kfp-accelerators
+  name: kfp
   namespace: kfp-operator
-data:
-  accelerators.yaml: |
+spec:
+  parameters:
     accelerators:
       nvidia-t4:
         resourceType: nvidia.com/gpu
@@ -63,6 +63,7 @@ data:
         - key: nvidia.com/gpu
           operator: Exists
           effect: NoSchedule
+    # ...
 ```
 
 | Field                               | Description                                                                                                                     |
@@ -72,30 +73,8 @@ data:
 | `accelerators.<type>.nodeSelector`  | Labels of the nodes Kubernetes schedules the component onto                                                                     |
 | `accelerators.<type>.tolerations[]` | [Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) the provider adds to the component |
 
-Mount the ConfigMap into the provider service and set `parameters.acceleratorConfigPath` to the file:
-
-```yaml
-apiVersion: pipelines.kubeflow.org/v1beta1
-kind: Provider
-metadata:
-  name: kfp
-  namespace: kfp-operator
-spec:
-  parameters:
-    acceleratorConfigPath: /etc/kfp-provider/accelerators.yaml
-    # ...
-  podTemplateVolumes:
-  - name: accelerators
-    configMap:
-      name: kfp-accelerators
-  podTemplateVolumeMounts:
-  - name: accelerators
-    mountPath: /etc/kfp-provider
-    readOnly: true
-```
-
-The provider reads the file at start-up and refuses to start if the file is invalid. Restart the provider service after
-you change the ConfigMap.
+The provider service refuses to start if the accelerators are invalid. When you change them, the operator redeploys the
+provider service.
 
 Each time you create or update a pipeline, the provider changes the components that request an accelerator:
 
@@ -105,8 +84,8 @@ Each time you create or update a pipeline, the provider changes the components t
 
 The provider rejects the upload and keeps the pipeline's existing versions if a component requests a type missing from
 the ConfigMap, or a type that a pipeline parameter sets at run time. A component that sets its own node selector may
-request any type. The provider leaves components without an accelerator request unchanged, and without
-`acceleratorConfigPath` it uploads pipelines as compiled.
+request any type. The provider leaves components without an accelerator request unchanged, and without `accelerators`
+it uploads pipelines as compiled.
 
 See the [TFX]({{< ref "/docs/ml-engineers/frameworks/tfx.md#requesting-accelerators" >}}) and
 [KFP SDK]({{< ref "/docs/ml-engineers/frameworks/kfpsdk.md#requesting-accelerators" >}}) guides for how pipeline

@@ -25,20 +25,12 @@ type KfpProvider struct {
 	recurringRunService   RecurringRunService
 	experimentService     ExperimentService
 	labelService          LabelService
-	accelerators          *AcceleratorConfig
 }
 
 func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 	tokenSource, err := client.MultiUserTokenSource(*cfg)
 	if err != nil {
 		return nil, err
-	}
-
-	var accelerators *AcceleratorConfig
-	if cfg.Parameters.AcceleratorConfigPath != "" {
-		if accelerators, err = LoadAcceleratorConfig(cfg.Parameters.AcceleratorConfigPath); err != nil {
-			return nil, err
-		}
 	}
 
 	var authInfo runtime.ClientAuthInfoWriter
@@ -100,7 +92,6 @@ func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 		recurringRunService:   recurringRunService,
 		experimentService:     experimentService,
 		labelService:          labelService,
-		accelerators:          accelerators,
 	}, nil
 }
 
@@ -114,7 +105,7 @@ func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (r
 
 	p.labelService.InsertLabelsIntoParameters(pipelinePackage.PipelineSpec, label.LabelKeys)
 
-	if err := p.accelerators.Apply(pipelinePackage); err != nil {
+	if err := placeAccelerators(p.config.Parameters.Accelerators, pipelinePackage); err != nil {
 		return nil, fmt.Errorf("failed to place accelerators: %w", err)
 	}
 
