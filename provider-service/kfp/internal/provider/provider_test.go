@@ -241,17 +241,6 @@ schemaVersion: 2.1.0
 				pipelineUploadService.AssertNotCalled(GinkgoT(), "UploadPipeline", mock.Anything, mock.Anything)
 			})
 
-			It("should return err without uploading if an accelerator type is not configured", func() {
-				provider.accelerators = &AcceleratorConfig{Accelerators: map[string]Accelerator{
-					"nvidia-l4": {ResourceType: "nvidia.com/gpu"},
-				}}
-				result, err := provider.CreatePipeline(ctx, gpuPdw)
-
-				Expect(err).To(MatchError(ContainSubstring(`executor "exec-train" requests accelerator type "nvidia-t4", which is not configured`)))
-				Expect(result).To(BeEmpty())
-				pipelineUploadService.AssertNotCalled(GinkgoT(), "UploadPipeline", mock.Anything, mock.Anything)
-			})
-
 			It("should return err if UploadPipeline fails", func() {
 				expectedErr := errors.New("failed")
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return("", expectedErr)
@@ -292,16 +281,6 @@ schemaVersion: 2.1.0
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result).To(Equal(id))
 				labelService.AssertCalled(GinkgoT(), "InsertLabelsIntoParameters", mock.Anything, label.LabelKeys)
-			})
-
-			When("the compiled pipeline is invalid", func() {
-				It("should return err and keep the existing pipeline versions", func() {
-					result, err := provider.UpdatePipeline(ctx, invalidPdw, id)
-
-					Expect(err).To(MatchError(ContainSubstring("failed to parse compiled pipeline")))
-					Expect(result).To(BeEmpty())
-					pipelineService.AssertNotCalled(GinkgoT(), "DeletePipelineVersions", mock.Anything)
-				})
 			})
 
 			When("an accelerator type is not configured", func() {

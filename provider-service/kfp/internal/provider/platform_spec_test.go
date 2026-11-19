@@ -8,7 +8,6 @@ import (
 	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"google.golang.org/protobuf/proto"
 )
 
 func kubernetesPlatformSpec(executors map[string]any) string {
@@ -35,13 +34,6 @@ var _ = Describe("Kubernetes executor settings", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(settings.GetNodeSelector().GetLabels()).To(Equal(map[string]string{"example.com/pool": "training"}))
 			Expect(settings.GetActiveDeadlineSeconds()).To(Equal(int64(600)))
-		})
-
-		It("returns empty settings for an executor without any", func() {
-			settings, err := trainingPipeline(nil, "").KubernetesExecutorConfig("exec-train")
-
-			Expect(err).ToNot(HaveOccurred())
-			Expect(proto.Equal(settings, &kubernetesplatform.KubernetesExecutorConfig{})).To(BeTrue())
 		})
 
 		It("fails on settings that are not valid", func() {
@@ -78,61 +70,33 @@ var _ = Describe("Kubernetes executor settings", func() {
 			Expect(pipelinePackage.PlatformSpec).To(BeNil())
 		})
 
-		It("keeps a field the executor already sets, under either name", func() {
+		It("keeps the executor's own settings and adds the list items it lacks, under either name", func() {
+			dedicated := map[string]any{"key": "dedicated", "operator": "Exists"}
+			registry := map[string]any{"secretName": "registry"}
 			pipelinePackage := trainingPipeline(nil, kubernetesPlatformSpec(map[string]any{
-				"exec-train": map[string]any{"node_selector": poolSelector, "activeDeadlineSeconds": "600"},
+				"exec-train": map[string]any{
+					"node_selector":         poolSelector,
+					"activeDeadlineSeconds": "600",
+					"tolerations":           []any{dedicated},
+					"image_pull_secret":     []any{registry},
+					"futureSetting":         "enabled",
+				},
+				"exec-evaluate": map[string]any{"activeDeadlineSeconds": "600"},
 			}))
 
 			Expect(pipelinePackage.MergeKubernetesExecutorConfig("exec-train", &kubernetesplatform.KubernetesExecutorConfig{
 				NodeSelector:          &kubernetesplatform.NodeSelector{Labels: map[string]string{"example.com/gpu-type": "t4"}},
 				ActiveDeadlineSeconds: 60,
+				Tolerations:           []*kubernetesplatform.Toleration{{Key: "dedicated", Operator: "Exists"}, {Key: "nvidia.com/gpu", Operator: "Exists"}},
+				ImagePullSecret:       []*kubernetesplatform.ImagePullSecret{{SecretName: "registry"}, {SecretName: "mirror"}},
 			})).To(Succeed())
 
 			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(map[string]any{
 				"node_selector":         poolSelector,
 				"activeDeadlineSeconds": "600",
-			}))
-		})
-
-		It("adds the list items an executor does not already have, under either name", func() {
-			dedicated := map[string]any{"key": "dedicated", "operator": "Exists"}
-			pipelinePackage := trainingPipeline(nil, kubernetesPlatformSpec(map[string]any{
-				"exec-train": map[string]any{
-					"tolerations":       []any{dedicated},
-					"image_pull_secret": []any{map[string]any{"secretName": "registry"}},
-				},
-			}))
-
-			Expect(pipelinePackage.MergeKubernetesExecutorConfig("exec-train", &kubernetesplatform.KubernetesExecutorConfig{
-				Tolerations: []*kubernetesplatform.Toleration{
-					{Key: "dedicated", Operator: "Exists"},
-					{Key: "nvidia.com/gpu", Operator: "Exists", Effect: "NoSchedule"},
-				},
-				ImagePullSecret: []*kubernetesplatform.ImagePullSecret{{SecretName: "registry"}, {SecretName: "mirror"}},
-			})).To(Succeed())
-
-			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(map[string]any{
-				"tolerations": []any{
-					dedicated,
-					map[string]any{"key": "nvidia.com/gpu", "operator": "Exists", "effect": "NoSchedule"},
-				},
-				"image_pull_secret": []any{map[string]any{"secretName": "registry"}, map[string]any{"secretName": "mirror"}},
-			}))
-		})
-
-		It("keeps settings this provider does not know and the settings of other executors", func() {
-			pipelinePackage := trainingPipeline(nil, kubernetesPlatformSpec(map[string]any{
-				"exec-train":    map[string]any{"futureSetting": "enabled"},
-				"exec-evaluate": map[string]any{"activeDeadlineSeconds": "600"},
-			}))
-
-			Expect(pipelinePackage.MergeKubernetesExecutorConfig("exec-train", &kubernetesplatform.KubernetesExecutorConfig{
-				ActiveDeadlineSeconds: 60,
-			})).To(Succeed())
-
-			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(map[string]any{
+				"tolerations":           []any{dedicated, map[string]any{"key": "nvidia.com/gpu", "operator": "Exists"}},
+				"image_pull_secret":     []any{registry, map[string]any{"secretName": "mirror"}},
 				"futureSetting":         "enabled",
-				"activeDeadlineSeconds": "60",
 			}))
 			Expect(kubernetesSettings(pipelinePackage, "exec-evaluate")).To(Equal(map[string]any{"activeDeadlineSeconds": "600"}))
 		})

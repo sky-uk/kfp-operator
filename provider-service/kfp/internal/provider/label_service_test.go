@@ -29,11 +29,12 @@ var _ = Describe("LabelService", func() {
 			expectLabelParameter(parameters["label2"])
 		})
 
-		It("keeps other parameters", func() {
+		It("keeps other parameters and replaces one with the same name", func() {
 			pipelineSpec := &pipelinespec.PipelineSpec{Root: &pipelinespec.ComponentSpec{
 				InputDefinitions: &pipelinespec.ComponentInputsSpec{
 					Parameters: map[string]*pipelinespec.ComponentInputsSpec_ParameterSpec{
 						"epochs": {ParameterType: pipelinespec.ParameterType_NUMBER_INTEGER},
+						"label1": {ParameterType: pipelinespec.ParameterType_NUMBER_INTEGER, DefaultValue: structpb.NewNumberValue(1)},
 					},
 				},
 			}}
@@ -41,25 +42,8 @@ var _ = Describe("LabelService", func() {
 			NewDefaultLabelService().InsertLabelsIntoParameters(pipelineSpec, []string{"label1"})
 
 			parameters := pipelineSpec.GetRoot().GetInputDefinitions().GetParameters()
-			Expect(parameters).To(HaveKey("epochs"))
+			Expect(parameters["epochs"].GetParameterType()).To(Equal(pipelinespec.ParameterType_NUMBER_INTEGER))
 			expectLabelParameter(parameters["label1"])
-		})
-
-		It("replaces an existing parameter with the same name", func() {
-			pipelineSpec := &pipelinespec.PipelineSpec{Root: &pipelinespec.ComponentSpec{
-				InputDefinitions: &pipelinespec.ComponentInputsSpec{
-					Parameters: map[string]*pipelinespec.ComponentInputsSpec_ParameterSpec{
-						"label1": {
-							ParameterType: pipelinespec.ParameterType_NUMBER_INTEGER,
-							DefaultValue:  structpb.NewNumberValue(1),
-						},
-					},
-				},
-			}}
-
-			NewDefaultLabelService().InsertLabelsIntoParameters(pipelineSpec, []string{"label1"})
-
-			expectLabelParameter(pipelineSpec.GetRoot().GetInputDefinitions().GetParameters()["label1"])
 		})
 	})
 })
