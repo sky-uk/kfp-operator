@@ -64,6 +64,8 @@ const platformSpecYAML = `platforms:
 // decodeYAMLDocuments decodes every document with yaml.v3, as the Kubeflow
 // Pipelines API server does.
 func decodeYAMLDocuments(compiled resource.CompiledPipeline) []map[string]any {
+	GinkgoHelper()
+
 	decoder := yamlv3.NewDecoder(bytes.NewReader(compiled))
 	var documents []map[string]any
 	for {
@@ -95,7 +97,7 @@ var _ = Describe("PipelinePackage", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(pipelinePackage.PipelineSpec.GetPipelineInfo().GetName()).To(Equal("training"))
-			Expect(pipelinePackage.KubernetesExecutorConfig("exec-train").AsMap()).To(HaveKey("securityContext"))
+			Expect(pipelinePackage.kubernetesExecutorConfig("exec-train").AsMap()).To(HaveKey("securityContext"))
 		})
 
 		It("unwraps the PipelineJob that TFX emits, for any casing of the framework name", func() {
@@ -182,14 +184,23 @@ var _ = Describe("PipelinePackage", func() {
 		})
 
 		It("writes scripts that start with whitespace so they parse back unchanged", func() {
-			scripts := []any{
+			// KFP SDK writes component code as scripts like these, which yaml.v3
+			// encodes with the wrong indentation indicator.
+			command := []any{
+				"sh",
+				"-c",
 				"\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip\nfi\n",
 				"\n\nimport kfp\n\n    def f():\n        pass\n\n\n",
 				"  indented first line\nsecond line\n",
 			}
-			command, err := json.Marshal(append([]any{"sh", "-c"}, scripts...))
+			compiled, err := json.Marshal(map[string]any{
+				"deploymentSpec": map[string]any{"executors": map[string]any{
+					"exec-train": map[string]any{"container": map[string]any{"image": "trainer", "command": command}},
+				}},
+				"pipelineInfo": map[string]any{"name": "training"},
+				"root":         map[string]any{},
+			})
 			Expect(err).ToNot(HaveOccurred())
-			compiled := resource.CompiledPipeline(`{"pipelineInfo": {"name": "training"}, "root": {}, "deploymentSpec": {"executors": {"exec-train": {"container": {"image": "trainer", "command": ` + string(command) + `}}}}}`)
 
 			pipelinePackage, err := ParsePipelinePackage(compiled, "kfpsdk")
 			Expect(err).ToNot(HaveOccurred())
@@ -198,8 +209,9 @@ var _ = Describe("PipelinePackage", func() {
 
 			documents := decodeYAMLDocuments(marshalled)
 			Expect(documents).To(HaveLen(1))
-			container := documents[0]["deploymentSpec"].(map[string]any)["executors"].(map[string]any)["exec-train"].(map[string]any)["container"].(map[string]any)
-			Expect(container["command"]).To(Equal(append([]any{"sh", "-c"}, scripts...)))
+			Expect(documents[0]).To(HaveKeyWithValue("deploymentSpec", map[string]any{"executors": map[string]any{
+				"exec-train": map[string]any{"container": map[string]any{"image": "trainer", "command": command}},
+			}}))
 		})
 	})
 })

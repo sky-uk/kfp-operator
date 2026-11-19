@@ -17,6 +17,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// kubernetesPlatform is the platform spec key Kubeflow Pipelines reads
+// Kubernetes executor settings from.
 const kubernetesPlatform = "kubernetes"
 
 // PipelinePackage is a compiled pipeline in the form Kubeflow Pipelines
@@ -27,22 +29,21 @@ type PipelinePackage struct {
 }
 
 // ParsePipelinePackage reads compiler output. The first YAML document is the
-// pipeline spec and an optional second document is the platform spec. TFX can
-// wrap the pipeline spec in a Vertex AI PipelineJob, which is unwrapped.
-//
-// Documents are decoded the way the Kubeflow Pipelines API server decodes an
-// upload, so the provider accepts the same input the server does.
+// pipeline spec and an optional second document is the platform spec. TFX
+// wraps its pipeline spec in a Vertex AI PipelineJob, which is unwrapped.
 func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName string) (*PipelinePackage, error) {
 	documents, err := decodeJSONDocuments(compiled)
 	if err != nil {
 		return nil, err
 	}
-	switch len(documents) {
-	case 0:
+	if len(documents) == 0 {
 		return nil, errors.New("compiled pipeline is empty")
-	case 1, 2:
-	default:
-		return nil, fmt.Errorf("expected a pipeline spec and at most one platform spec, got %d documents", len(documents))
+	}
+	if len(documents) > 2 {
+		return nil, fmt.Errorf(
+			"expected a pipeline spec and at most one platform spec, got %d documents",
+			len(documents),
+		)
 	}
 
 	pipelineSpecJSON := documents[0]
@@ -52,6 +53,8 @@ func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName stri
 		}
 	}
 
+	// Unknown fields are rejected, as the Kubeflow Pipelines API server rejects
+	// them on upload, so nothing is silently dropped when the package is written.
 	pipelinePackage := &PipelinePackage{PipelineSpec: &pipelinespec.PipelineSpec{}}
 	if err := protojson.Unmarshal(pipelineSpecJSON, pipelinePackage.PipelineSpec); err != nil {
 		return nil, fmt.Errorf("invalid pipeline spec: %w", err)
@@ -68,14 +71,16 @@ func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName stri
 }
 
 // Marshal writes the pipeline spec as the first YAML document and the platform
-// spec, when present, as the second. This is the encoding the Kubeflow
-// Pipelines API server uses for stored pipeline versions.
+// spec, when there is one, as the second.
 func (p *PipelinePackage) Marshal() (resource.CompiledPipeline, error) {
 	documents := []proto.Message{p.PipelineSpec}
 	if p.PlatformSpec != nil {
 		documents = append(documents, p.PlatformSpec)
 	}
 
+	// protojson then JSONToYAML is how the Kubeflow Pipelines API server stores
+	// pipeline versions. It also avoids yaml.v3's encoder, which gives block
+	// scalars that start with whitespace the wrong indentation indicator.
 	var encoded bytes.Buffer
 	for i, document := range documents {
 		asJSON, err := protojson.Marshal(document)
@@ -94,11 +99,11 @@ func (p *PipelinePackage) Marshal() (resource.CompiledPipeline, error) {
 	return resource.CompiledPipeline(encoded.Bytes()), nil
 }
 
-// DeploymentConfig decodes the pipeline spec's deployment spec, which the
-// pipeline spec holds as an untyped struct. The result is for reading only:
+// deploymentConfig decodes the pipeline spec's deployment spec, which the
+// pipeline spec holds as an untyped struct. The result is only for reading:
 // fields this provider does not know are dropped from it, so changes are made
-// to the deployment spec struct instead.
-func (p *PipelinePackage) DeploymentConfig() (*pipelinespec.PipelineDeploymentConfig, error) {
+// to the deployment spec itself.
+func (p *PipelinePackage) deploymentConfig() (*pipelinespec.PipelineDeploymentConfig, error) {
 	deploymentConfig := &pipelinespec.PipelineDeploymentConfig{}
 	if p.PipelineSpec.GetDeploymentSpec() == nil {
 		return deploymentConfig, nil
@@ -113,13 +118,15 @@ func (p *PipelinePackage) DeploymentConfig() (*pipelinespec.PipelineDeploymentCo
 	return deploymentConfig, nil
 }
 
-// SetAcceleratorType sets the accelerator type an executor's container
-// requests, in the fields that already hold one.
-func (p *PipelinePackage) SetAcceleratorType(executor string, acceleratorType string) {
+// setAcceleratorType replaces the accelerator type an executor's container
+// requests, in each field that holds one.
+func (p *PipelinePackage) setAcceleratorType(executor string, acceleratorType string) {
 	accelerator := nestedStruct(p.PipelineSpec.GetDeploymentSpec(), "executors", executor, "container", "resources", "accelerator")
 	if accelerator == nil {
 		return
 	}
+	// KFP SDK writes the deprecated type alongside resourceType, and protojson
+	// reads either the JSON or the proto name of a field.
 	for _, name := range []string{"resourceType", "resource_type", "type"} {
 		if accelerator.Fields[name].GetStringValue() != "" {
 			accelerator.Fields[name] = structpb.NewStringValue(acceleratorType)
@@ -127,16 +134,16 @@ func (p *PipelinePackage) SetAcceleratorType(executor string, acceleratorType st
 	}
 }
 
-// KubernetesExecutorConfig returns the Kubernetes platform settings for an
-// executor, or nil if it has none. The settings are kept as an untyped struct
-// so that fields this provider does not know are passed through unchanged.
-func (p *PipelinePackage) KubernetesExecutorConfig(executor string) *structpb.Struct {
+// kubernetesExecutorConfig returns the Kubernetes settings for an executor, or
+// nil if it has none. The settings stay an untyped struct so that fields this
+// provider does not know pass through unchanged.
+func (p *PipelinePackage) kubernetesExecutorConfig(executor string) *structpb.Struct {
 	return p.PlatformSpec.GetPlatforms()[kubernetesPlatform].GetDeploymentSpec().GetExecutors()[executor]
 }
 
-// EnsureKubernetesExecutorConfig returns the Kubernetes platform settings for
-// an executor, creating the platform spec and the executor entry if needed.
-func (p *PipelinePackage) EnsureKubernetesExecutorConfig(executor string) *structpb.Struct {
+// ensureKubernetesExecutorConfig returns the Kubernetes settings for an
+// executor, creating the platform spec and the executor's entry if needed.
+func (p *PipelinePackage) ensureKubernetesExecutorConfig(executor string) *structpb.Struct {
 	if p.PlatformSpec == nil {
 		p.PlatformSpec = &pipelinespec.PlatformSpec{}
 	}
@@ -166,7 +173,8 @@ func (p *PipelinePackage) EnsureKubernetesExecutorConfig(executor string) *struc
 }
 
 // decodeJSONDocuments splits multi-document YAML and converts each non-empty
-// document to JSON.
+// document to JSON for protojson. Decoding with yaml.v3 then encoding/json
+// matches how the Kubeflow Pipelines API server reads an upload.
 func decodeJSONDocuments(compiled []byte) ([][]byte, error) {
 	decoder := yamlv3.NewDecoder(bytes.NewReader(compiled))
 	var documents [][]byte
@@ -174,7 +182,7 @@ func decodeJSONDocuments(compiled []byte) ([][]byte, error) {
 		var document any
 		err := decoder.Decode(&document)
 		if errors.Is(err, io.EOF) {
-			break
+			return documents, nil
 		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode compiled pipeline: %w", err)
@@ -188,7 +196,6 @@ func decodeJSONDocuments(compiled []byte) ([][]byte, error) {
 		}
 		documents = append(documents, asJSON)
 	}
-	return documents, nil
 }
 
 // unwrapPipelineJob returns the pipelineSpec of a Vertex AI PipelineJob, or the
@@ -198,12 +205,15 @@ func unwrapPipelineJob(document []byte) ([]byte, error) {
 	if err := json.Unmarshal(document, &pipelineJob); err != nil {
 		return nil, fmt.Errorf("invalid pipeline spec: %w", err)
 	}
-	if pipelineSpec, ok := pipelineJob["pipelineSpec"]; ok {
-		return pipelineSpec, nil
+	pipelineSpec, isWrapped := pipelineJob["pipelineSpec"]
+	if !isWrapped {
+		return document, nil
 	}
-	return document, nil
+	return pipelineSpec, nil
 }
 
+// nestedStruct follows keys through nested structs, returning nil if any key is
+// missing or does not hold a struct.
 func nestedStruct(s *structpb.Struct, keys ...string) *structpb.Struct {
 	for _, key := range keys {
 		s = s.GetFields()[key].GetStructValue()

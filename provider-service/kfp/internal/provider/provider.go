@@ -25,7 +25,7 @@ type KfpProvider struct {
 	recurringRunService   RecurringRunService
 	experimentService     ExperimentService
 	labelService          LabelService
-	accelerators          *AcceleratorConfig
+	accelerators          *AcceleratorConfig // nil when no accelerator config is set
 }
 
 func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
@@ -155,6 +155,8 @@ func (p *KfpProvider) UpdatePipeline(
 	pdw resource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
+	// Prepared before any versions are deleted, so a pipeline that cannot be
+	// uploaded keeps its current version.
 	compiledPipeline, err := p.preparePipeline(pdw)
 	if err != nil {
 		return "", err
