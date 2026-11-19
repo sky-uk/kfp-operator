@@ -105,7 +105,7 @@ func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (r
 
 	p.labelService.InsertLabelsIntoParameters(pipelinePackage.PipelineSpec, label.LabelKeys)
 
-	if err := placeAccelerators(p.config.Parameters.Accelerators, pipelinePackage); err != nil {
+	if err := placeAccelerators(p.config.Parameters.Platform.Accelerators, pipelinePackage); err != nil {
 		return nil, fmt.Errorf("failed to place accelerators: %w", err)
 	}
 

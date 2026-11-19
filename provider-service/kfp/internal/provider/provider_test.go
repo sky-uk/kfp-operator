@@ -205,7 +205,7 @@ schemaVersion: 2.1.0
 			})
 
 			It("should upload the same prepared pipeline as the pipeline and its version", func() {
-				provider.config.Parameters.Accelerators = config.Accelerators{"nvidia-t4": {ResourceType: "nvidia.com/gpu"}}
+				provider.config.Parameters.Platform.Accelerators = config.Accelerators{"nvidia-t4": {ResourceType: "nvidia.com/gpu"}}
 				prepared, err := provider.preparePipeline(gpuPdw)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(prepared)).To(ContainSubstring("resourceType: nvidia.com/gpu"))
@@ -281,7 +281,7 @@ schemaVersion: 2.1.0
 
 			When("an accelerator type is not configured", func() {
 				It("should return err and keep the existing pipeline versions", func() {
-					provider.config.Parameters.Accelerators = config.Accelerators{"nvidia-l4": {ResourceType: "nvidia.com/gpu"}}
+					provider.config.Parameters.Platform.Accelerators = config.Accelerators{"nvidia-l4": {ResourceType: "nvidia.com/gpu"}}
 					result, err := provider.UpdatePipeline(ctx, gpuPdw, id)
 
 					Expect(err).To(MatchError(ContainSubstring("failed to place accelerators")))
