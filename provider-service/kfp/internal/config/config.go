@@ -16,8 +16,8 @@ type Parameters struct {
 	GrpcKfpApiAddress        string `mapstructure:"grpcKfpApiAddress" yaml:"grpcKfpApiAddress,omitempty"`
 	DefaultExperiment        string `mapstructure:"defaultExperiment" yaml:"defaultExperiment,omitempty"`
 
-	// AcceleratorConfigPath is a YAML file mapping the accelerator types that
-	// pipelines request to how their executors are placed. Unset, pipelines are
-	// uploaded as compiled.
+	// AcceleratorConfigPath is a YAML file that maps the accelerator types
+	// pipelines request to the placement of their executors. If it is unset, the
+	// provider uploads pipelines as compiled.
 	AcceleratorConfigPath string `mapstructure:"acceleratorConfigPath" yaml:"acceleratorConfigPath,omitempty"`
 }

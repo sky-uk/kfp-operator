@@ -31,10 +31,10 @@ Kubeflow. These events are then processed and sent to the operator's webhook to 
 
 ## Accelerator Placement
 
-Pipeline components can request an accelerator, such as a GPU, by type. The provider can turn those types into
-Kubernetes scheduling: each type maps to the Kubernetes resource the container is limited on, and the node selector and
-tolerations that place the component on nodes with that accelerator. Pipeline authors then only request a type, and
-the cluster's node labels and taints stay in one place.
+Pipeline components can request an accelerator, such as a GPU, by type. You map each type to the Kubernetes resource
+the provider sets as the container's limit, and to the node selector and tolerations that schedule the component onto
+nodes with that accelerator. Pipeline authors request a type, and you keep the cluster's node labels and taints in one
+ConfigMap.
 
 List the types in a ConfigMap:
 
@@ -65,12 +65,12 @@ data:
           effect: NoSchedule
 ```
 
-| Field                                | Description                                                                                                       |
-|--------------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| `accelerators.<type>`                | The accelerator type a pipeline component requests                                                                |
-| `accelerators.<type>.resourceType`   | Required. The Kubernetes resource the component's container is limited on, e.g. `nvidia.com/gpu`                  |
-| `accelerators.<type>.nodeSelector`   | Node labels the component must be scheduled on                                                                     |
-| `accelerators.<type>.tolerations[]`  | [Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) added to the component |
+| Field                               | Description                                                                                                                     |
+|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `accelerators.<type>`               | The accelerator type a pipeline component requests                                                                              |
+| `accelerators.<type>.resourceType`  | Required. The Kubernetes resource the provider sets as the container's limit, e.g. `nvidia.com/gpu`                             |
+| `accelerators.<type>.nodeSelector`  | Labels of the nodes Kubernetes schedules the component onto                                                                     |
+| `accelerators.<type>.tolerations[]` | [Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) the provider adds to the component |
 
 Mount the ConfigMap into the provider service and set `parameters.acceleratorConfigPath` to the file:
 
@@ -94,19 +94,19 @@ spec:
     readOnly: true
 ```
 
-The provider reads the file when it starts and fails to start if the file is invalid, so restart the provider service
-after changing the ConfigMap.
+The provider reads the file at start-up and refuses to start if the file is invalid. Restart the provider service after
+you change the ConfigMap.
 
-When a pipeline is created or updated, the provider changes every component that requests an accelerator:
+Each time you create or update a pipeline, the provider changes the components that request an accelerator:
 
-- The requested type is replaced with its `resourceType`. The count is unchanged.
-- The `nodeSelector` is added, unless the component already sets a node selector, in which case that is kept.
-- The `tolerations` are added to any the component already has.
+- It replaces the requested type with the type's `resourceType` and keeps the count.
+- It adds the `nodeSelector` unless the component sets its own.
+- It adds any `tolerations` missing from the component.
 
-The upload fails, and the pipeline's existing versions are kept, if a component requests a type that is not
-configured, or a type that is only resolved at run time from a pipeline parameter. A component that sets its own node
-selector may request any type. Components that do not request an accelerator are not changed. Without
-`acceleratorConfigPath`, pipelines are uploaded as compiled.
+The provider rejects the upload and keeps the pipeline's existing versions if a component requests a type missing from
+the ConfigMap, or a type that a pipeline parameter sets at run time. A component that sets its own node selector may
+request any type. The provider leaves components without an accelerator request unchanged, and without
+`acceleratorConfigPath` it uploads pipelines as compiled.
 
 See the [TFX]({{< ref "/docs/ml-engineers/frameworks/tfx.md#requesting-accelerators" >}}) and
 [KFP SDK]({{< ref "/docs/ml-engineers/frameworks/kfpsdk.md#requesting-accelerators" >}}) guides for how pipeline

@@ -25,7 +25,7 @@ type KfpProvider struct {
 	recurringRunService   RecurringRunService
 	experimentService     ExperimentService
 	labelService          LabelService
-	accelerators          *AcceleratorConfig // nil when no accelerator config is set
+	accelerators          *AcceleratorConfig // nil without an accelerator config
 }
 
 func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
@@ -106,8 +106,8 @@ func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 
 var _ resource.Provider = &KfpProvider{}
 
-// preparePipeline turns compiler output into the pipeline package to upload:
-// labels are inserted as parameters and accelerator requests are placed.
+// preparePipeline turns compiler output into the pipeline package to upload. It
+// inserts labels as parameters and places accelerator requests.
 func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (resource.CompiledPipeline, error) {
 	pipelinePackage, err := ParsePipelinePackage(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
@@ -155,8 +155,8 @@ func (p *KfpProvider) UpdatePipeline(
 	pdw resource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
-	// Prepared before any versions are deleted, so a pipeline that cannot be
-	// uploaded keeps its current version.
+	// Prepare the pipeline before deleting any versions, so a pipeline that
+	// fails preparation keeps its current version.
 	compiledPipeline, err := p.preparePipeline(pdw)
 	if err != nil {
 		return "", err
