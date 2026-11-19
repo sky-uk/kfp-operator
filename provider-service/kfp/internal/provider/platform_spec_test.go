@@ -8,6 +8,7 @@ import (
 	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func kubernetesPlatformSpec(executors map[string]any) string {
@@ -111,6 +112,32 @@ var _ = Describe("Kubernetes executor settings", func() {
 			})
 
 			Expect(err).To(MatchError("image_pull_secret is not a list"))
+		})
+	})
+
+	Context("MergeKubernetesExecutorConfigIntoContainers", func() {
+		It("merges settings into every container executor and leaves other executors alone", func() {
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": nil, "exec-evaluate": nil}, "")
+			importer, err := structpb.NewValue(map[string]any{"importer": map[string]any{}})
+			Expect(err).ToNot(HaveOccurred())
+			nestedStruct(pipelinePackage.PipelineSpec.GetDeploymentSpec(), "executors").Fields["exec-import"] = importer
+
+			Expect(pipelinePackage.MergeKubernetesExecutorConfigIntoContainers(&kubernetesplatform.KubernetesExecutorConfig{
+				SecretAsVolume: []*kubernetesplatform.SecretAsVolume{{SecretName: "cloud-credentials", MountPath: "/var/secrets/cloud"}},
+			})).To(Succeed())
+
+			secretAsVolume := map[string]any{"secretAsVolume": []any{map[string]any{"secretName": "cloud-credentials", "mountPath": "/var/secrets/cloud"}}}
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(secretAsVolume))
+			Expect(kubernetesSettings(pipelinePackage, "exec-evaluate")).To(Equal(secretAsVolume))
+			Expect(pipelinePackage.kubernetesExecutorStruct("exec-import")).To(BeNil())
+		})
+
+		It("changes nothing without settings", func() {
+			pipelinePackage := trainingPipeline(nil, "")
+
+			Expect(pipelinePackage.MergeKubernetesExecutorConfigIntoContainers(nil)).To(Succeed())
+
+			Expect(pipelinePackage.PlatformSpec).To(BeNil())
 		})
 	})
 })

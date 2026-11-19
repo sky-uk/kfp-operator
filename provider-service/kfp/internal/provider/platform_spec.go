@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 
 	"github.com/kubeflow/pipelines/api/v2alpha1/go/pipelinespec"
@@ -59,6 +60,22 @@ func (p *PipelinePackage) MergeKubernetesExecutorConfig(
 					items.Values = append(items.Values, item)
 				}
 			}
+		}
+	}
+	return nil
+}
+
+func (p *PipelinePackage) MergeKubernetesExecutorConfigIntoContainers(settings *kubernetesplatform.KubernetesExecutorConfig) error {
+	if proto.Size(settings) == 0 {
+		return nil
+	}
+	executors := nestedStruct(p.PipelineSpec.GetDeploymentSpec(), "executors").GetFields()
+	for _, executor := range slices.Sorted(maps.Keys(executors)) {
+		if nestedStruct(executors[executor].GetStructValue(), "container") == nil {
+			continue
+		}
+		if err := p.MergeKubernetesExecutorConfig(executor, settings); err != nil {
+			return fmt.Errorf("failed to configure executor %q: %w", executor, err)
 		}
 	}
 	return nil
