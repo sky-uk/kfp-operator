@@ -33,6 +33,19 @@ The KFP SDK compiler automatically injects the following environment variables d
 
 {{% readfile file="/includes/master/kfpsdk-quickstart/resources/pipeline.yaml" code="true" lang="yaml"%}}
 
+## Requesting accelerators
+
+A task requests an accelerator, such as a GPU, with `set_accelerator_type` and `set_accelerator_limit`:
+
+```python
+train(epochs=epochs).set_accelerator_type("nvidia-t4").set_accelerator_limit(1)
+```
+
+On Kubeflow Pipelines, the type is one of the accelerator types your platform team has
+[configured on the Provider]({{< ref "/docs/platform-engineers/configuration/providers/kfp.md#accelerator-placement" >}}).
+The provider places the task on matching nodes. If the type is not configured, creating or updating the Pipeline fails.
+A task that sets its own node selector with `kfp.kubernetes.add_node_selector` may request any type.
+
 ## Component naming
 
 The `COMPONENT` used in a Run's artifact `path` is derived from the `@dsl.component` Python function name, which the

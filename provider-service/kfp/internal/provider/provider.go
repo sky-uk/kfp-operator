@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/go-openapi/runtime"
 	"github.com/sky-uk/kfp-operator/pkg/common"
@@ -16,7 +15,6 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/yaml"
 )
 
 type KfpProvider struct {
@@ -27,12 +25,20 @@ type KfpProvider struct {
 	recurringRunService   RecurringRunService
 	experimentService     ExperimentService
 	labelService          LabelService
+	accelerators          *AcceleratorConfig
 }
 
 func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 	tokenSource, err := client.MultiUserTokenSource(*cfg)
 	if err != nil {
 		return nil, err
+	}
+
+	var accelerators *AcceleratorConfig
+	if cfg.Parameters.AcceleratorConfigPath != "" {
+		if accelerators, err = LoadAcceleratorConfig(cfg.Parameters.AcceleratorConfigPath); err != nil {
+			return nil, err
+		}
 	}
 
 	var authInfo runtime.ClientAuthInfoWriter
@@ -94,39 +100,27 @@ func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 		recurringRunService:   recurringRunService,
 		experimentService:     experimentService,
 		labelService:          labelService,
+		accelerators:          accelerators,
 	}, nil
 }
 
 var _ resource.Provider = &KfpProvider{}
 
-// unwrapTFXPipeline strips the Vertex AI PipelineJob envelope that the TFX SDK
-// emits, returning the nested PipelineSpec. For all other frameworks the
-// compiled pipeline is returned unchanged, preserving any trailing PlatformSpec
-// document.
-func unwrapTFXPipeline(
-	compiledPipeline resource.CompiledPipeline,
-	frameworkName string,
-) (resource.CompiledPipeline, error) {
-	if strings.ToLower(frameworkName) != "tfx" {
-		return compiledPipeline, nil
-	}
-
-	var wrapper map[string]any
-	if err := yaml.Unmarshal(compiledPipeline, &wrapper); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal TFX pipeline spec: %w", err)
-	}
-
-	pipelineSpec, ok := wrapper["pipelineSpec"]
-	if !ok {
-		// No wrapper detected, return as-is (already a bare pipelineSpec)
-		return compiledPipeline, nil
-	}
-
-	encoded, err := yaml.Marshal(pipelineSpec)
+// preparePipeline turns compiler output into the pipeline package to upload:
+// labels are inserted as parameters and accelerator requests are placed.
+func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (resource.CompiledPipeline, error) {
+	pipelinePackage, err := ParsePipelinePackage(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to encode TFX pipeline spec: %w", err)
+		return nil, fmt.Errorf("failed to parse compiled pipeline: %w", err)
 	}
-	return resource.CompiledPipeline(encoded), nil
+
+	p.labelService.InsertLabelsIntoParameters(pipelinePackage.PipelineSpec, label.LabelKeys)
+
+	if err := p.accelerators.Apply(pipelinePackage); err != nil {
+		return nil, fmt.Errorf("failed to place accelerators: %w", err)
+	}
+
+	return pipelinePackage.Marshal()
 }
 
 func (p *KfpProvider) CreatePipeline(
@@ -138,18 +132,12 @@ func (p *KfpProvider) CreatePipeline(
 		return "", fmt.Errorf("failed to fetch resource name %v", err)
 	}
 
-	compiledPipeline, err := unwrapTFXPipeline(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	compiledPipeline, err := p.preparePipeline(pdw)
 	if err != nil {
-		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
+		return "", err
 	}
 
-	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
-	if err != nil {
-		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
-	}
-	pdw.CompiledPipeline = compiledPipeline
-
-	log.FromContext(ctx).Info("Creating pipeline", "name", pipelineName, "spec", string(pdw.CompiledPipeline))
+	log.FromContext(ctx).Info("Creating pipeline", "name", pipelineName, "spec", string(compiledPipeline))
 
 	pipelineId, err := p.pipelineUploadService.UploadPipeline(
 		ctx,
@@ -159,7 +147,7 @@ func (p *KfpProvider) CreatePipeline(
 	if err != nil {
 		return "", fmt.Errorf("failed to upload pipeline %v", err)
 	}
-	return p.UpdatePipeline(ctx, pdw, pipelineId)
+	return p.replacePipelineVersions(ctx, pipelineId, compiledPipeline, pdw.PipelineDefinition.Version)
 }
 
 func (p *KfpProvider) UpdatePipeline(
@@ -167,28 +155,29 @@ func (p *KfpProvider) UpdatePipeline(
 	pdw resource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
-	if err := p.pipelineService.DeletePipelineVersions(ctx, id); err != nil {
-		return "", fmt.Errorf("failed to delete pipeline versions %v", err)
-	}
-
-	compiledPipeline, err := unwrapTFXPipeline(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	compiledPipeline, err := p.preparePipeline(pdw)
 	if err != nil {
-		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
-	}
-
-	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
-	if err != nil {
-		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
+		return "", err
 	}
 
 	log.FromContext(ctx).Info("Updating pipeline", "name", pdw.PipelineDefinition.Name, "spec", string(compiledPipeline))
 
-	if err := p.pipelineUploadService.UploadPipelineVersion(
-		ctx,
-		id,
-		compiledPipeline,
-		pdw.PipelineDefinition.Version,
-	); err != nil {
+	return p.replacePipelineVersions(ctx, id, compiledPipeline, pdw.PipelineDefinition.Version)
+}
+
+// replacePipelineVersions deletes every version of the pipeline and uploads
+// compiledPipeline as its only version.
+func (p *KfpProvider) replacePipelineVersions(
+	ctx context.Context,
+	id string,
+	compiledPipeline resource.CompiledPipeline,
+	version string,
+) (string, error) {
+	if err := p.pipelineService.DeletePipelineVersions(ctx, id); err != nil {
+		return "", fmt.Errorf("failed to delete pipeline versions %v", err)
+	}
+
+	if err := p.pipelineUploadService.UploadPipelineVersion(ctx, id, compiledPipeline, version); err != nil {
 		return "", fmt.Errorf("failed to upload pipeline version %v", err)
 	}
 

@@ -4,9 +4,10 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -19,7 +20,6 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
-	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Provider", func() {
@@ -161,21 +161,67 @@ var _ = Describe("Provider", func() {
 	Context("Pipeline", func() {
 		const id = "pipeline-id"
 		pdw := testutil.RandomPipelineDefinitionWrapper()
+		pdw.CompiledPipeline = resource.CompiledPipeline(`pipelineInfo:
+  name: test
+root: {}
+schemaVersion: 2.1.0
+`)
 		version := pdw.PipelineDefinition.Version
 		nsnStr, err := util.ResourceNameFromNamespacedName(pdw.PipelineDefinition.Name)
 
 		Expect(err).ToNot(HaveOccurred())
+
+		gpuPdw := pdw
+		gpuPdw.CompiledPipeline = resource.CompiledPipeline(`deploymentSpec:
+  executors:
+    exec-train:
+      container:
+        image: trainer
+        resources:
+          accelerator:
+            resourceCount: '1'
+            resourceType: nvidia-t4
+pipelineInfo:
+  name: test
+root: {}
+schemaVersion: 2.1.0
+`)
+
+		invalidPdw := pdw
+		invalidPdw.CompiledPipeline = resource.CompiledPipeline("unknownField: true\n")
+
+		BeforeEach(func() {
+			labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys)
+		})
 
 		Context("CreatePipeline", func() {
 			It("should return id if pipeline is created", func() {
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(nil)
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result).To(Equal(id))
+				labelService.AssertCalled(GinkgoT(), "InsertLabelsIntoParameters", mock.Anything, label.LabelKeys)
+			})
+
+			It("should upload the same prepared pipeline as the pipeline and its version", func() {
+				provider.accelerators = &AcceleratorConfig{Accelerators: map[string]Accelerator{
+					"nvidia-t4": {ResourceType: "nvidia.com/gpu"},
+				}}
+				prepared, err := provider.preparePipeline(gpuPdw)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(prepared)).To(ContainSubstring("resourceType: nvidia.com/gpu"))
+
+				pipelineUploadService.On("UploadPipeline", []byte(prepared), nsnStr).Return(id, nil)
+				pipelineService.On("DeletePipelineVersions", id).Return(nil)
+				pipelineUploadService.On("UploadPipelineVersion", id, []byte(prepared), version).Return(nil)
+				result, err := provider.CreatePipeline(ctx, gpuPdw)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(result).To(Equal(id))
+				pipelineUploadService.AssertExpectations(GinkgoT())
 			})
 
 			It("should return err if namespace / name is invalid", func() {
@@ -187,9 +233,27 @@ var _ = Describe("Provider", func() {
 				Expect(result).To(BeEmpty())
 			})
 
+			It("should return err without uploading if the compiled pipeline is invalid", func() {
+				result, err := provider.CreatePipeline(ctx, invalidPdw)
+
+				Expect(err).To(MatchError(ContainSubstring("failed to parse compiled pipeline")))
+				Expect(result).To(BeEmpty())
+				pipelineUploadService.AssertNotCalled(GinkgoT(), "UploadPipeline", mock.Anything, mock.Anything)
+			})
+
+			It("should return err without uploading if an accelerator type is not configured", func() {
+				provider.accelerators = &AcceleratorConfig{Accelerators: map[string]Accelerator{
+					"nvidia-l4": {ResourceType: "nvidia.com/gpu"},
+				}}
+				result, err := provider.CreatePipeline(ctx, gpuPdw)
+
+				Expect(err).To(MatchError(ContainSubstring(`executor "exec-train" requests accelerator type "nvidia-t4", which is not configured`)))
+				Expect(result).To(BeEmpty())
+				pipelineUploadService.AssertNotCalled(GinkgoT(), "UploadPipeline", mock.Anything, mock.Anything)
+			})
+
 			It("should return err if UploadPipeline fails", func() {
 				expectedErr := errors.New("failed")
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return("", expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
@@ -199,7 +263,6 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if DeletePipelineVersions fails", func() {
 				expectedErr := errors.New("failed")
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
@@ -210,7 +273,6 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if UploadPipelineVersion fails", func() {
 				expectedErr := errors.New("failed")
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(expectedErr)
@@ -225,11 +287,34 @@ var _ = Describe("Provider", func() {
 			It("should return id if pipeline versions are cleaned up and version is updated", func() {
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(nil)
-				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				result, err := provider.UpdatePipeline(ctx, pdw, id)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result).To(Equal(id))
+				labelService.AssertCalled(GinkgoT(), "InsertLabelsIntoParameters", mock.Anything, label.LabelKeys)
+			})
+
+			When("the compiled pipeline is invalid", func() {
+				It("should return err and keep the existing pipeline versions", func() {
+					result, err := provider.UpdatePipeline(ctx, invalidPdw, id)
+
+					Expect(err).To(MatchError(ContainSubstring("failed to parse compiled pipeline")))
+					Expect(result).To(BeEmpty())
+					pipelineService.AssertNotCalled(GinkgoT(), "DeletePipelineVersions", mock.Anything)
+				})
+			})
+
+			When("an accelerator type is not configured", func() {
+				It("should return err and keep the existing pipeline versions", func() {
+					provider.accelerators = &AcceleratorConfig{Accelerators: map[string]Accelerator{
+						"nvidia-l4": {ResourceType: "nvidia.com/gpu"},
+					}}
+					result, err := provider.UpdatePipeline(ctx, gpuPdw, id)
+
+					Expect(err).To(MatchError(ContainSubstring("failed to place accelerators")))
+					Expect(result).To(BeEmpty())
+					pipelineService.AssertNotCalled(GinkgoT(), "DeletePipelineVersions", mock.Anything)
+				})
 			})
 
 			When("DeletePipelineVersions errors", func() {
@@ -248,7 +333,6 @@ var _ = Describe("Provider", func() {
 					expectedErr := errors.New("failed")
 					pipelineService.On("DeletePipelineVersions", id).Return(nil)
 					pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(expectedErr)
-					labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
@@ -539,47 +623,6 @@ var _ = Describe("Provider", func() {
 		})
 	})
 
-	Context("unwrapTFXPipeline", func() {
-		It("should unwrap the Vertex PipelineJob envelope for TFX frameworks (case-insensitive)", func() {
-			innerSpec := map[string]any{
-				"pipelineInfo": map[string]any{"name": "test-pipeline"},
-				"root":         map[string]any{},
-			}
-			wrapper := map[string]any{
-				"displayName":   "test-pipeline",
-				"pipelineSpec":  innerSpec,
-				"runtimeConfig": map[string]any{},
-			}
-			compiled, _ := json.Marshal(wrapper)
-
-			result, err := unwrapTFXPipeline(resource.CompiledPipeline(compiled), "TfX")
-			Expect(err).ToNot(HaveOccurred())
-
-			var got map[string]any
-			Expect(yaml.Unmarshal(result, &got)).To(Succeed())
-			Expect(got).To(Equal(innerSpec))
-		})
-
-		It("should return the compiled pipeline unchanged for non-TFX frameworks", func() {
-			pipelineSpec := map[string]any{
-				"pipelineInfo": map[string]any{"name": "test"},
-			}
-			compiled, _ := json.Marshal(pipelineSpec)
-
-			result, err := unwrapTFXPipeline(resource.CompiledPipeline(compiled), "kfpsdk")
-			Expect(err).ToNot(HaveOccurred())
-			Expect([]byte(result)).To(MatchJSON(compiled))
-		})
-
-		It("should preserve a trailing PlatformSpec document for non-TFX frameworks", func() {
-			compiled := resource.CompiledPipeline("schemaVersion: 2.1.0\n---\nplatforms:\n  kubernetes:\n    a: b\n")
-
-			result, err := unwrapTFXPipeline(compiled, "kfpsdk")
-			Expect(err).ToNot(HaveOccurred())
-			Expect(result).To(Equal(compiled))
-		})
-	})
-
 	Context("resolveExperimentName", func() {
 		It("substitutes the configured default when experiment name is empty", func() {
 			provider.config = &config.Config{
@@ -616,6 +659,19 @@ var _ = Describe("NewKfpProvider", func() {
 			provider, err := NewKfpProvider(cfg)
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("bearer token"))
+			Expect(provider).To(BeNil())
+		})
+	})
+
+	When("the accelerator config cannot be loaded", func() {
+		It("returns an error before connecting", func() {
+			path := filepath.Join(GinkgoT().TempDir(), "accelerators.yaml")
+			Expect(os.WriteFile(path, []byte("accelerators:\n  nvidia-t4: {}\n"), 0o600)).To(Succeed())
+			cfg := &config.Config{
+				Parameters: config.Parameters{AcceleratorConfigPath: path},
+			}
+			provider, err := NewKfpProvider(cfg)
+			Expect(err).To(MatchError(ContainSubstring(`accelerator "nvidia-t4" has no resourceType`)))
 			Expect(provider).To(BeNil())
 		})
 	})
