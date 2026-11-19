@@ -105,8 +105,13 @@ func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (r
 
 	p.labelService.InsertLabelsIntoParameters(pipelinePackage.PipelineSpec, label.LabelKeys)
 
-	if err := placeAccelerators(p.config.Parameters.Platform.Accelerators, pipelinePackage); err != nil {
+	platform := p.config.Parameters.Platform
+	// Accelerators go first, so their node selectors take precedence over the platform's.
+	if err := placeAccelerators(platform.Accelerators, pipelinePackage); err != nil {
 		return nil, fmt.Errorf("failed to place accelerators: %w", err)
+	}
+	if err := pipelinePackage.MergeKubernetesExecutorConfigIntoContainers(platform.Kubernetes); err != nil {
+		return nil, fmt.Errorf("failed to apply platform settings: %w", err)
 	}
 
 	return pipelinePackage.Marshal()

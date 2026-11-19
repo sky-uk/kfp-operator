@@ -29,7 +29,13 @@ official repository.
 - **Event Handling**: The KFP provider creates run-completion events when reading the status of workflows triggered by
 Kubeflow. These events are then processed and sent to the operator's webhook to update the status of the run.
 
-## Accelerator Placement
+## Platform Settings
+
+The Provider's `parameters.platform` holds settings the provider adds to pipeline components each time you create or
+update a pipeline. The provider service refuses to start if they are invalid. When you change them, the operator
+redeploys the provider service.
+
+### Accelerator Placement
 
 Pipeline components can request an accelerator, such as a GPU, by type. You map each type to the Kubernetes resource
 the provider sets as the container's limit, and to the node selector and tolerations that schedule the component onto
@@ -74,9 +80,6 @@ spec:
 | `platform.accelerators.<type>.nodeSelector`  | Labels of the nodes Kubernetes schedules the component onto                                                                     |
 | `platform.accelerators.<type>.tolerations[]` | [Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) the provider adds to the component |
 
-The provider service refuses to start if `platform` is invalid. When you change it, the operator redeploys the provider
-service.
-
 Each time you create or update a pipeline, the provider changes the components that request an accelerator:
 
 - It replaces the requested type with the type's `resourceType` and keeps the count.
@@ -91,3 +94,45 @@ request any type. The provider leaves components without an accelerator request 
 See the [TFX]({{< ref "/docs/ml-engineers/frameworks/tfx.md#requesting-accelerators" >}}) and
 [KFP SDK]({{< ref "/docs/ml-engineers/frameworks/kfpsdk.md#requesting-accelerators" >}}) guides for how pipeline
 authors request an accelerator.
+
+### Executor Settings
+
+The other keys under `parameters.platform` are Kubeflow Pipelines'
+[Kubernetes executor settings](https://github.com/kubeflow/pipelines/blob/master/kubernetes_platform/proto/kubernetes_executor_config.proto),
+which the KFP SDK's `kfp.kubernetes` module sets per component. The provider adds them to every component. For example,
+to give every component cloud credentials from a Secret, with the path to the key file in an environment variable:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: google-credentials-env
+  namespace: kubeflow
+data:
+  GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/google/key.json
+---
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Provider
+metadata:
+  name: kfp
+  namespace: kfp-operator
+spec:
+  parameters:
+    platform:
+      secretAsVolume:
+      - secretName: google-credentials
+        mountPath: /var/secrets/google
+      configMapAsEnv:
+      - configMapName: google-credentials-env
+        keyToEnv:
+        - configMapKey: GOOGLE_APPLICATION_CREDENTIALS
+          envVar: GOOGLE_APPLICATION_CREDENTIALS
+    # ...
+```
+
+The Secret and ConfigMap must exist in the namespace where pipeline components run.
+
+A component keeps any setting it already has. List settings, such as `secretAsVolume` and `tolerations`, gain the items
+the component lacks. The provider places accelerators first, so an accelerator's node selector takes precedence over a
+`nodeSelector` set here. The provider supports the settings of the Kubeflow Pipelines version it is built against and
+refuses to start on any other key.

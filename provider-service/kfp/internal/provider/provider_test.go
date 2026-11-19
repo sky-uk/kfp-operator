@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/stretchr/testify/mock"
@@ -220,6 +221,23 @@ schemaVersion: 2.1.0
 				pipelineUploadService.AssertExpectations(GinkgoT())
 			})
 
+			It("should place accelerators before applying the platform settings", func() {
+				provider.config.Parameters.Platform = config.Platform{
+					Accelerators: config.Accelerators{"nvidia-t4": {ResourceType: "nvidia.com/gpu", NodeSelector: map[string]string{"example.com/gpu-type": "t4"}}},
+					Kubernetes: &kubernetesplatform.KubernetesExecutorConfig{
+						NodeSelector:   &kubernetesplatform.NodeSelector{Labels: map[string]string{"example.com/pool": "general"}},
+						SecretAsVolume: []*kubernetesplatform.SecretAsVolume{{SecretName: "cloud-credentials", MountPath: "/var/secrets/cloud"}},
+					},
+				}
+
+				prepared, err := provider.preparePipeline(gpuPdw)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(prepared)).To(ContainSubstring("example.com/gpu-type: t4"))
+				Expect(string(prepared)).ToNot(ContainSubstring("example.com/pool"))
+				Expect(string(prepared)).To(ContainSubstring("secretName: cloud-credentials"))
+			})
+
 			It("should return err if namespace / name is invalid", func() {
 				copyPipeline := pdw
 				copyPipeline.PipelineDefinition.Name.Name = ""
@@ -281,7 +299,10 @@ schemaVersion: 2.1.0
 
 			When("an accelerator type is not configured", func() {
 				It("should return err and keep the existing pipeline versions", func() {
-					provider.config.Parameters.Platform.Accelerators = config.Accelerators{"nvidia-l4": {ResourceType: "nvidia.com/gpu"}}
+					provider.config.Parameters.Platform = config.Platform{
+						Accelerators: config.Accelerators{"nvidia-l4": {ResourceType: "nvidia.com/gpu"}},
+						Kubernetes:   &kubernetesplatform.KubernetesExecutorConfig{NodeSelector: &kubernetesplatform.NodeSelector{Labels: map[string]string{"example.com/pool": "general"}}},
+					}
 					result, err := provider.UpdatePipeline(ctx, gpuPdw, id)
 
 					Expect(err).To(MatchError(ContainSubstring("failed to place accelerators")))
