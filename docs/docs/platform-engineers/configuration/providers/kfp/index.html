@@ -39,7 +39,7 @@ the cluster&rsquo;s node labels and taints stay in one place.</p><p>List the typ
 </span></span></span><span class=line><span class=cl><span class=sd>      nvidia-t4:
 </span></span></span><span class=line><span class=cl><span class=sd>        resourceType: nvidia.com/gpu
 </span></span></span><span class=line><span class=cl><span class=sd>        nodeSelector:
-</span></span></span><span class=line><span class=cl><span class=sd>          example.com/gpu-type: t4
+</span></span></span><span class=line><span class=cl><span class=sd>          nvidia.com/gpu-type: t4
 </span></span></span><span class=line><span class=cl><span class=sd>        tolerations:
 </span></span></span><span class=line><span class=cl><span class=sd>        - key: nvidia.com/gpu
 </span></span></span><span class=line><span class=cl><span class=sd>          operator: Exists
@@ -47,7 +47,7 @@ the cluster&rsquo;s node labels and taints stay in one place.</p><p>List the typ
 </span></span></span><span class=line><span class=cl><span class=sd>      nvidia-l4:
 </span></span></span><span class=line><span class=cl><span class=sd>        resourceType: nvidia.com/gpu
 </span></span></span><span class=line><span class=cl><span class=sd>        nodeSelector:
-</span></span></span><span class=line><span class=cl><span class=sd>          example.com/gpu-type: l4
+</span></span></span><span class=line><span class=cl><span class=sd>          nvidia.com/gpu-type: l4
 </span></span></span><span class=line><span class=cl><span class=sd>        tolerations:
 </span></span></span><span class=line><span class=cl><span class=sd>        - key: nvidia.com/gpu
 </span></span></span><span class=line><span class=cl><span class=sd>          operator: Exists

@@ -50,7 +50,7 @@ data:
       nvidia-t4:
         resourceType: nvidia.com/gpu
         nodeSelector:
-          example.com/gpu-type: t4
+          nvidia.com/gpu-type: t4
         tolerations:
         - key: nvidia.com/gpu
           operator: Exists
@@ -58,7 +58,7 @@ data:
       nvidia-l4:
         resourceType: nvidia.com/gpu
         nodeSelector:
-          example.com/gpu-type: l4
+          nvidia.com/gpu-type: l4
         tolerations:
         - key: nvidia.com/gpu
           operator: Exists
