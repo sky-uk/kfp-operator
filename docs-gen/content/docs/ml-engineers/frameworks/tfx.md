@@ -30,6 +30,26 @@ Pipelines must use TFX 1.15 or later, and are compiled to PipelineSpec 2.1. Defa
 
 {{% readfile file="/includes/master/quickstart/resources/pipeline.yaml" code="true" lang="yaml"%}}
 
+## Requesting accelerators
+
+A component requests an accelerator, such as a GPU, with a `ResourceSpec` passed to `with_platform_config`:
+
+```python
+from kfp.pipeline_spec import pipeline_spec_pb2
+
+ResourceSpec = pipeline_spec_pb2.PipelineDeploymentConfig.PipelineContainerSpec.ResourceSpec
+
+trainer = Trainer(...).with_platform_config(
+    ResourceSpec(
+        accelerator=ResourceSpec.AcceleratorConfig(resource_type="nvidia-t4", resource_count="1")
+    )
+)
+```
+
+On Kubeflow Pipelines, `resource_type` is one of the accelerator types your platform team has
+[configured on the Provider]({{< ref "/docs/platform-engineers/configuration/providers/kfp.md#accelerator-placement" >}}).
+The provider places the component on matching nodes. If the type is not configured, creating or updating the Pipeline fails.
+
 ## Component naming
 
 The `COMPONENT` used in a Run's artifact `path` must match the component's id exactly:
