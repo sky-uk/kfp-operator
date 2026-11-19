@@ -97,7 +97,7 @@ var _ = Describe("PipelinePackage", func() {
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(pipelinePackage.PipelineSpec.GetPipelineInfo().GetName()).To(Equal("training"))
-			Expect(pipelinePackage.kubernetesExecutorConfig("exec-train").AsMap()).To(HaveKey("securityContext"))
+			Expect(pipelinePackage.kubernetesExecutorStruct("exec-train").AsMap()).To(HaveKey("securityContext"))
 		})
 
 		It("unwraps the PipelineJob that TFX emits, for any casing of the framework name", func() {
