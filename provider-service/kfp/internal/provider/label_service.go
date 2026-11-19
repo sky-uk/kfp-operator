@@ -10,18 +10,12 @@ type LabelService interface {
 	InsertLabelsIntoParameters(pipelineSpec *pipelinespec.PipelineSpec, labels []string)
 }
 
-// DefaultLabelService inserts labels as optional string parameters of the
-// pipeline's root component.
 type DefaultLabelService struct{}
 
 func NewDefaultLabelService() LabelService {
 	return DefaultLabelService{}
 }
 
-// InsertLabelsIntoParameters adds each label to root.inputDefinitions.parameters
-// as an optional STRING parameter with an empty default, replacing any existing
-// parameter with the same name. Runs pass their labels as run-time parameters,
-// and Kubeflow Pipelines rejects parameters a pipeline does not declare.
 func (DefaultLabelService) InsertLabelsIntoParameters(pipelineSpec *pipelinespec.PipelineSpec, labels []string) {
 	if pipelineSpec.Root == nil {
 		pipelineSpec.Root = &pipelinespec.ComponentSpec{}

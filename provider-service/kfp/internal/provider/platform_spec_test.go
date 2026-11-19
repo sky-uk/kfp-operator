@@ -11,8 +11,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// kubernetesPlatformSpec returns a platform spec giving each executor the
-// Kubernetes settings in executors.
 func kubernetesPlatformSpec(executors map[string]any) string {
 	GinkgoHelper()
 

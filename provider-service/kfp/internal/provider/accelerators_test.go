@@ -13,9 +13,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// gpuPipeline returns a pipeline with an executor for each entry of
-// executorResources, using the entry as the container's resources, followed by
-// platformSpec when it is not empty.
 func gpuPipeline(executorResources map[string]map[string]any, platformSpec string) *PipelinePackage {
 	GinkgoHelper()
 
@@ -44,15 +41,11 @@ func gpuPipeline(executorResources map[string]map[string]any, platformSpec strin
 	return pipelinePackage
 }
 
-// trainingPipeline returns a pipeline whose only executor, exec-train, has the
-// given container resources, followed by platformSpec when it is not empty.
 func trainingPipeline(resources map[string]any, platformSpec string) *PipelinePackage {
 	GinkgoHelper()
 	return gpuPipeline(map[string]map[string]any{"exec-train": resources}, platformSpec)
 }
 
-// acceleratorResources returns container resources requesting an accelerator,
-// in the fields TFX writes.
 func acceleratorResources(acceleratorType string, count string) map[string]any {
 	return map[string]any{"accelerator": map[string]any{"resourceType": acceleratorType, "resourceCount": count}}
 }

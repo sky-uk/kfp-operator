@@ -61,8 +61,6 @@ const platformSpecYAML = `platforms:
             operator: Exists
 `
 
-// decodeYAMLDocuments decodes every document with yaml.v3, as the Kubeflow
-// Pipelines API server does.
 func decodeYAMLDocuments(compiled resource.CompiledPipeline) []map[string]any {
 	GinkgoHelper()
 
@@ -184,8 +182,6 @@ var _ = Describe("PipelinePackage", func() {
 		})
 
 		It("writes scripts that start with whitespace so they parse back unchanged", func() {
-			// KFP SDK writes component code as scripts like these, which yaml.v3
-			// encodes with the wrong indentation indicator.
 			command := []any{
 				"sh",
 				"-c",

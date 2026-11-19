@@ -17,17 +17,12 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// PipelinePackage is a compiled pipeline in the form Kubeflow Pipelines
-// accepts: a pipeline spec and an optional platform spec.
+// PipelinePackage is a pipeline spec and its optional platform spec.
 type PipelinePackage struct {
 	PipelineSpec *pipelinespec.PipelineSpec
 	PlatformSpec *pipelinespec.PlatformSpec
 }
 
-// ParsePipelinePackage reads compiler output. The first YAML document is the
-// pipeline spec and an optional second document is the platform spec. TFX
-// wraps its pipeline spec in a Vertex AI PipelineJob, which ParsePipelinePackage
-// unwraps.
 func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName string) (*PipelinePackage, error) {
 	documents, err := decodeJSONDocuments(compiled)
 	if err != nil {
@@ -50,8 +45,6 @@ func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName stri
 		}
 	}
 
-	// Reject unknown fields, as the Kubeflow Pipelines API server does on
-	// upload, so that Marshal cannot drop one without an error.
 	pipelinePackage := &PipelinePackage{PipelineSpec: &pipelinespec.PipelineSpec{}}
 	if err := protojson.Unmarshal(pipelineSpecJSON, pipelinePackage.PipelineSpec); err != nil {
 		return nil, fmt.Errorf("invalid pipeline spec: %w", err)
@@ -67,17 +60,13 @@ func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName stri
 	return pipelinePackage, nil
 }
 
-// Marshal writes the pipeline spec as the first YAML document and the platform
-// spec, when there is one, as the second.
 func (p *PipelinePackage) Marshal() (resource.CompiledPipeline, error) {
 	documents := []proto.Message{p.PipelineSpec}
 	if p.PlatformSpec != nil {
 		documents = append(documents, p.PlatformSpec)
 	}
 
-	// The Kubeflow Pipelines API server stores pipeline versions with protojson
-	// then JSONToYAML. This path avoids yaml.v3's encoder, which writes the wrong
-	// indentation indicator for block scalars that start with whitespace.
+	// yaml.v3's encoder breaks block scalars that start with whitespace.
 	var encoded bytes.Buffer
 	for i, document := range documents {
 		asJSON, err := protojson.Marshal(document)
@@ -96,9 +85,6 @@ func (p *PipelinePackage) Marshal() (resource.CompiledPipeline, error) {
 	return resource.CompiledPipeline(encoded.Bytes()), nil
 }
 
-// decodeJSONDocuments splits multi-document YAML and converts each non-empty
-// document to JSON for protojson. The Kubeflow Pipelines API server reads an
-// upload the same way, with yaml.v3 then encoding/json.
 func decodeJSONDocuments(compiled []byte) ([][]byte, error) {
 	decoder := yamlv3.NewDecoder(bytes.NewReader(compiled))
 	var documents [][]byte
@@ -122,8 +108,6 @@ func decodeJSONDocuments(compiled []byte) ([][]byte, error) {
 	}
 }
 
-// unwrapPipelineJob returns the pipelineSpec of a Vertex AI PipelineJob, or the
-// document unchanged if it has no PipelineJob wrapper.
 func unwrapPipelineJob(document []byte) ([]byte, error) {
 	var pipelineJob map[string]json.RawMessage
 	if err := json.Unmarshal(document, &pipelineJob); err != nil {
@@ -136,8 +120,6 @@ func unwrapPipelineJob(document []byte) ([]byte, error) {
 	return pipelineSpec, nil
 }
 
-// nestedStruct follows keys through nested structs, returning nil if any key is
-// missing or does not hold a struct.
 func nestedStruct(s *structpb.Struct, keys ...string) *structpb.Struct {
 	for _, key := range keys {
 		s = s.GetFields()[key].GetStructValue()
@@ -145,8 +127,6 @@ func nestedStruct(s *structpb.Struct, keys ...string) *structpb.Struct {
 	return s
 }
 
-// decodeStruct reads an untyped struct into message, dropping fields the
-// message does not have.
 func decodeStruct(s *structpb.Struct, message proto.Message) error {
 	asJSON, err := protojson.Marshal(s)
 	if err != nil {
@@ -155,8 +135,6 @@ func decodeStruct(s *structpb.Struct, message proto.Message) error {
 	return protojson.UnmarshalOptions{DiscardUnknown: true}.Unmarshal(asJSON, message)
 }
 
-// structFromMessage converts a message to the untyped struct the pipeline and
-// platform specs hold their settings as.
 func structFromMessage(message proto.Message) (*structpb.Struct, error) {
 	asJSON, err := protojson.Marshal(message)
 	if err != nil {
