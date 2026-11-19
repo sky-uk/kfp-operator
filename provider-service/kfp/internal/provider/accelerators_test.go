@@ -3,6 +3,7 @@
 package provider
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 
@@ -12,52 +13,50 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// gpuPipeline returns a pipeline whose executors have the given container
-// resources, followed by platformSpec if it is not empty.
-func gpuPipeline(executorResources map[string]string, platformSpec string) *PipelinePackage {
-	compiled := "deploymentSpec:\n  executors:\n"
-	for executor, resources := range executorResources {
-		compiled += "    " + executor + ":\n      container:\n        image: trainer\n"
-		if resources != "" {
-			compiled += "        resources:\n" + resources
-		}
-	}
-	compiled += "pipelineInfo:\n  name: gpu\nroot: {}\nschemaVersion: 2.1.0\n"
-	if platformSpec != "" {
-		compiled += "---\n" + platformSpec
-	}
+// gpuPipeline returns a pipeline with an executor for each entry of
+// executorResources, using the entry as the container's resources, followed by
+// platformSpec when it is not empty.
+func gpuPipeline(executorResources map[string]map[string]any, platformSpec string) *PipelinePackage {
+	GinkgoHelper()
 
+	executors := map[string]any{}
+	for executor, resources := range executorResources {
+		container := map[string]any{"image": "trainer"}
+		if resources != nil {
+			container["resources"] = resources
+		}
+		executors[executor] = map[string]any{"container": container}
+	}
+	pipelineSpec, err := json.Marshal(map[string]any{
+		"deploymentSpec": map[string]any{"executors": executors},
+		"pipelineInfo":   map[string]any{"name": "gpu"},
+		"root":           map[string]any{},
+		"schemaVersion":  "2.1.0",
+	})
+	Expect(err).ToNot(HaveOccurred())
+
+	compiled := string(pipelineSpec)
+	if platformSpec != "" {
+		compiled += "\n---\n" + platformSpec
+	}
 	pipelinePackage, err := ParsePipelinePackage(resource.CompiledPipeline(compiled), "tfx")
 	Expect(err).ToNot(HaveOccurred())
 	return pipelinePackage
+}
+
+// acceleratorResources returns container resources requesting an accelerator,
+// in the fields TFX writes.
+func acceleratorResources(acceleratorType string, count string) map[string]any {
+	return map[string]any{"accelerator": map[string]any{"resourceType": acceleratorType, "resourceCount": count}}
 }
 
 func acceleratorRequest(pipelinePackage *PipelinePackage, executor string) map[string]any {
 	return nestedStruct(pipelinePackage.PipelineSpec.GetDeploymentSpec(), "executors", executor, "container", "resources", "accelerator").AsMap()
 }
 
-func kubernetesExecutorConfig(pipelinePackage *PipelinePackage, executor string) map[string]any {
-	return pipelinePackage.KubernetesExecutorConfig(executor).AsMap()
+func kubernetesSettings(pipelinePackage *PipelinePackage, executor string) map[string]any {
+	return pipelinePackage.kubernetesExecutorConfig(executor).AsMap()
 }
-
-const (
-	t4Request = `          accelerator:
-            resourceCount: '1'
-            resourceType: nvidia-t4
-`
-	sdkT4Request = `          accelerator:
-            count: '1'
-            resourceCount: '1'
-            resourceType: nvidia-t4
-            type: nvidia-t4
-`
-	l4Request = `          accelerator:
-            resourceCount: '2'
-            resourceType: nvidia-l4
-`
-	cpuRequest = `          cpuLimit: 2.0
-`
-)
 
 var _ = Describe("AcceleratorConfig", func() {
 	t4Toleration := map[string]any{"key": "nvidia.com/gpu", "operator": "Exists", "effect": "NoSchedule"}
@@ -80,7 +79,7 @@ var _ = Describe("AcceleratorConfig", func() {
 
 	Context("Apply", func() {
 		It("rewrites the requested type and places the executor", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": t4Request}, "")
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia-t4", "1")}, "")
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
@@ -88,14 +87,19 @@ var _ = Describe("AcceleratorConfig", func() {
 				"resourceCount": "1",
 				"resourceType":  "nvidia.com/gpu",
 			}))
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-train")).To(Equal(map[string]any{
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(map[string]any{
 				"nodeSelector": map[string]any{"labels": map[string]any{"example.com/gpu-type": "t4"}},
 				"tolerations":  []any{t4Toleration},
 			}))
 		})
 
-		It("rewrites the deprecated type field as well when the request sets it", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": sdkT4Request}, "")
+		It("rewrites the deprecated type that KFP SDK writes alongside resourceType", func() {
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": {"accelerator": map[string]any{
+				"count":         "1",
+				"resourceCount": "1",
+				"resourceType":  "nvidia-t4",
+				"type":          "nvidia-t4",
+			}}}, "")
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
@@ -107,8 +111,11 @@ var _ = Describe("AcceleratorConfig", func() {
 			}))
 		})
 
-		It("reads a request that only sets the deprecated fields", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": "          accelerator:\n            count: 1\n            type: nvidia-t4\n"}, "")
+		It("reads a request that only sets the deprecated type and count", func() {
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": {"accelerator": map[string]any{
+				"count": 1,
+				"type":  "nvidia-t4",
+			}}}, "")
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
@@ -116,53 +123,53 @@ var _ = Describe("AcceleratorConfig", func() {
 				"count": float64(1),
 				"type":  "nvidia.com/gpu",
 			}))
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-train")).To(HaveKey("nodeSelector"))
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(HaveKey("nodeSelector"))
 		})
 
 		It("places each executor by its own accelerator type and leaves other executors alone", func() {
-			pipelinePackage := gpuPipeline(map[string]string{
-				"exec-train":    t4Request,
-				"exec-evaluate": l4Request,
-				"exec-report":   cpuRequest,
-				"exec-publish":  "",
+			pipelinePackage := gpuPipeline(map[string]map[string]any{
+				"exec-train":    acceleratorResources("nvidia-t4", "1"),
+				"exec-evaluate": acceleratorResources("nvidia-l4", "2"),
+				"exec-report":   {"cpuLimit": 2},
+				"exec-publish":  nil,
 			}, "")
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-train")["nodeSelector"]).To(Equal(
-				map[string]any{"labels": map[string]any{"example.com/gpu-type": "t4"}},
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(HaveKeyWithValue(
+				"nodeSelector", map[string]any{"labels": map[string]any{"example.com/gpu-type": "t4"}},
 			))
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-evaluate")).To(Equal(map[string]any{
+			Expect(kubernetesSettings(pipelinePackage, "exec-evaluate")).To(Equal(map[string]any{
 				"nodeSelector": map[string]any{"labels": map[string]any{"example.com/gpu-type": "l4"}},
 			}))
-			Expect(acceleratorRequest(pipelinePackage, "exec-evaluate")["resourceType"]).To(Equal("nvidia.com/gpu"))
-			Expect(pipelinePackage.KubernetesExecutorConfig("exec-report")).To(BeNil())
-			Expect(pipelinePackage.KubernetesExecutorConfig("exec-publish")).To(BeNil())
+			Expect(acceleratorRequest(pipelinePackage, "exec-evaluate")).To(HaveKeyWithValue("resourceType", "nvidia.com/gpu"))
+			Expect(pipelinePackage.kubernetesExecutorConfig("exec-report")).To(BeNil())
+			Expect(pipelinePackage.kubernetesExecutorConfig("exec-publish")).To(BeNil())
 		})
 
 		It("does not add a platform spec to a pipeline without accelerator requests", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-report": cpuRequest}, "")
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-report": {"cpuLimit": 2}}, "")
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
 			Expect(pipelinePackage.PlatformSpec).To(BeNil())
 		})
 
-		DescribeTable("ignores requests the Kubeflow Pipelines driver would not act on",
-			func(request string) {
-				pipelinePackage := gpuPipeline(map[string]string{"exec-train": request}, "")
+		DescribeTable("ignores requests the Kubeflow Pipelines driver does not act on",
+			func(request map[string]any) {
+				pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": {"accelerator": request}}, "")
 
 				Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
-				Expect(acceleratorRequest(pipelinePackage, "exec-train")["resourceType"]).To(Equal("nvidia-t4"))
+				Expect(acceleratorRequest(pipelinePackage, "exec-train")).To(HaveKeyWithValue("resourceType", "nvidia-t4"))
 				Expect(pipelinePackage.PlatformSpec).To(BeNil())
 			},
-			Entry("no count", "          accelerator:\n            resourceType: nvidia-t4\n"),
-			Entry("a zero count", "          accelerator:\n            resourceCount: '0'\n            resourceType: nvidia-t4\n"),
+			Entry("no count", map[string]any{"resourceType": "nvidia-t4"}),
+			Entry("a zero count", map[string]any{"resourceType": "nvidia-t4", "resourceCount": "0"}),
 		)
 
 		It("keeps a node selector the pipeline sets and adds the tolerations", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": t4Request}, `platforms:
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia-t4", "1")}, `platforms:
   kubernetes:
     deploymentSpec:
       executors:
@@ -174,15 +181,15 @@ var _ = Describe("AcceleratorConfig", func() {
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
-			Expect(acceleratorRequest(pipelinePackage, "exec-train")["resourceType"]).To(Equal("nvidia.com/gpu"))
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-train")).To(Equal(map[string]any{
+			Expect(acceleratorRequest(pipelinePackage, "exec-train")).To(HaveKeyWithValue("resourceType", "nvidia.com/gpu"))
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(map[string]any{
 				"nodeSelector": map[string]any{"labels": map[string]any{"example.com/pool": "training"}},
 				"tolerations":  []any{t4Toleration},
 			}))
 		})
 
 		It("adds to the pipeline's tolerations without repeating one it already has", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": t4Request}, `platforms:
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia-t4", "1")}, `platforms:
   kubernetes:
     deploymentSpec:
       executors:
@@ -197,14 +204,14 @@ var _ = Describe("AcceleratorConfig", func() {
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-train")["tolerations"]).To(Equal([]any{
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(HaveKeyWithValue("tolerations", []any{
 				map[string]any{"key": "dedicated", "operator": "Exists"},
 				t4Toleration,
 			}))
 		})
 
 		It("keeps other Kubernetes settings of the executor and of other executors", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": t4Request}, `platforms:
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia-t4", "1")}, `platforms:
   kubernetes:
     deploymentSpec:
       executors:
@@ -217,8 +224,8 @@ var _ = Describe("AcceleratorConfig", func() {
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-train")).To(HaveKeyWithValue("securityContext", map[string]any{"runAsUser": "1000"}))
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-evaluate")).To(Equal(map[string]any{"activeDeadlineSeconds": "600"}))
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(HaveKeyWithValue("securityContext", map[string]any{"runAsUser": "1000"}))
+			Expect(kubernetesSettings(pipelinePackage, "exec-evaluate")).To(Equal(map[string]any{"activeDeadlineSeconds": "600"}))
 		})
 
 		It("writes toleration seconds", func() {
@@ -235,11 +242,11 @@ var _ = Describe("AcceleratorConfig", func() {
 					}},
 				},
 			}}
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": t4Request}, "")
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia-t4", "1")}, "")
 
 			Expect(config.Apply(pipelinePackage)).To(Succeed())
 
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-train")).To(Equal(map[string]any{
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(map[string]any{
 				"tolerations": []any{map[string]any{
 					"key":               "example.com/preemptible",
 					"operator":          "Equal",
@@ -252,16 +259,16 @@ var _ = Describe("AcceleratorConfig", func() {
 
 		It("only rewrites the type when the accelerator has no placement", func() {
 			config := &AcceleratorConfig{Accelerators: map[string]Accelerator{"nvidia-t4": {ResourceType: "nvidia.com/gpu"}}}
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": t4Request}, "")
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia-t4", "1")}, "")
 
 			Expect(config.Apply(pipelinePackage)).To(Succeed())
 
-			Expect(acceleratorRequest(pipelinePackage, "exec-train")["resourceType"]).To(Equal("nvidia.com/gpu"))
+			Expect(acceleratorRequest(pipelinePackage, "exec-train")).To(HaveKeyWithValue("resourceType", "nvidia.com/gpu"))
 			Expect(pipelinePackage.PlatformSpec).To(BeNil())
 		})
 
 		It("fails on a type that is not configured, naming the executor and the configured types", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": "          accelerator:\n            resourceCount: '1'\n            resourceType: nvidia-a100\n"}, "")
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia-a100", "1")}, "")
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(MatchError(
 				`executor "exec-train" requests accelerator type "nvidia-a100", which is not configured; configured types: nvidia-l4, nvidia-t4`,
@@ -269,13 +276,15 @@ var _ = Describe("AcceleratorConfig", func() {
 		})
 
 		It("fails on a type that is only resolved at run time", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": "          accelerator:\n            resourceCount: '1'\n            resourceType: \"{{$.inputs.parameters['pipelinechannel--gpu']}}\"\n"}, "")
+			pipelinePackage := gpuPipeline(map[string]map[string]any{
+				"exec-train": acceleratorResources("{{$.inputs.parameters['pipelinechannel--gpu']}}", "1"),
+			}, "")
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(MatchError(ContainSubstring("which is only resolved at run time")))
 		})
 
 		It("leaves a type that is not configured alone when the pipeline places the executor itself", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": "          accelerator:\n            resourceCount: '1'\n            resourceType: nvidia.com/gpu\n"}, `platforms:
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia.com/gpu", "1")}, `platforms:
   kubernetes:
     deploymentSpec:
       executors:
@@ -287,14 +296,14 @@ var _ = Describe("AcceleratorConfig", func() {
 
 			Expect(acceleratorConfig.Apply(pipelinePackage)).To(Succeed())
 
-			Expect(acceleratorRequest(pipelinePackage, "exec-train")["resourceType"]).To(Equal("nvidia.com/gpu"))
-			Expect(kubernetesExecutorConfig(pipelinePackage, "exec-train")).To(Equal(map[string]any{
+			Expect(acceleratorRequest(pipelinePackage, "exec-train")).To(HaveKeyWithValue("resourceType", "nvidia.com/gpu"))
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(map[string]any{
 				"nodeSelector": map[string]any{"labels": map[string]any{"example.com/pool": "training"}},
 			}))
 		})
 
 		It("fails when the executor's tolerations are not a list", func() {
-			pipelinePackage := gpuPipeline(map[string]string{"exec-train": t4Request}, `platforms:
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia-t4", "1")}, `platforms:
   kubernetes:
     deploymentSpec:
       executors:
@@ -302,16 +311,16 @@ var _ = Describe("AcceleratorConfig", func() {
           tolerations: dedicated
 `)
 
-			Expect(acceleratorConfig.Apply(pipelinePackage)).To(MatchError(ContainSubstring(`failed to place executor "exec-train": tolerations is not a list`)))
+			Expect(acceleratorConfig.Apply(pipelinePackage)).To(MatchError(`failed to place executor "exec-train": tolerations is not a list`))
 		})
 
 		DescribeTable("changes nothing without accelerators configured",
 			func(config *AcceleratorConfig) {
-				pipelinePackage := gpuPipeline(map[string]string{"exec-train": t4Request}, "")
+				pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": acceleratorResources("nvidia-t4", "1")}, "")
 
 				Expect(config.Apply(pipelinePackage)).To(Succeed())
 
-				Expect(acceleratorRequest(pipelinePackage, "exec-train")["resourceType"]).To(Equal("nvidia-t4"))
+				Expect(acceleratorRequest(pipelinePackage, "exec-train")).To(HaveKeyWithValue("resourceType", "nvidia-t4"))
 				Expect(pipelinePackage.PlatformSpec).To(BeNil())
 			},
 			Entry("nil", nil),
@@ -321,6 +330,7 @@ var _ = Describe("AcceleratorConfig", func() {
 
 	Context("LoadAcceleratorConfig", func() {
 		writeConfig := func(contents string) string {
+			GinkgoHelper()
 			path := filepath.Join(GinkgoT().TempDir(), "accelerators.yaml")
 			Expect(os.WriteFile(path, []byte(contents), 0o600)).To(Succeed())
 			return path

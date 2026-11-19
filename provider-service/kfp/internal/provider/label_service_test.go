@@ -6,16 +6,16 @@ import (
 	"github.com/kubeflow/pipelines/api/v2alpha1/go/pipelinespec"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var _ = Describe("LabelService", func() {
 	Context("InsertLabelsIntoParameters", func() {
-		expectedParameter := func(parameter *pipelinespec.ComponentInputsSpec_ParameterSpec) {
+		expectLabelParameter := func(parameter *pipelinespec.ComponentInputsSpec_ParameterSpec) {
+			GinkgoHelper()
 			Expect(parameter.GetParameterType()).To(Equal(pipelinespec.ParameterType_STRING))
 			Expect(parameter.GetIsOptional()).To(BeTrue())
-			Expect(proto.Equal(parameter.GetDefaultValue(), structpb.NewStringValue(""))).To(BeTrue())
+			Expect(parameter.GetDefaultValue().AsInterface()).To(Equal(""))
 		}
 
 		It("inserts each label as an optional string parameter of the root component", func() {
@@ -25,8 +25,8 @@ var _ = Describe("LabelService", func() {
 
 			parameters := pipelineSpec.GetRoot().GetInputDefinitions().GetParameters()
 			Expect(parameters).To(HaveLen(2))
-			expectedParameter(parameters["label1"])
-			expectedParameter(parameters["label2"])
+			expectLabelParameter(parameters["label1"])
+			expectLabelParameter(parameters["label2"])
 		})
 
 		It("keeps other parameters", func() {
@@ -42,7 +42,7 @@ var _ = Describe("LabelService", func() {
 
 			parameters := pipelineSpec.GetRoot().GetInputDefinitions().GetParameters()
 			Expect(parameters).To(HaveKey("epochs"))
-			expectedParameter(parameters["label1"])
+			expectLabelParameter(parameters["label1"])
 		})
 
 		It("replaces an existing parameter with the same name", func() {
@@ -59,7 +59,7 @@ var _ = Describe("LabelService", func() {
 
 			NewDefaultLabelService().InsertLabelsIntoParameters(pipelineSpec, []string{"label1"})
 
-			expectedParameter(pipelineSpec.GetRoot().GetInputDefinitions().GetParameters()["label1"])
+			expectLabelParameter(pipelineSpec.GetRoot().GetInputDefinitions().GetParameters()["label1"])
 		})
 	})
 })
