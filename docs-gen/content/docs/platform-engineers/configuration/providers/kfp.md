@@ -36,7 +36,7 @@ the provider sets as the container's limit, and to the node selector and tolerat
 nodes with that accelerator. Pipeline authors request a type, and you keep the cluster's node labels and taints on the
 Provider.
 
-List the types under the Provider's `parameters.accelerators`:
+List the types under the Provider's `parameters.platform.accelerators`:
 
 ```yaml
 apiVersion: pipelines.kubeflow.org/v1beta1
@@ -46,35 +46,36 @@ metadata:
   namespace: kfp-operator
 spec:
   parameters:
-    accelerators:
-      nvidia-t4:
-        resourceType: nvidia.com/gpu
-        nodeSelector:
-          nvidia.com/gpu-type: t4
-        tolerations:
-        - key: nvidia.com/gpu
-          operator: Exists
-          effect: NoSchedule
-      nvidia-l4:
-        resourceType: nvidia.com/gpu
-        nodeSelector:
-          nvidia.com/gpu-type: l4
-        tolerations:
-        - key: nvidia.com/gpu
-          operator: Exists
-          effect: NoSchedule
+    platform:
+      accelerators:
+        nvidia-t4:
+          resourceType: nvidia.com/gpu
+          nodeSelector:
+            nvidia.com/gpu-type: t4
+          tolerations:
+          - key: nvidia.com/gpu
+            operator: Exists
+            effect: NoSchedule
+        nvidia-l4:
+          resourceType: nvidia.com/gpu
+          nodeSelector:
+            nvidia.com/gpu-type: l4
+          tolerations:
+          - key: nvidia.com/gpu
+            operator: Exists
+            effect: NoSchedule
     # ...
 ```
 
-| Field                               | Description                                                                                                                     |
-|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| `accelerators.<type>`               | The accelerator type a pipeline component requests                                                                              |
-| `accelerators.<type>.resourceType`  | Required. The Kubernetes resource the provider sets as the container's limit, e.g. `nvidia.com/gpu`                             |
-| `accelerators.<type>.nodeSelector`  | Labels of the nodes Kubernetes schedules the component onto                                                                     |
-| `accelerators.<type>.tolerations[]` | [Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) the provider adds to the component |
+| Field                                        | Description                                                                                                                     |
+|----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `platform.accelerators.<type>`               | The accelerator type a pipeline component requests                                                                              |
+| `platform.accelerators.<type>.resourceType`  | Required. The Kubernetes resource the provider sets as the container's limit, e.g. `nvidia.com/gpu`                             |
+| `platform.accelerators.<type>.nodeSelector`  | Labels of the nodes Kubernetes schedules the component onto                                                                     |
+| `platform.accelerators.<type>.tolerations[]` | [Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) the provider adds to the component |
 
-The provider service refuses to start if the accelerators are invalid. When you change them, the operator redeploys the
-provider service.
+The provider service refuses to start if `platform` is invalid. When you change it, the operator redeploys the provider
+service.
 
 Each time you create or update a pipeline, the provider changes the components that request an accelerator:
 
@@ -82,10 +83,10 @@ Each time you create or update a pipeline, the provider changes the components t
 - It adds the `nodeSelector` unless the component sets its own.
 - It adds any `tolerations` missing from the component.
 
-The provider rejects the upload and keeps the pipeline's existing versions if a component requests a type missing from
-the ConfigMap, or a type that a pipeline parameter sets at run time. A component that sets its own node selector may
-request any type. The provider leaves components without an accelerator request unchanged, and without `accelerators`
-it uploads pipelines as compiled.
+The provider rejects the upload and keeps the pipeline's existing versions if a component requests a type that isn't
+configured, or a type that a pipeline parameter sets at run time. A component that sets its own node selector may
+request any type. The provider leaves components without an accelerator request unchanged, and without
+`platform.accelerators` it uploads pipelines as compiled.
 
 See the [TFX]({{< ref "/docs/ml-engineers/frameworks/tfx.md#requesting-accelerators" >}}) and
 [KFP SDK]({{< ref "/docs/ml-engineers/frameworks/kfpsdk.md#requesting-accelerators" >}}) guides for how pipeline
