@@ -35,7 +35,7 @@ func gpuPipeline(executorResources map[string]map[string]any, platformSpec strin
 	if platformSpec != "" {
 		compiled += "\n---\n" + platformSpec
 	}
-	pipelinePackage, err := ParsePipelinePackage(resource.CompiledPipeline(compiled), "tfx")
+	pipelinePackage, err := ParsePipelinePackage(resource.CompiledPipeline(compiled))
 	Expect(err).ToNot(HaveOccurred())
 	return pipelinePackage
 }
