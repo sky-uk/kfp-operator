@@ -15,6 +15,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/yaml"
 )
@@ -132,12 +133,17 @@ func unwrapTFXPipeline(
 func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (resource.CompiledPipeline, error) {
 	compiledPipeline, err := unwrapTFXPipeline(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
+		return nil, fmt.Errorf("failed to unwrap TFX pipeline spec: %w", err)
 	}
 
 	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert labels into parameters %v", err)
+		return nil, fmt.Errorf("failed to insert labels into parameters: %w", err)
+	}
+
+	platform := p.config.Parameters.Platform
+	if len(platform.Accelerators) == 0 && proto.Size(platform.Kubernetes) == 0 {
+		return compiledPipeline, nil
 	}
 
 	pipelinePackage, err := ParsePipelinePackage(compiledPipeline)
@@ -145,7 +151,6 @@ func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (r
 		return nil, fmt.Errorf("failed to parse compiled pipeline: %w", err)
 	}
 
-	platform := p.config.Parameters.Platform
 	// Accelerators go first, so their node selectors take precedence over the platform's.
 	if err := placeAccelerators(platform.Accelerators, pipelinePackage); err != nil {
 		return nil, fmt.Errorf("failed to place accelerators: %w", err)

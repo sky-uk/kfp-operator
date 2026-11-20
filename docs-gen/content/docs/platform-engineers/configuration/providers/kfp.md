@@ -88,8 +88,8 @@ Each time you create or update a pipeline, the provider changes the components t
 
 The provider rejects the upload and keeps the pipeline's existing versions if a component requests a type that isn't
 configured, or a type that a pipeline parameter sets at run time. A component that sets its own node selector may
-request any type. The provider leaves components without an accelerator request unchanged, and without
-`platform.accelerators` it uploads pipelines as compiled.
+request any type. Accelerator placement leaves components without an accelerator request unchanged, and without
+`platform` the provider uploads pipelines as compiled.
 
 See the [TFX]({{< ref "/docs/ml-engineers/frameworks/tfx.md#requesting-accelerators" >}}) and
 [KFP SDK]({{< ref "/docs/ml-engineers/frameworks/kfpsdk.md#requesting-accelerators" >}}) guides for how pipeline
