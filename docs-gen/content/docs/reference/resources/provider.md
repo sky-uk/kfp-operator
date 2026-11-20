@@ -65,6 +65,24 @@ spec:
     kfpNamespace: kubeflow
     restKfpApiUrl: http://ml-pipeline.kubeflow:8888
     kfpMultiUserMode: true
+    platform:
+      accelerators:
+        nvidia-t4:
+          resourceType: nvidia.com/gpu
+          nodeSelector:
+            nvidia.com/gpu-type: t4
+          tolerations:
+          - key: nvidia.com/gpu
+            operator: Exists
+            effect: NoSchedule
+      secretAsVolume:
+      - secretName: my-credentials
+        mountPath: /var/secrets/credentials
+      configMapAsEnv:
+      - configMapName: my-credentials-env
+        keyToEnv:
+        - configMapKey: MY_CREDENTIALS
+          envVar: MY_CREDENTIALS
   frameworks:
   - name: tfx
     image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
