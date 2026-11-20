@@ -177,7 +177,7 @@ var _ = Describe("placeAccelerators", func() {
 			`executor "exec-train" requests accelerator type "nvidia-a100", which is not configured; configured types: nvidia-l4, nvidia-t4`),
 		Entry("a type resolved at run time",
 			map[string]any{"resourceType": "{{$.inputs.parameters['pipelinechannel--gpu']}}", "resourceCount": "1"},
-			"which is only resolved at run time"),
+			"which is not configured"),
 		Entry("an invalid request",
 			map[string]any{"type": "nvidia-t4", "count": "one"},
 			`executor "exec-train" has an invalid accelerator request`),

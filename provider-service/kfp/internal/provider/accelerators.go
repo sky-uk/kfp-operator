@@ -52,12 +52,6 @@ func placeAccelerators(accelerators config.Accelerators, pipelinePackage *Pipeli
 }
 
 func unconfiguredTypeError(accelerators config.Accelerators, executor string, requested string) error {
-	if strings.Contains(requested, "{{$") {
-		return fmt.Errorf(
-			"executor %q requests accelerator type %q, which is only resolved at run time; set a fixed accelerator type",
-			executor, requested,
-		)
-	}
 	return fmt.Errorf(
 		"executor %q requests accelerator type %q, which is not configured; configured types: %s",
 		executor, requested, strings.Join(slices.Sorted(maps.Keys(accelerators)), ", "),
