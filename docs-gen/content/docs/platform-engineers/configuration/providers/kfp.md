@@ -106,10 +106,10 @@ to give every component cloud credentials from a Secret, with the path to the ke
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: google-credentials-env
+  name: my-credentials-env
   namespace: kubeflow
 data:
-  GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/google/key.json
+  MY_CREDENTIALS: /var/secrets/credentials/key.json
 ---
 apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Provider
@@ -120,13 +120,13 @@ spec:
   parameters:
     platform:
       secretAsVolume:
-      - secretName: google-credentials
-        mountPath: /var/secrets/google
+      - secretName: my-credentials
+        mountPath: /var/secrets/credentials
       configMapAsEnv:
-      - configMapName: google-credentials-env
+      - configMapName: my-credentials-env
         keyToEnv:
-        - configMapKey: GOOGLE_APPLICATION_CREDENTIALS
-          envVar: GOOGLE_APPLICATION_CREDENTIALS
+        - configMapKey: MY_CREDENTIALS
+          envVar: MY_CREDENTIALS
     # ...
 ```
 

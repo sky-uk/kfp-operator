@@ -67,10 +67,10 @@ which the KFP SDK&rsquo;s <code>kfp.kubernetes</code> module sets per component.
 to give every component cloud credentials from a Secret, with the path to the key file in an environment variable:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ConfigMap</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>metadata</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>google-credentials-env</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>my-credentials-env</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>kubeflow</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>data</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>GOOGLE_APPLICATION_CREDENTIALS</span><span class=p>:</span><span class=w> </span><span class=l>/var/secrets/google/key.json</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>MY_CREDENTIALS</span><span class=p>:</span><span class=w> </span><span class=l>/var/secrets/credentials/key.json</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nn>---</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>pipelines.kubeflow.org/v1beta1</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Provider</span><span class=w>
@@ -81,13 +81,13 @@ to give every component cloud credentials from a Secret, with the path to the ke
 </span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>parameters</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>platform</span><span class=p>:</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>secretAsVolume</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>secretName</span><span class=p>:</span><span class=w> </span><span class=l>google-credentials</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/var/secrets/google</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>secretName</span><span class=p>:</span><span class=w> </span><span class=l>my-credentials</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/var/secrets/credentials</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>configMapAsEnv</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>configMapName</span><span class=p>:</span><span class=w> </span><span class=l>google-credentials-env</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>configMapName</span><span class=p>:</span><span class=w> </span><span class=l>my-credentials-env</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>keyToEnv</span><span class=p>:</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>configMapKey</span><span class=p>:</span><span class=w> </span><span class=l>GOOGLE_APPLICATION_CREDENTIALS</span><span class=w>
-</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>envVar</span><span class=p>:</span><span class=w> </span><span class=l>GOOGLE_APPLICATION_CREDENTIALS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>configMapKey</span><span class=p>:</span><span class=w> </span><span class=l>MY_CREDENTIALS</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>envVar</span><span class=p>:</span><span class=w> </span><span class=l>MY_CREDENTIALS</span><span class=w>
 </span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c># ...</span><span class=w>
 </span></span></span></code></pre></div><p>The Secret and ConfigMap must exist in the namespace where pipeline components run.</p><p>A component keeps any setting it already has. List settings, such as <code>secretAsVolume</code> and <code>tolerations</code>, gain the items
 the component lacks. The provider places accelerators first, so an accelerator&rsquo;s node selector takes precedence over a
