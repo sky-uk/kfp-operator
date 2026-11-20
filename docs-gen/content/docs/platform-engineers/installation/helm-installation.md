@@ -275,6 +275,7 @@ The `kfp-provider-workflows` chart provisions **only namespace-scoped resources*
 | `kfp-operator-argo` | `ServiceAccount` | `argo.serviceAccount.create` | The account the Argo `Workflow` pods run as. |
 | `workflow-executor` | `Role` + `RoleBinding` | `argo.rbac.create` | Grants the Argo workflow account the in-namespace permissions its steps need (`pods` get/patch, `workflowtaskresults` create/patch). Bound to the Argo workflow `ServiceAccount`. |
 | `kfp-provider-<provider-name>` | `ServiceAccount` | `provider.create` and `provider.serviceAccount.create` | The account the provider service runs as; referenced by the `Provider` spec. |
+| `provider-config-reader` | `Role` + `RoleBinding` | `provider.create` and `provider.rbac.create` | Grants the provider service account `configmaps` get in its namespace, for configuration such as the KFP provider's `acceleratorsFrom`. |
 | `<provider-name>` | `Provider` | `provider.create` | The `Provider` custom resource itself. |
 
 ## Role-based access control (RBAC) for providers {#provider-rbac}
@@ -386,6 +387,7 @@ These are the resources the chart would otherwise create. All of them live in th
 | `workflow-executor` | `Role` | Grants the Argo workflow account `pods` (get, patch) and `argoproj.io/workflowtaskresults` (create, patch). |
 | `workflow-executor` | `RoleBinding` | Binds the `workflow-executor` `Role` to the Argo workflow `ServiceAccount`. |
 | Provider service `ServiceAccount` | `ServiceAccount` | The account the provider service runs as; referenced by the `Provider` spec. |
+| `provider-config-reader` | `Role` + `RoleBinding` | Grants the provider service account `configmaps` (get). Only needed for configuration read from ConfigMaps, such as the KFP provider's `acceleratorsFrom`. |
 | `Provider` | `Provider` | The provider custom resource. |
 | Artifact-repository credentials | `Secret` | The `accessKeySecret`/`secretKeySecret` referenced by the Argo `workflow-controller`'s `artifactRepository` configuration (for example the MinIO/S3 secret). Argo resolves it in the namespace the workflow pods run in, so a copy must exist in each provider namespace. Not managed by the chart in the Helm path either. |
 

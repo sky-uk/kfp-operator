@@ -3,6 +3,7 @@
 package config
 
 import (
+	"context"
 	"testing"
 
 	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
@@ -11,6 +12,9 @@ import (
 	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"google.golang.org/protobuf/proto"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	dynamicfake "k8s.io/client-go/dynamic/fake"
 )
 
 func TestConfig(t *testing.T) {
@@ -47,6 +51,18 @@ var _ = Describe("Platform", func() {
 		})).To(BeTrue())
 	})
 
+	It("loads acceleratorsFrom", func() {
+		GinkgoT().Setenv("PARAMETERS_PLATFORM", `{"acceleratorsFrom": {"configMapKeyRef": {"name": "accelerators", "key": "accelerators.yaml"}}}`)
+
+		cfg, err := baseConfig.LoadConfig(Config{})
+
+		Expect(err).ToNot(HaveOccurred())
+		Expect(cfg.Parameters.Platform.AcceleratorsFrom).To(Equal(&AcceleratorsSource{ConfigMapKeyRef: &corev1.ConfigMapKeySelector{
+			LocalObjectReference: corev1.LocalObjectReference{Name: "accelerators"},
+			Key:                  "accelerators.yaml",
+		}}))
+	})
+
 	DescribeTable("is empty",
 		func(setEnv func()) {
 			setEnv()
@@ -74,5 +90,55 @@ var _ = Describe("Platform", func() {
 		Entry("unknown setting", `{"secretAsVolumes": []}`, `unknown field "secretAsVolumes"`),
 		Entry("invalid setting", `{"activeDeadlineSeconds": "soon"}`, "invalid platform"),
 		Entry("invalid JSON", `{"accelerators": `, "invalid platform"),
+		Entry("acceleratorsFrom without a key", `{"acceleratorsFrom": {"configMapKeyRef": {"name": "accelerators"}}}`, "needs a configMapKeyRef with a name and a key"),
+		Entry("unknown acceleratorsFrom field", `{"acceleratorsFrom": {"configMapRef": {"name": "accelerators"}}}`, `unknown field "configMapRef"`),
+	)
+})
+
+var _ = Describe("ResolveAccelerators", func() {
+	const namespace = "kfp-operator"
+	t4 := Accelerator{ResourceType: "nvidia.com/gpu", NodeSelector: map[string]string{"nvidia.com/gpu-type": "t4"}}
+	inlineT4 := Accelerator{ResourceType: "example.com/gpu"}
+
+	configMap := func(data map[string]string) *corev1.ConfigMap {
+		return &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "accelerators", Namespace: namespace}, Data: data}
+	}
+	platformFrom := func(key string, optional bool, inline Accelerators) Platform {
+		ref := &corev1.ConfigMapKeySelector{LocalObjectReference: corev1.LocalObjectReference{Name: "accelerators"}, Key: key, Optional: &optional}
+		return Platform{Accelerators: inline, AcceleratorsFrom: &AcceleratorsSource{ConfigMapKeyRef: ref}}
+	}
+	resolve := func(platform *Platform, objects ...runtime.Object) error {
+		scheme := runtime.NewScheme()
+		Expect(corev1.AddToScheme(scheme)).To(Succeed())
+		return platform.ResolveAccelerators(context.Background(), dynamicfake.NewSimpleDynamicClient(scheme, objects...), namespace)
+	}
+	acceleratorsYAML := map[string]string{"accelerators.yaml": "nvidia-t4:\n  resourceType: nvidia.com/gpu\n  nodeSelector:\n    nvidia.com/gpu-type: t4\nnvidia-l4:\n  resourceType: nvidia.com/gpu\n"}
+
+	It("adds the ConfigMap's accelerators, which inline accelerators override", func() {
+		platform := platformFrom("accelerators.yaml", false, Accelerators{"nvidia-l4": inlineT4})
+
+		Expect(resolve(&platform, configMap(acceleratorsYAML))).To(Succeed())
+		Expect(platform.Accelerators).To(Equal(Accelerators{"nvidia-t4": t4, "nvidia-l4": inlineT4}))
+	})
+
+	It("keeps the inline accelerators when an optional ConfigMap is missing", func() {
+		platform := platformFrom("accelerators.yaml", true, Accelerators{"nvidia-l4": inlineT4})
+
+		Expect(resolve(&platform)).To(Succeed())
+		Expect(platform.Accelerators).To(Equal(Accelerators{"nvidia-l4": inlineT4}))
+	})
+
+	DescribeTable("fails",
+		func(key string, expectedErr string, objects ...runtime.Object) {
+			platform := platformFrom(key, false, nil)
+
+			Expect(resolve(&platform, objects...)).To(MatchError(ContainSubstring(expectedErr)))
+		},
+		Entry("for a missing ConfigMap", "accelerators.yaml", `failed to get accelerators ConfigMap "accelerators"`),
+		Entry("for a missing key", "other.yaml", `has no key "other.yaml"`, configMap(acceleratorsYAML)),
+		Entry("for an accelerator without resourceType", "accelerators.yaml", `accelerator "nvidia-t4" has no resourceType`,
+			configMap(map[string]string{"accelerators.yaml": "nvidia-t4:\n  nodeSelector: {}\n"})),
+		Entry("for an unknown field", "accelerators.yaml", `unknown field "nodeSelectors"`,
+			configMap(map[string]string{"accelerators.yaml": "nvidia-t4:\n  resourceType: nvidia.com/gpu\n  nodeSelectors: {}\n"})),
 	)
 })

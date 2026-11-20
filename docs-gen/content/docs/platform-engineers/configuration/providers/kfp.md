@@ -80,6 +80,53 @@ spec:
 | `platform.accelerators.<type>.nodeSelector`  | Labels of the nodes Kubernetes schedules the component onto                                                                     |
 | `platform.accelerators.<type>.tolerations[]` | [Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) the provider adds to the component |
 
+To share accelerators between Providers, or manage them separately, keep them in a ConfigMap in the Provider's namespace
+and reference it with `platform.acceleratorsFrom`:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: accelerators
+  namespace: kfp-operator
+data:
+  accelerators.yaml: |
+    nvidia-t4:
+      resourceType: nvidia.com/gpu
+      nodeSelector:
+        nvidia.com/gpu-type: t4
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+---
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Provider
+metadata:
+  name: kfp
+  namespace: kfp-operator
+spec:
+  parameters:
+    platform:
+      acceleratorsFrom:
+        configMapKeyRef:
+          name: accelerators
+          key: accelerators.yaml
+    # ...
+```
+
+| Field                                                 | Description                                                                                         |
+|-------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| `platform.acceleratorsFrom.configMapKeyRef.name`      | Required. The ConfigMap in the Provider's namespace                                                 |
+| `platform.acceleratorsFrom.configMapKeyRef.key`       | Required. The key holding the accelerators, in the same format as `platform.accelerators`           |
+| `platform.acceleratorsFrom.configMapKeyRef.optional`  | When `true`, the provider starts without the ConfigMap's accelerators if the ConfigMap or key is missing |
+
+The provider service reads the ConfigMap when it starts, so restart it after changing the ConfigMap. You can set both
+`accelerators` and `acceleratorsFrom`; if both define a type, the one in `accelerators` wins. The provider service's
+`ServiceAccount` needs permission to get ConfigMaps in its namespace, which the
+[`kfp-provider-workflows` chart]({{< ref "/docs/platform-engineers/installation/helm-installation.md#provider-workflows-resources" >}})
+grants.
+
 Each time you create or update a pipeline, the provider changes the components that request an accelerator:
 
 - It replaces the requested type with the type's `resourceType` and keeps the count.

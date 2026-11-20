@@ -129,7 +129,7 @@ spec:
 | `parameters.restKfpApiUrl`            | The exposed restful endpoint used to interact with Kubeflow pipelines     |
 | `parameters.defaultExperiment`        | Experiment name used for runs and run-schedules that do not specify one   |
 | `parameters.kfpMultiUserMode`         | Enables Kubeflow Pipelines multi-user mode. When `true`, a bearer token must be supplied as a projected `ServiceAccount` token mounted at `/var/run/secrets/kfp/token` (as shown in the `podTemplateVolumes` / `podTemplateVolumeMounts` above). Defaults to `false`. |
-| `parameters.platform`                 | Settings the provider adds to pipeline components: `accelerators`, which maps the accelerator types components request to Kubernetes resources, node selectors and tolerations, and Kubeflow Pipelines' Kubernetes executor settings, such as `secretAsVolume`. See [Platform Settings]({{< ref "/docs/platform-engineers/configuration/providers/kfp.md#platform-settings" >}}). Unset by default. |
+| `parameters.platform`                 | Settings the provider adds to pipeline components: `accelerators`, which maps the accelerator types components request to Kubernetes resources, node selectors and tolerations, `acceleratorsFrom`, which reads more accelerators from a ConfigMap, and Kubeflow Pipelines' Kubernetes executor settings, such as `secretAsVolume`. See [Platform Settings]({{< ref "/docs/platform-engineers/configuration/providers/kfp.md#platform-settings" >}}). Unset by default. |
 
 ### Vertex AI
 
