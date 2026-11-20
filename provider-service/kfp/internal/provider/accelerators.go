@@ -9,8 +9,10 @@ import (
 
 	"github.com/kubeflow/pipelines/api/v2alpha1/go/pipelinespec"
 	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/protobuf/types/known/structpb"
+	corev1 "k8s.io/api/core/v1"
 	k8sresource "k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -59,18 +61,19 @@ func unconfiguredTypeError(accelerators config.Accelerators, executor string, re
 }
 
 func placement(accelerator config.Accelerator) *kubernetesplatform.KubernetesExecutorConfig {
-	settings := &kubernetesplatform.KubernetesExecutorConfig{}
+	settings := &kubernetesplatform.KubernetesExecutorConfig{
+		Tolerations: lo.Map(accelerator.Tolerations, func(t corev1.Toleration, _ int) *kubernetesplatform.Toleration {
+			return &kubernetesplatform.Toleration{
+				Key:               t.Key,
+				Operator:          string(t.Operator),
+				Value:             t.Value,
+				Effect:            string(t.Effect),
+				TolerationSeconds: t.TolerationSeconds,
+			}
+		}),
+	}
 	if len(accelerator.NodeSelector) > 0 {
 		settings.NodeSelector = &kubernetesplatform.NodeSelector{Labels: accelerator.NodeSelector}
-	}
-	for _, t := range accelerator.Tolerations {
-		settings.Tolerations = append(settings.Tolerations, &kubernetesplatform.Toleration{
-			Key:               t.Key,
-			Operator:          string(t.Operator),
-			Value:             t.Value,
-			Effect:            string(t.Effect),
-			TolerationSeconds: t.TolerationSeconds,
-		})
 	}
 	return settings
 }
