@@ -4,6 +4,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
+	"sigs.k8s.io/yaml"
 )
 
 var _ = Describe("Provider", func() {
@@ -189,24 +191,21 @@ schemaVersion: 2.1.0
 		invalidPdw := pdw
 		invalidPdw.CompiledPipeline = resource.CompiledPipeline("unknownField: true\n")
 
-		BeforeEach(func() {
-			labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys)
-		})
-
 		Context("CreatePipeline", func() {
 			It("should return id if pipeline is created", func() {
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result).To(Equal(id))
-				labelService.AssertCalled(GinkgoT(), "InsertLabelsIntoParameters", mock.Anything, label.LabelKeys)
 			})
 
 			It("should upload the same prepared pipeline as the pipeline and its version", func() {
 				provider.config.Parameters.Platform.Accelerators = config.Accelerators{"nvidia-t4": {ResourceType: "nvidia.com/gpu"}}
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(gpuPdw.CompiledPipeline, nil)
 				prepared, err := provider.preparePipeline(gpuPdw)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(prepared)).To(ContainSubstring("resourceType: nvidia.com/gpu"))
@@ -229,6 +228,7 @@ schemaVersion: 2.1.0
 						SecretAsVolume: []*kubernetesplatform.SecretAsVolume{{SecretName: "cloud-credentials", MountPath: "/var/secrets/cloud"}},
 					},
 				}
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(gpuPdw.CompiledPipeline, nil)
 
 				prepared, err := provider.preparePipeline(gpuPdw)
 
@@ -248,6 +248,7 @@ schemaVersion: 2.1.0
 			})
 
 			It("should return err without uploading if the compiled pipeline is invalid", func() {
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(invalidPdw.CompiledPipeline, nil)
 				result, err := provider.CreatePipeline(ctx, invalidPdw)
 
 				Expect(err).To(MatchError(ContainSubstring("failed to parse compiled pipeline")))
@@ -257,6 +258,7 @@ schemaVersion: 2.1.0
 
 			It("should return err if UploadPipeline fails", func() {
 				expectedErr := errors.New("failed")
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return("", expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
@@ -266,6 +268,7 @@ schemaVersion: 2.1.0
 
 			It("should return err if DeletePipelineVersions fails", func() {
 				expectedErr := errors.New("failed")
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
@@ -276,6 +279,7 @@ schemaVersion: 2.1.0
 
 			It("should return err if UploadPipelineVersion fails", func() {
 				expectedErr := errors.New("failed")
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(expectedErr)
@@ -290,11 +294,11 @@ schemaVersion: 2.1.0
 			It("should return id if pipeline versions are cleaned up and version is updated", func() {
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				result, err := provider.UpdatePipeline(ctx, pdw, id)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result).To(Equal(id))
-				labelService.AssertCalled(GinkgoT(), "InsertLabelsIntoParameters", mock.Anything, label.LabelKeys)
 			})
 
 			When("an accelerator type is not configured", func() {
@@ -303,6 +307,7 @@ schemaVersion: 2.1.0
 						Accelerators: config.Accelerators{"nvidia-l4": {ResourceType: "nvidia.com/gpu"}},
 						Kubernetes:   &kubernetesplatform.KubernetesExecutorConfig{NodeSelector: &kubernetesplatform.NodeSelector{Labels: map[string]string{"example.com/pool": "general"}}},
 					}
+					labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(gpuPdw.CompiledPipeline, nil)
 					result, err := provider.UpdatePipeline(ctx, gpuPdw, id)
 
 					Expect(err).To(MatchError(ContainSubstring("failed to place accelerators")))
@@ -315,6 +320,7 @@ schemaVersion: 2.1.0
 				It("should return empty id and err", func() {
 					expectedErr := errors.New("failed")
 					pipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
+					labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
 					Expect(err).To(Equal(fmt.Errorf("failed to delete pipeline versions %s", expectedErr)))
@@ -327,6 +333,7 @@ schemaVersion: 2.1.0
 					expectedErr := errors.New("failed")
 					pipelineService.On("DeletePipelineVersions", id).Return(nil)
 					pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(expectedErr)
+					labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
@@ -614,6 +621,47 @@ schemaVersion: 2.1.0
 					Expect(err).To(Equal(expectedErr))
 				})
 			})
+		})
+	})
+
+	Context("unwrapTFXPipeline", func() {
+		It("should unwrap the Vertex PipelineJob envelope for TFX frameworks (case-insensitive)", func() {
+			innerSpec := map[string]any{
+				"pipelineInfo": map[string]any{"name": "test-pipeline"},
+				"root":         map[string]any{},
+			}
+			wrapper := map[string]any{
+				"displayName":   "test-pipeline",
+				"pipelineSpec":  innerSpec,
+				"runtimeConfig": map[string]any{},
+			}
+			compiled, _ := json.Marshal(wrapper)
+
+			result, err := unwrapTFXPipeline(resource.CompiledPipeline(compiled), "TfX")
+			Expect(err).ToNot(HaveOccurred())
+
+			var got map[string]any
+			Expect(yaml.Unmarshal(result, &got)).To(Succeed())
+			Expect(got).To(Equal(innerSpec))
+		})
+
+		It("should return the compiled pipeline unchanged for non-TFX frameworks", func() {
+			pipelineSpec := map[string]any{
+				"pipelineInfo": map[string]any{"name": "test"},
+			}
+			compiled, _ := json.Marshal(pipelineSpec)
+
+			result, err := unwrapTFXPipeline(resource.CompiledPipeline(compiled), "kfpsdk")
+			Expect(err).ToNot(HaveOccurred())
+			Expect([]byte(result)).To(MatchJSON(compiled))
+		})
+
+		It("should preserve a trailing PlatformSpec document for non-TFX frameworks", func() {
+			compiled := resource.CompiledPipeline("schemaVersion: 2.1.0\n---\nplatforms:\n  kubernetes:\n    a: b\n")
+
+			result, err := unwrapTFXPipeline(compiled, "kfpsdk")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(compiled))
 		})
 	})
 

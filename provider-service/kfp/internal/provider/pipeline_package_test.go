@@ -61,7 +61,7 @@ const platformSpecYAML = `platforms:
             operator: Exists
 `
 
-func decodeYAMLDocuments(compiled resource.CompiledPipeline) []map[string]any {
+func yamlDocuments(compiled resource.CompiledPipeline) []map[string]any {
 	GinkgoHelper()
 
 	decoder := yamlv3.NewDecoder(bytes.NewReader(compiled))
@@ -79,22 +79,17 @@ func decodeYAMLDocuments(compiled resource.CompiledPipeline) []map[string]any {
 
 var _ = Describe("PipelinePackage", func() {
 	Context("ParsePipelinePackage", func() {
-		DescribeTable("parses a pipeline spec, unwrapping the PipelineJob TFX emits",
-			func(compiled string, frameworkName string) {
-				pipelinePackage, err := ParsePipelinePackage(resource.CompiledPipeline(compiled), frameworkName)
+		It("parses a pipeline spec", func() {
+			pipelinePackage, err := ParsePipelinePackage(resource.CompiledPipeline(pipelineSpecYAML))
 
-				Expect(err).ToNot(HaveOccurred())
-				Expect(pipelinePackage.PipelineSpec.GetPipelineInfo().GetName()).To(Equal("training"))
-				Expect(pipelinePackage.PlatformSpec).To(BeNil())
-			},
-			Entry("KFP SDK", pipelineSpecYAML, "kfpsdk"),
-			Entry("TFX without a PipelineJob", pipelineSpecYAML, "tfx"),
-			Entry("TFX with a PipelineJob, in any casing", `{"pipelineSpec": {"pipelineInfo": {"name": "training"}, "root": {}}}`, "TfX"),
-		)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(pipelinePackage.PipelineSpec.GetPipelineInfo().GetName()).To(Equal("training"))
+			Expect(pipelinePackage.PlatformSpec).To(BeNil())
+		})
 
 		DescribeTable("rejects compiler output the Kubeflow Pipelines API server would reject",
 			func(compiled string, expectedErr string) {
-				pipelinePackage, err := ParsePipelinePackage(resource.CompiledPipeline(compiled), "kfpsdk")
+				pipelinePackage, err := ParsePipelinePackage(resource.CompiledPipeline(compiled))
 
 				Expect(err).To(MatchError(ContainSubstring(expectedErr)))
 				Expect(pipelinePackage).To(BeNil())
@@ -103,7 +98,7 @@ var _ = Describe("PipelinePackage", func() {
 			Entry("only comments", "# PIPELINE DEFINITION\n", "compiled pipeline is empty"),
 			Entry("invalid YAML", "root: [unclosed", "failed to decode compiled pipeline"),
 			Entry("not a mapping", "- a\n- b\n", "invalid pipeline spec"),
-			Entry("a PipelineJob from another framework", "pipelineSpec:\n  pipelineInfo:\n    name: training\n", "invalid pipeline spec"),
+			Entry("a PipelineJob", "pipelineSpec:\n  pipelineInfo:\n    name: training\n", "invalid pipeline spec"),
 			Entry("unknown pipeline spec field", "unknownField: true\n", "invalid pipeline spec"),
 			Entry("unknown platform spec field", pipelineSpecYAML+"---\nunknownField: true\n", "invalid platform spec"),
 			Entry("more than two documents", pipelineSpecYAML+"---\n"+platformSpecYAML+"---\n"+platformSpecYAML, "got 3 documents"),
@@ -112,7 +107,7 @@ var _ = Describe("PipelinePackage", func() {
 
 	Context("Marshal", func() {
 		It("writes the pipeline and platform spec so they parse back unchanged", func() {
-			original, err := ParsePipelinePackage(resource.CompiledPipeline(pipelineSpecYAML+"---\n"+platformSpecYAML), "kfpsdk")
+			original, err := ParsePipelinePackage(resource.CompiledPipeline(pipelineSpecYAML + "---\n" + platformSpecYAML))
 			Expect(err).ToNot(HaveOccurred())
 
 			marshalled, err := original.Marshal()
@@ -120,11 +115,11 @@ var _ = Describe("PipelinePackage", func() {
 
 			var platformSpec map[string]any
 			Expect(yamlv3.Unmarshal([]byte(platformSpecYAML), &platformSpec)).To(Succeed())
-			documents := decodeYAMLDocuments(marshalled)
+			documents := yamlDocuments(marshalled)
 			Expect(documents).To(HaveLen(2))
 			Expect(documents[1]).To(Equal(platformSpec))
 
-			roundTripped, err := ParsePipelinePackage(marshalled, "kfpsdk")
+			roundTripped, err := ParsePipelinePackage(marshalled)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(proto.Equal(roundTripped.PipelineSpec, original.PipelineSpec)).To(BeTrue())
 		})
@@ -146,12 +141,12 @@ var _ = Describe("PipelinePackage", func() {
 			})
 			Expect(err).ToNot(HaveOccurred())
 
-			pipelinePackage, err := ParsePipelinePackage(compiled, "kfpsdk")
+			pipelinePackage, err := ParsePipelinePackage(compiled)
 			Expect(err).ToNot(HaveOccurred())
 			marshalled, err := pipelinePackage.Marshal()
 			Expect(err).ToNot(HaveOccurred())
 
-			documents := decodeYAMLDocuments(marshalled)
+			documents := yamlDocuments(marshalled)
 			Expect(documents).To(HaveLen(1))
 			Expect(documents[0]).To(HaveKeyWithValue("deploymentSpec", map[string]any{"executors": map[string]any{
 				"exec-train": map[string]any{"container": map[string]any{"image": "trainer", "command": command}},

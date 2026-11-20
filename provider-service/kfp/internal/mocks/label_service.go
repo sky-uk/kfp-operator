@@ -3,7 +3,9 @@
 package mocks
 
 import (
-	"github.com/kubeflow/pipelines/api/v2alpha1/go/pipelinespec"
+	"fmt"
+
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -12,8 +14,12 @@ type MockLabelService struct {
 }
 
 func (m *MockLabelService) InsertLabelsIntoParameters(
-	pipelineSpec *pipelinespec.PipelineSpec,
+	pipeline resource.CompiledPipeline,
 	labels []string,
-) {
-	m.Called(pipelineSpec, labels)
+) (resource.CompiledPipeline, error) {
+	args := m.Called(pipeline, labels)
+	if args.Get(0) != nil {
+		return args.Get(0).(resource.CompiledPipeline), args.Error(1)
+	}
+	return nil, fmt.Errorf("no return value set")
 }

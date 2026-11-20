@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/go-openapi/runtime"
 	"github.com/sky-uk/kfp-operator/pkg/common"
@@ -15,6 +16,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/yaml"
 )
 
 type KfpProvider struct {
@@ -97,13 +99,51 @@ func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 
 var _ resource.Provider = &KfpProvider{}
 
+// unwrapTFXPipeline strips the Vertex AI PipelineJob envelope that the TFX SDK
+// emits, returning the nested PipelineSpec. For all other frameworks the
+// compiled pipeline is returned unchanged, preserving any trailing PlatformSpec
+// document.
+func unwrapTFXPipeline(
+	compiledPipeline resource.CompiledPipeline,
+	frameworkName string,
+) (resource.CompiledPipeline, error) {
+	if strings.ToLower(frameworkName) != "tfx" {
+		return compiledPipeline, nil
+	}
+
+	var wrapper map[string]any
+	if err := yaml.Unmarshal(compiledPipeline, &wrapper); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal TFX pipeline spec: %w", err)
+	}
+
+	pipelineSpec, ok := wrapper["pipelineSpec"]
+	if !ok {
+		// No wrapper detected, return as-is (already a bare pipelineSpec)
+		return compiledPipeline, nil
+	}
+
+	encoded, err := yaml.Marshal(pipelineSpec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode TFX pipeline spec: %w", err)
+	}
+	return resource.CompiledPipeline(encoded), nil
+}
+
 func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (resource.CompiledPipeline, error) {
-	pipelinePackage, err := ParsePipelinePackage(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	compiledPipeline, err := unwrapTFXPipeline(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
+	}
+
+	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert labels into parameters %v", err)
+	}
+
+	pipelinePackage, err := ParsePipelinePackage(compiledPipeline)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse compiled pipeline: %w", err)
 	}
-
-	p.labelService.InsertLabelsIntoParameters(pipelinePackage.PipelineSpec, label.LabelKeys)
 
 	platform := p.config.Parameters.Platform
 	// Accelerators go first, so their node selectors take precedence over the platform's.

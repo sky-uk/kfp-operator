@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/kubeflow/pipelines/api/v2alpha1/go/pipelinespec"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -23,7 +22,7 @@ type PipelinePackage struct {
 	PlatformSpec *pipelinespec.PlatformSpec
 }
 
-func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName string) (*PipelinePackage, error) {
+func ParsePipelinePackage(compiled resource.CompiledPipeline) (*PipelinePackage, error) {
 	documents, err := decodeJSONDocuments(compiled)
 	if err != nil {
 		return nil, err
@@ -38,15 +37,8 @@ func ParsePipelinePackage(compiled resource.CompiledPipeline, frameworkName stri
 		)
 	}
 
-	pipelineSpecJSON := documents[0]
-	if strings.EqualFold(frameworkName, "tfx") {
-		if pipelineSpecJSON, err = unwrapPipelineJob(pipelineSpecJSON); err != nil {
-			return nil, err
-		}
-	}
-
 	pipelinePackage := &PipelinePackage{PipelineSpec: &pipelinespec.PipelineSpec{}}
-	if err := protojson.Unmarshal(pipelineSpecJSON, pipelinePackage.PipelineSpec); err != nil {
+	if err := protojson.Unmarshal(documents[0], pipelinePackage.PipelineSpec); err != nil {
 		return nil, fmt.Errorf("invalid pipeline spec: %w", err)
 	}
 
@@ -106,18 +98,6 @@ func decodeJSONDocuments(compiled []byte) ([][]byte, error) {
 		}
 		documents = append(documents, asJSON)
 	}
-}
-
-func unwrapPipelineJob(document []byte) ([]byte, error) {
-	var pipelineJob map[string]json.RawMessage
-	if err := json.Unmarshal(document, &pipelineJob); err != nil {
-		return nil, fmt.Errorf("invalid pipeline spec: %w", err)
-	}
-	pipelineSpec, isWrapped := pipelineJob["pipelineSpec"]
-	if !isWrapped {
-		return document, nil
-	}
-	return pipelineSpec, nil
 }
 
 func nestedStruct(s *structpb.Struct, keys ...string) *structpb.Struct {
