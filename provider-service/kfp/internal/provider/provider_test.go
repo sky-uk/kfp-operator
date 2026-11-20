@@ -248,12 +248,22 @@ schemaVersion: 2.1.0
 			})
 
 			It("should return err without uploading if the compiled pipeline is invalid", func() {
+				provider.config.Parameters.Platform.Accelerators = config.Accelerators{"nvidia-t4": {ResourceType: "nvidia.com/gpu"}}
 				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(invalidPdw.CompiledPipeline, nil)
 				result, err := provider.CreatePipeline(ctx, invalidPdw)
 
 				Expect(err).To(MatchError(ContainSubstring("failed to parse compiled pipeline")))
 				Expect(result).To(BeEmpty())
 				pipelineUploadService.AssertNotCalled(GinkgoT(), "UploadPipeline", mock.Anything, mock.Anything)
+			})
+
+			It("should not parse the pipeline without platform settings", func() {
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(invalidPdw.CompiledPipeline, nil)
+
+				prepared, err := provider.preparePipeline(invalidPdw)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(prepared).To(Equal(invalidPdw.CompiledPipeline))
 			})
 
 			It("should return err if UploadPipeline fails", func() {
