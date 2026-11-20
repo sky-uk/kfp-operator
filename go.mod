@@ -24,8 +24,8 @@ require (
 	github.com/hashicorp/go-bexpr v0.1.17
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/kubeflow/pipelines v0.0.0-20250902140602-fc3214d4b4d3
-	github.com/kubeflow/pipelines/api v0.0.0-20250102152816-873e9dedd766
-	github.com/kubeflow/pipelines/kubernetes_platform v0.0.0-20240725205754-d911c8b73b49
+	github.com/kubeflow/pipelines/api v0.0.0-20261119032618-d58c9580d7e8
+	github.com/kubeflow/pipelines/kubernetes_platform v0.0.0-20261119032618-d58c9580d7e8
 	github.com/nats-io/nats.go v1.55.0
 	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
