@@ -63,6 +63,16 @@ func main() {
 		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName)
 		panic(err)
 	}
+
+	k8sClient, err := pkg.NewK8sClient()
+	if err != nil {
+		panic(err)
+	}
+
+	if err := kfpProviderConfig.Parameters.Platform.ResolveAccelerators(ctx, k8sClient.Client, serviceConfig.ProviderName.Namespace); err != nil {
+		logger.Error(err, "failed to load accelerators", "provider", serviceConfig.ProviderName)
+		panic(err)
+	}
 	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", serviceConfig.ProviderName)
 
 	g, ctx := errgroup.WithContext(ctx)
@@ -76,11 +86,6 @@ func main() {
 			return server.Start(ctx, *serviceConfig, provider)
 		},
 	)
-
-	k8sClient, err := pkg.NewK8sClient()
-	if err != nil {
-		panic(err)
-	}
 
 	g.Go(
 		func() error {

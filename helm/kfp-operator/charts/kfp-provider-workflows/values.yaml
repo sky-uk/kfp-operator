@@ -48,6 +48,9 @@ provider:
     create: true
     # -- [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the provider service `ServiceAccount`
     metadata: {}
+  rbac:
+    # -- Create the namespace-scoped `provider-config-reader` `Role` and its `RoleBinding`, which let the provider service read ConfigMaps in its namespace, such as the KFP provider's `acceleratorsFrom`. Set to `false` to manage these resources externally
+    create: true
   # -- Provider service image. Required when `provider.create` is `true`
   serviceImage: ""
   # -- Pipeline root storage location. Required when `provider.create` is `true`
