@@ -7,6 +7,7 @@ import (
 
 	"github.com/kubeflow/pipelines/api/v2alpha1/go/pipelinespec"
 	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
+	"github.com/samber/lo"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -55,11 +56,10 @@ func (p *PipelinePackage) MergeKubernetesExecutorConfig(
 			if items == nil {
 				return fmt.Errorf("%s is not a list", name)
 			}
-			for _, item := range addition.GetListValue().GetValues() {
-				if !slices.ContainsFunc(items.Values, func(v *structpb.Value) bool { return proto.Equal(v, item) }) {
-					items.Values = append(items.Values, item)
-				}
-			}
+			missing := lo.Reject(addition.GetListValue().GetValues(), func(item *structpb.Value, _ int) bool {
+				return lo.ContainsBy(items.Values, func(v *structpb.Value) bool { return proto.Equal(v, item) })
+			})
+			items.Values = append(items.Values, missing...)
 		}
 	}
 	return nil
@@ -83,12 +83,10 @@ func (p *PipelinePackage) MergeKubernetesExecutorConfigIntoContainers(settings *
 
 // kubernetesField checks both names, as protojson accepts either.
 func kubernetesField(executorConfig *structpb.Struct, field protoreflect.FieldDescriptor) (string, *structpb.Value) {
-	for _, name := range []string{field.JSONName(), string(field.Name())} {
-		if value, isSet := executorConfig.Fields[name]; isSet {
-			return name, value
-		}
-	}
-	return field.JSONName(), nil
+	name := lo.FindOrElse([]string{field.JSONName(), string(field.Name())}, field.JSONName(), func(name string) bool {
+		return lo.HasKey(executorConfig.Fields, name)
+	})
+	return name, executorConfig.Fields[name]
 }
 
 func (p *PipelinePackage) kubernetesExecutorStruct(executor string) *structpb.Struct {

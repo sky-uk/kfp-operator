@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
+	"github.com/samber/lo"
 	"google.golang.org/protobuf/encoding/protojson"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/yaml"
@@ -62,10 +63,10 @@ func (p *Platform) UnmarshalText(text []byte) error {
 		}
 		delete(fields, acceleratorsField)
 	}
-	for name, accelerator := range decoded.Accelerators {
-		if accelerator.ResourceType == "" {
-			return fmt.Errorf("invalid platform: accelerator %q has no resourceType", name)
-		}
+	if name, hasNoResourceType := lo.FindKeyBy(decoded.Accelerators, func(_ string, accelerator Accelerator) bool {
+		return accelerator.ResourceType == ""
+	}); hasNoResourceType {
+		return fmt.Errorf("invalid platform: accelerator %q has no resourceType", name)
 	}
 
 	settings, err := json.Marshal(fields)
