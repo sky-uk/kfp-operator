@@ -41,9 +41,9 @@ To request an accelerator, such as a GPU, call `set_accelerator_type` and `set_a
 train(epochs=epochs).set_accelerator_type("nvidia-t4").set_accelerator_limit(1)
 ```
 
-On Kubeflow Pipelines, use one of the accelerator types your platform team
+On Kubeflow Pipelines, use one of the accelerator types
 [configured on the Provider]({{< ref "/docs/platform-engineers/configuration/providers/kfp.md#accelerator-placement" >}}).
-The provider schedules the task onto matching nodes. If your platform team has not configured the type, the Pipeline
+The provider schedules the task onto matching nodes. If the type is not configured on your platform, the Pipeline
 fails to create or update. A task that sets its own node selector with `kfp.kubernetes.add_node_selector` may request
 any type.
 

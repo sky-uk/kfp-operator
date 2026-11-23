@@ -46,9 +46,9 @@ trainer = Trainer(...).with_platform_config(
 )
 ```
 
-On Kubeflow Pipelines, set `resource_type` to one of the accelerator types your platform team
+On Kubeflow Pipelines, set `resource_type` to one of the accelerator types
 [configured on the Provider]({{< ref "/docs/platform-engineers/configuration/providers/kfp.md#accelerator-placement" >}}).
-The provider schedules the component onto matching nodes. If your platform team has not configured the type, the
+The provider schedules the component onto matching nodes. If the type is not configured on your platform, the
 Pipeline fails to create or update.
 
 ## Component naming
