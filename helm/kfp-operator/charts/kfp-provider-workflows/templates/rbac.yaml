@@ -46,3 +46,32 @@ subjects:
     name: {{ .Values.argo.serviceAccount.name }}
     namespace: {{ include "kfp-provider-workflows.namespace" . }}
 {{- end }}
+{{- if and .Values.provider.create .Values.provider.rbac.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: provider-config-reader
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: provider-config-reader
+  namespace: {{ include "kfp-provider-workflows.namespace" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: provider-config-reader
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kfp-provider-workflows.providerServiceAccountName" . }}
+    namespace: {{ include "kfp-provider-workflows.namespace" . }}
+{{- end }}

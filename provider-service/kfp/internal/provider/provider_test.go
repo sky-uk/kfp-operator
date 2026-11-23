@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/stretchr/testify/mock"
@@ -161,10 +162,34 @@ var _ = Describe("Provider", func() {
 	Context("Pipeline", func() {
 		const id = "pipeline-id"
 		pdw := testutil.RandomPipelineDefinitionWrapper()
+		pdw.CompiledPipeline = resource.CompiledPipeline(`pipelineInfo:
+  name: test
+root: {}
+schemaVersion: 2.1.0
+`)
 		version := pdw.PipelineDefinition.Version
 		nsnStr, err := util.ResourceNameFromNamespacedName(pdw.PipelineDefinition.Name)
 
 		Expect(err).ToNot(HaveOccurred())
+
+		gpuPdw := pdw
+		gpuPdw.CompiledPipeline = resource.CompiledPipeline(`deploymentSpec:
+  executors:
+    exec-train:
+      container:
+        image: trainer
+        resources:
+          accelerator:
+            resourceCount: '1'
+            resourceType: nvidia-t4
+pipelineInfo:
+  name: test
+root: {}
+schemaVersion: 2.1.0
+`)
+
+		invalidPdw := pdw
+		invalidPdw.CompiledPipeline = resource.CompiledPipeline("unknownField: true\n")
 
 		Context("CreatePipeline", func() {
 			It("should return id if pipeline is created", func() {
@@ -178,6 +203,41 @@ var _ = Describe("Provider", func() {
 				Expect(result).To(Equal(id))
 			})
 
+			It("should upload the same prepared pipeline as the pipeline and its version", func() {
+				provider.config.Parameters.Platform.Accelerators = config.Accelerators{"nvidia-t4": {ResourceType: "nvidia.com/gpu"}}
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(gpuPdw.CompiledPipeline, nil)
+				prepared, err := provider.preparePipeline(gpuPdw)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(prepared)).To(ContainSubstring("resourceType: nvidia.com/gpu"))
+
+				pipelineUploadService.On("UploadPipeline", []byte(prepared), nsnStr).Return(id, nil)
+				pipelineService.On("DeletePipelineVersions", id).Return(nil)
+				pipelineUploadService.On("UploadPipelineVersion", id, []byte(prepared), version).Return(nil)
+				result, err := provider.CreatePipeline(ctx, gpuPdw)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(result).To(Equal(id))
+				pipelineUploadService.AssertExpectations(GinkgoT())
+			})
+
+			It("should place accelerators before applying the platform settings", func() {
+				provider.config.Parameters.Platform = config.Platform{
+					Accelerators: config.Accelerators{"nvidia-t4": {ResourceType: "nvidia.com/gpu", NodeSelector: map[string]string{"example.com/gpu-type": "t4"}}},
+					Kubernetes: &kubernetesplatform.KubernetesExecutorConfig{
+						NodeSelector:   &kubernetesplatform.NodeSelector{Labels: map[string]string{"example.com/pool": "general"}},
+						SecretAsVolume: []*kubernetesplatform.SecretAsVolume{{SecretName: "cloud-credentials", MountPath: "/var/secrets/cloud"}},
+					},
+				}
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(gpuPdw.CompiledPipeline, nil)
+
+				prepared, err := provider.preparePipeline(gpuPdw)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(string(prepared)).To(ContainSubstring("example.com/gpu-type: t4"))
+				Expect(string(prepared)).ToNot(ContainSubstring("example.com/pool"))
+				Expect(string(prepared)).To(ContainSubstring("secretName: cloud-credentials"))
+			})
+
 			It("should return err if namespace / name is invalid", func() {
 				copyPipeline := pdw
 				copyPipeline.PipelineDefinition.Name.Name = ""
@@ -185,6 +245,25 @@ var _ = Describe("Provider", func() {
 
 				Expect(err).To(HaveOccurred())
 				Expect(result).To(BeEmpty())
+			})
+
+			It("should return err without uploading if the compiled pipeline is invalid", func() {
+				provider.config.Parameters.Platform.Accelerators = config.Accelerators{"nvidia-t4": {ResourceType: "nvidia.com/gpu"}}
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(invalidPdw.CompiledPipeline, nil)
+				result, err := provider.CreatePipeline(ctx, invalidPdw)
+
+				Expect(err).To(MatchError(ContainSubstring("failed to parse compiled pipeline")))
+				Expect(result).To(BeEmpty())
+				pipelineUploadService.AssertNotCalled(GinkgoT(), "UploadPipeline", mock.Anything, mock.Anything)
+			})
+
+			It("should not parse the pipeline without platform settings", func() {
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(invalidPdw.CompiledPipeline, nil)
+
+				prepared, err := provider.preparePipeline(invalidPdw)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(prepared).To(Equal(invalidPdw.CompiledPipeline))
 			})
 
 			It("should return err if UploadPipeline fails", func() {
@@ -232,10 +311,26 @@ var _ = Describe("Provider", func() {
 				Expect(result).To(Equal(id))
 			})
 
+			When("an accelerator type is not configured", func() {
+				It("should return err and keep the existing pipeline versions", func() {
+					provider.config.Parameters.Platform = config.Platform{
+						Accelerators: config.Accelerators{"nvidia-l4": {ResourceType: "nvidia.com/gpu"}},
+						Kubernetes:   &kubernetesplatform.KubernetesExecutorConfig{NodeSelector: &kubernetesplatform.NodeSelector{Labels: map[string]string{"example.com/pool": "general"}}},
+					}
+					labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(gpuPdw.CompiledPipeline, nil)
+					result, err := provider.UpdatePipeline(ctx, gpuPdw, id)
+
+					Expect(err).To(MatchError(ContainSubstring("failed to place accelerators")))
+					Expect(result).To(BeEmpty())
+					pipelineService.AssertNotCalled(GinkgoT(), "DeletePipelineVersions", mock.Anything)
+				})
+			})
+
 			When("DeletePipelineVersions errors", func() {
 				It("should return empty id and err", func() {
 					expectedErr := errors.New("failed")
 					pipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
+					labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
 					Expect(err).To(Equal(fmt.Errorf("failed to delete pipeline versions %s", expectedErr)))

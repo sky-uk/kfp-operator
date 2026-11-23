@@ -1,0 +1,143 @@
+//go:build unit
+
+package provider
+
+import (
+	"encoding/json"
+
+	"github.com/kubeflow/pipelines/kubernetes_platform/go/kubernetesplatform"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"google.golang.org/protobuf/types/known/structpb"
+)
+
+func kubernetesPlatformSpec(executors map[string]any) string {
+	GinkgoHelper()
+
+	platformSpec, err := json.Marshal(map[string]any{
+		"platforms": map[string]any{"kubernetes": map[string]any{"deploymentSpec": map[string]any{"executors": executors}}},
+	})
+	Expect(err).ToNot(HaveOccurred())
+	return string(platformSpec)
+}
+
+var _ = Describe("Kubernetes executor settings", func() {
+	poolSelector := map[string]any{"labels": map[string]any{"example.com/pool": "training"}}
+
+	Context("KubernetesExecutorConfig", func() {
+		It("reads settings under their JSON or proto names", func() {
+			pipelinePackage := trainingPipeline(nil, kubernetesPlatformSpec(map[string]any{
+				"exec-train": map[string]any{"nodeSelector": poolSelector, "active_deadline_seconds": "600"},
+			}))
+
+			settings, err := pipelinePackage.KubernetesExecutorConfig("exec-train")
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(settings.GetNodeSelector().GetLabels()).To(Equal(map[string]string{"example.com/pool": "training"}))
+			Expect(settings.GetActiveDeadlineSeconds()).To(Equal(int64(600)))
+		})
+
+		It("fails on settings that are not valid", func() {
+			pipelinePackage := trainingPipeline(nil, kubernetesPlatformSpec(map[string]any{
+				"exec-train": map[string]any{"activeDeadlineSeconds": "soon"},
+			}))
+
+			_, err := pipelinePackage.KubernetesExecutorConfig("exec-train")
+
+			Expect(err).To(MatchError(ContainSubstring(`invalid Kubernetes settings for executor "exec-train"`)))
+		})
+	})
+
+	Context("MergeKubernetesExecutorConfig", func() {
+		It("adds settings to an executor without any, creating the platform spec", func() {
+			pipelinePackage := trainingPipeline(nil, "")
+
+			Expect(pipelinePackage.MergeKubernetesExecutorConfig("exec-train", &kubernetesplatform.KubernetesExecutorConfig{
+				ImagePullSecret:       []*kubernetesplatform.ImagePullSecret{{SecretName: "registry"}},
+				ActiveDeadlineSeconds: 600,
+			})).To(Succeed())
+
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(map[string]any{
+				"imagePullSecret":       []any{map[string]any{"secretName": "registry"}},
+				"activeDeadlineSeconds": "600",
+			}))
+		})
+
+		It("changes nothing for settings with no fields set", func() {
+			pipelinePackage := trainingPipeline(nil, "")
+
+			Expect(pipelinePackage.MergeKubernetesExecutorConfig("exec-train", &kubernetesplatform.KubernetesExecutorConfig{})).To(Succeed())
+
+			Expect(pipelinePackage.PlatformSpec).To(BeNil())
+		})
+
+		It("keeps the executor's own settings and adds the list items it lacks, under either name", func() {
+			dedicated := map[string]any{"key": "dedicated", "operator": "Exists"}
+			registry := map[string]any{"secretName": "registry"}
+			pipelinePackage := trainingPipeline(nil, kubernetesPlatformSpec(map[string]any{
+				"exec-train": map[string]any{
+					"node_selector":         poolSelector,
+					"activeDeadlineSeconds": "600",
+					"tolerations":           []any{dedicated},
+					"image_pull_secret":     []any{registry},
+					"futureSetting":         "enabled",
+				},
+				"exec-evaluate": map[string]any{"activeDeadlineSeconds": "600"},
+			}))
+
+			Expect(pipelinePackage.MergeKubernetesExecutorConfig("exec-train", &kubernetesplatform.KubernetesExecutorConfig{
+				NodeSelector:          &kubernetesplatform.NodeSelector{Labels: map[string]string{"example.com/gpu-type": "t4"}},
+				ActiveDeadlineSeconds: 60,
+				Tolerations:           []*kubernetesplatform.Toleration{{Key: "dedicated", Operator: "Exists"}, {Key: "nvidia.com/gpu", Operator: "Exists"}},
+				ImagePullSecret:       []*kubernetesplatform.ImagePullSecret{{SecretName: "registry"}, {SecretName: "mirror"}},
+			})).To(Succeed())
+
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(map[string]any{
+				"node_selector":         poolSelector,
+				"activeDeadlineSeconds": "600",
+				"tolerations":           []any{dedicated, map[string]any{"key": "nvidia.com/gpu", "operator": "Exists"}},
+				"image_pull_secret":     []any{registry, map[string]any{"secretName": "mirror"}},
+				"futureSetting":         "enabled",
+			}))
+			Expect(kubernetesSettings(pipelinePackage, "exec-evaluate")).To(Equal(map[string]any{"activeDeadlineSeconds": "600"}))
+		})
+
+		It("fails when a list field is not a list", func() {
+			pipelinePackage := trainingPipeline(nil, kubernetesPlatformSpec(map[string]any{
+				"exec-train": map[string]any{"image_pull_secret": "registry"},
+			}))
+
+			err := pipelinePackage.MergeKubernetesExecutorConfig("exec-train", &kubernetesplatform.KubernetesExecutorConfig{
+				ImagePullSecret: []*kubernetesplatform.ImagePullSecret{{SecretName: "registry"}},
+			})
+
+			Expect(err).To(MatchError("image_pull_secret is not a list"))
+		})
+	})
+
+	Context("MergeKubernetesExecutorConfigIntoContainers", func() {
+		It("merges settings into every container executor and leaves other executors alone", func() {
+			pipelinePackage := gpuPipeline(map[string]map[string]any{"exec-train": nil, "exec-evaluate": nil}, "")
+			importer, err := structpb.NewValue(map[string]any{"importer": map[string]any{}})
+			Expect(err).ToNot(HaveOccurred())
+			nestedStruct(pipelinePackage.PipelineSpec.GetDeploymentSpec(), "executors").Fields["exec-import"] = importer
+
+			Expect(pipelinePackage.MergeKubernetesExecutorConfigIntoContainers(&kubernetesplatform.KubernetesExecutorConfig{
+				SecretAsVolume: []*kubernetesplatform.SecretAsVolume{{SecretName: "cloud-credentials", MountPath: "/var/secrets/cloud"}},
+			})).To(Succeed())
+
+			secretAsVolume := map[string]any{"secretAsVolume": []any{map[string]any{"secretName": "cloud-credentials", "mountPath": "/var/secrets/cloud"}}}
+			Expect(kubernetesSettings(pipelinePackage, "exec-train")).To(Equal(secretAsVolume))
+			Expect(kubernetesSettings(pipelinePackage, "exec-evaluate")).To(Equal(secretAsVolume))
+			Expect(pipelinePackage.kubernetesExecutorStruct("exec-import")).To(BeNil())
+		})
+
+		It("changes nothing without settings", func() {
+			pipelinePackage := trainingPipeline(nil, "")
+
+			Expect(pipelinePackage.MergeKubernetesExecutorConfigIntoContainers(nil)).To(Succeed())
+
+			Expect(pipelinePackage.PlatformSpec).To(BeNil())
+		})
+	})
+})

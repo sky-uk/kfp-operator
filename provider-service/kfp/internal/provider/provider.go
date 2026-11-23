@@ -15,6 +15,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/yaml"
 )
@@ -129,6 +130,38 @@ func unwrapTFXPipeline(
 	return resource.CompiledPipeline(encoded), nil
 }
 
+func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (resource.CompiledPipeline, error) {
+	compiledPipeline, err := unwrapTFXPipeline(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unwrap TFX pipeline spec: %w", err)
+	}
+
+	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
+	if err != nil {
+		return nil, fmt.Errorf("failed to insert labels into parameters: %w", err)
+	}
+
+	platform := p.config.Parameters.Platform
+	if len(platform.Accelerators) == 0 && proto.Size(platform.Kubernetes) == 0 {
+		return compiledPipeline, nil
+	}
+
+	pipelinePackage, err := ParsePipelinePackage(compiledPipeline)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse compiled pipeline: %w", err)
+	}
+
+	// Accelerators go first, so their node selectors take precedence over the platform's.
+	if err := placeAccelerators(platform.Accelerators, pipelinePackage); err != nil {
+		return nil, fmt.Errorf("failed to place accelerators: %w", err)
+	}
+	if err := pipelinePackage.MergeKubernetesExecutorConfigIntoContainers(platform.Kubernetes); err != nil {
+		return nil, fmt.Errorf("failed to apply platform settings: %w", err)
+	}
+
+	return pipelinePackage.Marshal()
+}
+
 func (p *KfpProvider) CreatePipeline(
 	ctx context.Context,
 	pdw resource.PipelineDefinitionWrapper,
@@ -138,18 +171,12 @@ func (p *KfpProvider) CreatePipeline(
 		return "", fmt.Errorf("failed to fetch resource name %v", err)
 	}
 
-	compiledPipeline, err := unwrapTFXPipeline(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	compiledPipeline, err := p.preparePipeline(pdw)
 	if err != nil {
-		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
+		return "", err
 	}
 
-	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
-	if err != nil {
-		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
-	}
-	pdw.CompiledPipeline = compiledPipeline
-
-	log.FromContext(ctx).Info("Creating pipeline", "name", pipelineName, "spec", string(pdw.CompiledPipeline))
+	log.FromContext(ctx).Info("Creating pipeline", "name", pipelineName, "spec", string(compiledPipeline))
 
 	pipelineId, err := p.pipelineUploadService.UploadPipeline(
 		ctx,
@@ -159,7 +186,7 @@ func (p *KfpProvider) CreatePipeline(
 	if err != nil {
 		return "", fmt.Errorf("failed to upload pipeline %v", err)
 	}
-	return p.UpdatePipeline(ctx, pdw, pipelineId)
+	return p.replacePipelineVersions(ctx, pipelineId, compiledPipeline, pdw.PipelineDefinition.Version)
 }
 
 func (p *KfpProvider) UpdatePipeline(
@@ -167,28 +194,27 @@ func (p *KfpProvider) UpdatePipeline(
 	pdw resource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
-	if err := p.pipelineService.DeletePipelineVersions(ctx, id); err != nil {
-		return "", fmt.Errorf("failed to delete pipeline versions %v", err)
-	}
-
-	compiledPipeline, err := unwrapTFXPipeline(pdw.CompiledPipeline, pdw.PipelineDefinition.Framework.Name)
+	compiledPipeline, err := p.preparePipeline(pdw)
 	if err != nil {
-		return "", fmt.Errorf("failed to unwrap TFX pipeline spec %v", err)
-	}
-
-	compiledPipeline, err = p.labelService.InsertLabelsIntoParameters(compiledPipeline, label.LabelKeys)
-	if err != nil {
-		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
+		return "", err
 	}
 
 	log.FromContext(ctx).Info("Updating pipeline", "name", pdw.PipelineDefinition.Name, "spec", string(compiledPipeline))
 
-	if err := p.pipelineUploadService.UploadPipelineVersion(
-		ctx,
-		id,
-		compiledPipeline,
-		pdw.PipelineDefinition.Version,
-	); err != nil {
+	return p.replacePipelineVersions(ctx, id, compiledPipeline, pdw.PipelineDefinition.Version)
+}
+
+func (p *KfpProvider) replacePipelineVersions(
+	ctx context.Context,
+	id string,
+	compiledPipeline resource.CompiledPipeline,
+	version string,
+) (string, error) {
+	if err := p.pipelineService.DeletePipelineVersions(ctx, id); err != nil {
+		return "", fmt.Errorf("failed to delete pipeline versions %v", err)
+	}
+
+	if err := p.pipelineUploadService.UploadPipelineVersion(ctx, id, compiledPipeline, version); err != nil {
 		return "", fmt.Errorf("failed to upload pipeline version %v", err)
 	}
 
