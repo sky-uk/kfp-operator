@@ -1,4 +1,4 @@
-"""Monkey-patches applied to TFX modules via the import hook in ``_hook.py``."""
+"""Monkey-patches applied to TFX modules via the import hook in _hook.py."""
 
 from __future__ import annotations
 
@@ -15,7 +15,8 @@ log = logging.getLogger(__name__)
 # TFX 1.15 removed simple_artifacts.File but artifact.Artifact can't be
 # instantiated without TYPE_NAME. This lazy subclass fills the gap.
 
-@functools.lru_cache(maxsize=1)
+
+@functools.cache
 def _get_generic_artifact_class():
     """Return a concrete Artifact subclass usable as a system.Artifact stand-in."""
     from tfx.types import artifact as _artifact_mod
@@ -31,7 +32,7 @@ def _get_generic_artifact_class():
     # import_utils.import_class_by_path() can re-import it at executor runtime;
     # otherwise the synthetic class is not reachable as an attribute of its
     # declared module and TFX rejects it as "not importable".
-    setattr(sys.modules[__name__], "GenericArtifact", cls)
+    sys.modules[__name__].GenericArtifact = cls
     return cls
 
 
@@ -39,7 +40,7 @@ def _get_generic_artifact_class():
 # rules disambiguate by checking which metadata keys are present. Matching is
 # by subset (see _patch_parse_raw_artifact), so only the minimal distinguishing
 # key set is listed — a larger key set on the artifact still matches.
-TYPE_INFERENCE_RULES: dict[str, list[tuple[frozenset, str]]] = {
+TYPE_INFERENCE_RULES: dict[str, list[tuple[frozenset[str], str]]] = {
     # Examples carry split_names (alongside span/version); other Datasets do not.
     "system.Dataset": [
         (frozenset({"split_names"}), "tfx.Examples"),
@@ -54,11 +55,12 @@ TYPE_INFERENCE_RULES["tfx.Dataset"] = TYPE_INFERENCE_RULES["system.Dataset"]
 TYPE_INFERENCE_RULES["tfx.Model"] = TYPE_INFERENCE_RULES["system.Model"]
 
 
-# ── Patch 1 ──────────────────────────────────────────────────────────────
+# ── Artifact type mappings (patch_compiler_utils) ────────────────────────
 # Issue:   KFP v2 normalises artifact types to system.* titles (e.g. system.Model).
 #          TFX's TITLE_TO_CLASS_PATH only has tfx.* entries, so lookup fails with
 #          ImportError ("import system.Model").
 # Solution: Add system.* → TFX class mappings to the lookup table.
+
 
 def patch_compiler_utils(mod: ModuleType) -> None:
     """Add system.* entries to TITLE_TO_CLASS_PATH."""
@@ -67,12 +69,14 @@ def patch_compiler_utils(mod: ModuleType) -> None:
 
     try:
         from tfx.types import simple_artifacts
+
         file_cls = simple_artifacts.File
         dataset_cls = simple_artifacts.Dataset
         metrics_cls = simple_artifacts.Metrics
         statistics_cls = simple_artifacts.Statistics
-    except ImportError:  # TFX 1.15+
+    except (ImportError, AttributeError):  # simple_artifacts is absent in TFX 1.15+
         from tfx.types import system_artifacts
+
         file_cls = _get_generic_artifact_class()
         dataset_cls = system_artifacts.Dataset
         metrics_cls = system_artifacts.Metrics
@@ -89,31 +93,34 @@ def patch_compiler_utils(mod: ModuleType) -> None:
     mod.TITLE_TO_CLASS_PATH.update(added)
 
 
-# ── Patches 2, 3, 4, 7 ──────────────────────────────────────────────────
+# ── Artifact parsing (patch_entrypoint_utils) ────────────────────────────
+
 
 def patch_entrypoint_utils(mod: ModuleType) -> None:
-    """Apply all entrypoint_utils patches."""
+    """Wrap _parse_raw_artifact, parse_raw_artifact_dict and translate_executor_output."""
     _patch_parse_raw_artifact(mod)
     _patch_parse_raw_artifact_dict(mod)
     _patch_translate_executor_output(mod)
 
 
-# ── Patch 2 ──────────────────────────────────────────────────────────────
+# ── Null-schema handling ─────────────────────────────────────────────────
 # Issue:   KFP v2 driver passes artifacts with empty instance_schema.
 #          yaml.safe_load("") returns None, causing TypeError on .get("title").
-# Solution: Guard with ``or {}`` so None becomes an empty dict.
+# Solution: Guard with `or {}` so None becomes an empty dict.
 #
-# ── Patch 3 ──────────────────────────────────────────────────────────────
+# ── Type inference ───────────────────────────────────────────────────────
 # Issue:   KFP v2 collapses distinct TFX types to the same system.* title
 #          (e.g. Examples and Dataset both become system.Dataset).
 # Solution: Inspect artifact metadata keys to infer the correct TFX type.
 
+
 def _patch_parse_raw_artifact(mod: ModuleType) -> None:
-    """Wrap _parse_raw_artifact: guard null schema and infer types from keys."""
+    """Wrap _parse_raw_artifact: infer types from keys and backfill empty instance_schema."""
     import yaml
 
     original = mod._parse_raw_artifact
 
+    @functools.wraps(original)
     def _patched(artifact_pb, name_from_id):
         type_schema = artifact_pb.type
         kind = type_schema.WhichOneof("kind")
@@ -146,17 +153,24 @@ def _patch_parse_raw_artifact(mod: ModuleType) -> None:
     mod._parse_raw_artifact = _patched
 
 
-# ── Patch 4 ──────────────────────────────────────────────────────────────
+# ── Input artifact schema enrichment (patch_entrypoint_utils) ────────────
 # Issue:   KFP v2 driver resolves input artifacts from MLMD but does not
 #          populate their type schema. TFX creates generic Artifact objects
 #          that lack type-specific properties (e.g. split_names).
 # Solution: Read inputs_spec from the caller's frame and copy artifact type
 #           schemas into untyped artifacts before TFX parses them.
 
+
 def _patch_parse_raw_artifact_dict(mod: ModuleType) -> None:
-    """Wrap parse_raw_artifact_dict: enrich untyped artifacts from inputs_spec."""
+    """Wrap parse_raw_artifact_dict: enrich untyped artifacts from inputs_spec.
+
+    inputs_spec is read from the caller's frame locals (TFX has it in scope
+    but never passes it here), so a future TFX rename or inline of that local
+    makes enrichment silently no-op rather than raise.
+    """
     original = mod.parse_raw_artifact_dict
 
+    @functools.wraps(original)
     def _patched(artifact_dict, name_from_id):
         frame = inspect.currentframe()
         try:
@@ -173,22 +187,25 @@ def _patch_parse_raw_artifact_dict(mod: ModuleType) -> None:
     mod.parse_raw_artifact_dict = _patched
 
 
-# ── Patch 7 ──────────────────────────────────────────────────────────────
+# ── GCS directory-marker cleanup (patch_entrypoint_utils) ────────────────
 # Issue:   TF's legacy GCS filesystem (≤2.16) creates zero-byte directory
 #          marker blobs. The KFP launcher downloads them as files, blocking
 #          os.MkdirAll for child paths in downstream components.
 # Solution: After each executor run, list output artifact URIs and delete
 #           any zero-byte blobs whose name ends with "/".
 
+
 def _patch_translate_executor_output(mod: ModuleType) -> None:
     """Wrap translate_executor_output: delete GCS directory markers from outputs."""
     original = mod.translate_executor_output
 
-    @functools.lru_cache(maxsize=1)
+    @functools.cache
     def _get_client():
         from google.cloud import storage as gcs_storage
+
         return gcs_storage.Client()
 
+    @functools.wraps(original)
     def _patched(output_dict, name_from_id):
         for _key, artifacts in output_dict.items():
             for art in artifacts:
@@ -199,33 +216,38 @@ def _patch_translate_executor_output(mod: ModuleType) -> None:
     mod.translate_executor_output = _patched
 
 
-# ── Patch 5 ──────────────────────────────────────────────────────────────
+# ── Model directory flattening (patch_path_utils) ────────────────────────
 # Issue:   TFX saves models under <uri>/Format-Serving/. The KFP launcher's
 #          DownloadBlob treats GCS directory markers as files, which blocks
 #          os.MkdirAll for the nested child paths.
 # Solution: Replace serving_model_dir to return output_uri directly,
 #           removing the nested subdirectory. Breaks Vertex AI.
 
+
 def patch_path_utils(mod: ModuleType) -> None:
     """Skip Format-Serving/ subdirectory. Breaks Vertex AI."""
+
     def _flat(output_uri: str, is_old_artifact: bool = False) -> str:
         return output_uri
 
     mod.serving_model_dir = _flat
 
-# ── Patch 6 ──────────────────────────────────────────────────────────────
+
+# ── DAG runner compatibility (patch_experimental) ────────────────────────
 # Issue:   With kfp>=2, TFX removes KubeflowV2DagRunner from
 #          tfx.v1.orchestration.experimental. The kfp-operator compiler
 #          imports it from that path.
 # Solution: Re-export it from tfx.orchestration.kubeflow.v2.
 
+
 def patch_experimental(mod: ModuleType) -> None:
-    """Re-inject KubeflowV2DagRunner removed by kfp>=2."""
+    """Re-export KubeflowV2DagRunner and Config unless the runner is already present."""
     if hasattr(mod, "KubeflowV2DagRunner"):
         return
 
     try:
         from tfx.orchestration.kubeflow.v2 import kubeflow_v2_dag_runner
+
         mod.KubeflowV2DagRunner = kubeflow_v2_dag_runner.KubeflowV2DagRunner
         mod.KubeflowV2DagRunnerConfig = kubeflow_v2_dag_runner.KubeflowV2DagRunnerConfig
         log.info("Re-exported KubeflowV2DagRunner")
@@ -233,7 +255,7 @@ def patch_experimental(mod: ModuleType) -> None:
         log.warning("KubeflowV2DagRunner unavailable: %s", exc)
 
 
-# ── Patch 8 ──────────────────────────────────────────────────────────────
+# ── Executor shutdown compatibility (patch_run_executor) ─────────────────
 # Issue:   On container exit after a TFX component runs, the interpreter
 #          shutdown sequence triggers C++ destructors in protobuf/MLMD that
 #          crash with "pure virtual method called" (seen on TFX 1.17.3 / S3).
@@ -241,6 +263,7 @@ def patch_experimental(mod: ModuleType) -> None:
 #           the shutdown that provokes the crash. The metadata write is the
 #           final statement of _run_executor, so exiting after it returns is
 #           behaviourally identical to exiting immediately after the write.
+
 
 def patch_run_executor(mod: ModuleType) -> None:
     """Wrap _run_executor to force-exit(0) after it completes.
@@ -266,19 +289,16 @@ def patch_run_executor(mod: ModuleType) -> None:
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 
+
 def _delete_gcs_directory_markers(uri: str, client) -> None:
     """Delete zero-byte blobs ending with ``/`` under *uri*."""
     try:
-        path = uri[5:]
-        bucket_name, _, prefix = path.partition("/")
+        bucket_name, _, prefix = uri.removeprefix("gs://").partition("/")
         if prefix and not prefix.endswith("/"):
             prefix += "/"
 
         bucket = client.bucket(bucket_name)
-        markers = [
-            blob for blob in bucket.list_blobs(prefix=prefix)
-            if blob.size == 0 and blob.name.endswith("/")
-        ]
+        markers = [blob for blob in bucket.list_blobs(prefix=prefix) if blob.size == 0 and blob.name.endswith("/")]
 
         if markers:
             with client.batch():
@@ -289,9 +309,9 @@ def _delete_gcs_directory_markers(uri: str, client) -> None:
         log.warning("GCS marker cleanup failed for %s: %s", uri, exc)
 
 
-def _collect_artifact_keys(artifact_pb) -> set:
+def _collect_artifact_keys(artifact_pb) -> set[str]:
     """Return all metadata + property keys from a RuntimeArtifact."""
-    keys: set = set()
+    keys: set[str] = set()
     metadata = getattr(artifact_pb, "metadata", None)
     if metadata and getattr(metadata, "fields", None):
         keys.update(metadata.fields.keys())

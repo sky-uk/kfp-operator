@@ -1,4 +1,4 @@
-"""Unit tests for the TFX KFP v2 import hook and shim patches.
+"""Unit tests for the TFX KFP v2 shim patches.
 
 These tests use mock modules and lightweight stub objects so they can run
 without TFX or KFP installed.
@@ -12,17 +12,15 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from tfx_kfp_v2_shim._hook import TfxShimFinder
 from tfx_kfp_v2_shim._patches import (
-    TYPE_INFERENCE_RULES,
     _collect_artifact_keys,
-    _enrich_input_artifacts,
+    _delete_gcs_directory_markers,
+    _patch_translate_executor_output,
     patch_compiler_utils,
     patch_entrypoint_utils,
     patch_path_utils,
     patch_run_executor,
 )
-
 
 # ── Helpers for building mock protobuf-like objects ───────────────────────
 
@@ -76,14 +74,13 @@ class FakeInputsSpec:
     def __init__(self, artifacts: dict):
         self._artifacts = artifacts
 
-    def artifacts(self):
-        pass  # replaced below
-
     class _Items:
         def __init__(self, d):
             self._d = d
+
         def items(self):
             return self._d.items()
+
         def keys(self):
             return self._d.keys()
 
@@ -120,7 +117,7 @@ class TestCollectArtifactKeys:
         assert _collect_artifact_keys(art) == {"a", "b"}
 
 
-# ── Tests: Patch 1 (compiler_utils) ─────────────────────────────────────
+# ── Tests: artifact type mappings (patch_compiler_utils) ─────────────────────────────────────
 
 
 class TestPatchCompilerUtils:
@@ -131,11 +128,8 @@ class TestPatchCompilerUtils:
         mod.TITLE_TO_CLASS_PATH = {"tfx.Model": "tfx.types.standard_artifacts.Model"}
 
         # We need the real TFX imports to work; if TFX is not installed, skip.
-        try:
-            from tfx.types import simple_artifacts, standard_artifacts
-            from tfx.utils import import_utils, name_utils
-        except ImportError:
-            pytest.skip("TFX not installed")
+        pytest.importorskip("tfx")
+        from tfx.utils import import_utils
 
         patch_compiler_utils(mod)
 
@@ -155,7 +149,7 @@ class TestPatchCompilerUtils:
             import_utils.import_class_by_path(mod.TITLE_TO_CLASS_PATH[title])
 
 
-# ── Tests: Patch 2+3 (_parse_raw_artifact wrapper) ──────────────────────
+# ── Tests: null-schema handling and type inference (_parse_raw_artifact wrapper) ──────────────────────
 
 
 class TestPatchParseRawArtifact:
@@ -179,7 +173,7 @@ class TestPatchParseRawArtifact:
         original.assert_called_once()
 
     def test_infers_examples_from_metadata(self):
-        """Patch 3: system.Dataset with split_names → tfx.Examples."""
+        """Type inference: system.Dataset with split_names → tfx.Examples."""
         mod = self._make_module_with_parser()
         patch_entrypoint_utils(mod)
 
@@ -191,7 +185,7 @@ class TestPatchParseRawArtifact:
         assert art.type.schema_title == "tfx.Examples"
 
     def test_infers_pushed_model_from_metadata(self):
-        """Patch 3: system.Model with pushed → tfx.PushedModel."""
+        """Type inference: system.Model with pushed → tfx.PushedModel."""
         mod = self._make_module_with_parser()
         patch_entrypoint_utils(mod)
 
@@ -203,7 +197,7 @@ class TestPatchParseRawArtifact:
         assert art.type.schema_title == "tfx.PushedModel"
 
     def test_no_inference_for_unknown_title(self):
-        """Patch 3: unknown titles are left alone."""
+        """Type inference: unknown titles are left alone."""
         mod = self._make_module_with_parser()
         patch_entrypoint_utils(mod)
 
@@ -212,7 +206,7 @@ class TestPatchParseRawArtifact:
         assert art.type.schema_title == "system.Foo"
 
     def test_null_instance_schema_guarded(self):
-        """Patch 2: empty instance_schema gets a safe default."""
+        """Null-schema handling: empty instance_schema gets a safe default."""
         mod = self._make_module_with_parser()
         patch_entrypoint_utils(mod)
 
@@ -221,7 +215,7 @@ class TestPatchParseRawArtifact:
         assert art.type.instance_schema == "title: ''"
 
     def test_valid_instance_schema_unchanged(self):
-        """Patch 2: non-empty instance_schema is not modified."""
+        """Null-schema handling: non-empty instance_schema is not modified."""
         mod = self._make_module_with_parser()
         patch_entrypoint_utils(mod)
 
@@ -230,12 +224,12 @@ class TestPatchParseRawArtifact:
         assert art.type.instance_schema == "title: tfx.Model"
 
 
-# ── Tests: Patch 4 (parse_raw_artifact_dict enrichment) ─────────────────
+# ── Tests: input artifact schema enrichment (parse_raw_artifact_dict) ─────────────────
 
 
 class TestPatchParseRawArtifactDict:
     def test_enriches_untyped_artifacts(self):
-        """Patch 4: artifacts without type get it from inputs_spec."""
+        """Schema enrichment: artifacts without type get it from inputs_spec."""
         mod = types.ModuleType("fake_entrypoint_utils")
 
         def mock_parse(artifact_dict, name_from_id):
@@ -259,7 +253,7 @@ class TestPatchParseRawArtifactDict:
         assert art.type.schema_title == spec_type.schema_title
 
     def test_skips_enrichment_when_no_inputs_spec(self):
-        """Patch 4: no enrichment when inputs_spec is not in caller's scope."""
+        """Schema enrichment: no enrichment when inputs_spec is not in caller's scope."""
         mod = types.ModuleType("fake_entrypoint_utils")
         mod._parse_raw_artifact = MagicMock(return_value="parsed")
         mod.parse_raw_artifact_dict = MagicMock(return_value={})
@@ -276,7 +270,7 @@ class TestPatchParseRawArtifactDict:
         assert art.type.schema_title is None
 
 
-# ── Tests: Patch 5 (path_utils) ─────────────────────────────────────────
+# ── Tests: model directory flattening (patch_path_utils) ─────────────────────────────────────────
 
 
 class TestPatchPathUtils:
@@ -289,12 +283,12 @@ class TestPatchPathUtils:
         assert mod.serving_model_dir("gs://bucket/model") == "gs://bucket/model"
 
 
-# ── Tests: Patch 8 (run_executor force-exit) ─────────────────────────────
+# ── Tests: executor shutdown compatibility (patch_run_executor) ─────────────────────────────
 
 
 class TestPatchRunExecutor:
     def test_forces_exit_after_run(self, monkeypatch):
-        """Patch 8: _run_executor should call os._exit(0) after completing."""
+        """Executor shutdown: _run_executor should call os._exit(0) after completing."""
         import os as _os
 
         mod = types.ModuleType("fake_run_executor")
@@ -311,7 +305,7 @@ class TestPatchRunExecutor:
         assert exit_calls == [0]
 
     def test_runs_original_before_exit(self, monkeypatch):
-        """Patch 8: the original _run_executor must run before force-exit."""
+        """Executor shutdown: the original _run_executor must run before force-exit."""
         import os as _os
 
         order = []
@@ -326,109 +320,132 @@ class TestPatchRunExecutor:
         assert order == ["ran", "exit:0"]
 
 
-# ── Tests: force-exit source patch (install_shim) ────────────────────────
+# ── Tests: GCS directory-marker cleanup ──────────────────────────────────
 
 
-class TestForceExitSourcePatch:
-    _REL = "tfx/orchestration/kubeflow/v2/container/kubeflow_v2_run_executor.py"
-    _ANCHOR = (
-        "  fileio.makedirs(os.path.dirname(metadata_uri))\n"
-        "  with fileio.open(metadata_uri, 'wb') as f:\n"
-        "    f.write(json_format.MessageToJson(executor_output))"
-    )
+class FakeBlob:
+    def __init__(self, name, size):
+        self.name = name
+        self.size = size
+        self.deleted = False
 
-    def _write_target(self, root, body):
-        from pathlib import Path
-
-        p = Path(root) / self._REL
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(body)
-        return p
-
-    def test_inserts_force_exit_after_metadata_write(self, tmp_path):
-        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
-
-        target = self._write_target(
-            tmp_path, "import os\n\ndef _run_executor(a, b):\n" + self._ANCHOR + "\n  return\n"
-        )
-        assert patch_run_executor_source(tmp_path) is True
-        out = target.read_text()
-        assert "# [tfx-kfp-v2-shim:force-exit]" in out
-        assert "os._exit(0)" in out
-        assert out.index("MessageToJson") < out.index("os._exit(0)")
-
-    def test_idempotent(self, tmp_path):
-        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
-
-        target = self._write_target(
-            tmp_path, "def _run_executor(a, b):\n" + self._ANCHOR + "\n  return\n"
-        )
-        assert patch_run_executor_source(tmp_path) is True
-        first = target.read_text()
-        assert patch_run_executor_source(tmp_path) is True
-        assert target.read_text() == first
-
-    def test_missing_anchor_returns_false(self, tmp_path):
-        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
-
-        target = self._write_target(tmp_path, "def _run_executor(a, b):\n  return\n")
-        assert patch_run_executor_source(tmp_path) is False
-        assert "os._exit(0)" not in target.read_text()
-
-    def test_missing_file_returns_false(self, tmp_path):
-        from tfx_kfp_v2_shim.install_shim import patch_run_executor_source
-
-        assert patch_run_executor_source(tmp_path) is False
+    def delete(self):
+        self.deleted = True
 
 
-# ── Tests: Import hook mechanism ─────────────────────────────────────────
+class FakeBucket:
+    def __init__(self, blobs):
+        self._blobs = blobs
+        self.prefixes = []
+
+    def list_blobs(self, prefix):
+        self.prefixes.append(prefix)
+        return self._blobs
 
 
-class TestTfxShimFinder:
-    def test_find_spec_returns_spec_for_target(self):
-        finder = TfxShimFinder({"some.module": lambda m: None})
-        spec = finder.find_spec("some.module", None)
-        assert spec is not None
-        assert spec.name == "some.module"
+class FakeGcsClient:
+    def __init__(self, blobs):
+        self.bucket_obj = FakeBucket(blobs)
+        self.bucket_names = []
+        self.batched = False
 
-    def test_find_spec_returns_none_for_non_target(self):
-        finder = TfxShimFinder({"some.module": lambda m: None})
-        assert finder.find_spec("other.module", None) is None
+    def bucket(self, name):
+        self.bucket_names.append(name)
+        return self.bucket_obj
 
-    def test_register_and_unregister(self):
-        finder = TfxShimFinder({})
-        finder.register()
-        assert finder in sys.meta_path
-        finder.unregister()
-        assert finder not in sys.meta_path
+    def batch(self):
+        client = self
 
-    def test_idempotent_register(self):
-        finder = TfxShimFinder({})
-        finder.register()
-        finder.register()
-        count = sys.meta_path.count(finder)
-        finder.unregister()
-        assert count == 1
+        class _Batch:
+            def __enter__(self):
+                client.batched = True
 
-    def test_patches_module_on_import(self):
-        """The hook should intercept and patch a real module on import."""
-        patched_flag = {}
+            def __exit__(self, *exc):
+                return False
 
-        def my_patch(mod):
-            patched_flag["called"] = True
-            mod._SHIM_PATCHED = True
+        return _Batch()
 
-        # Use a real stdlib module (e.g. `colorsys`) as the target
-        target = "colorsys"
-        sys.modules.pop(target, None)
 
-        finder = TfxShimFinder({target: my_patch})
-        finder.register()
-        try:
-            import importlib
-            mod = importlib.import_module(target)
-            assert patched_flag.get("called") is True
-            assert getattr(mod, "_SHIM_PATCHED", False) is True
-        finally:
-            finder.unregister()
-            sys.modules.pop(target, None)
+class TestDeleteGcsDirectoryMarkers:
+    def test_deletes_only_zero_byte_directory_markers(self):
+        marker = FakeBlob("out/model/", 0)
+        empty_file = FakeBlob("out/model/empty.txt", 0)
+        non_empty_dir_named_blob = FakeBlob("out/model/dir/", 10)
+        real_file = FakeBlob("out/model/saved_model.pb", 1234)
+        client = FakeGcsClient([marker, empty_file, non_empty_dir_named_blob, real_file])
+
+        _delete_gcs_directory_markers("gs://bucket/out/model", client)
+
+        assert marker.deleted
+        assert not empty_file.deleted
+        assert not non_empty_dir_named_blob.deleted
+        assert not real_file.deleted
+        assert client.batched
+
+    def test_splits_bucket_and_normalises_prefix(self):
+        client = FakeGcsClient([])
+
+        _delete_gcs_directory_markers("gs://my-bucket/path/to/artifact", client)
+
+        assert client.bucket_names == ["my-bucket"]
+        assert client.bucket_obj.prefixes == ["path/to/artifact/"]
+
+    def test_no_batch_when_nothing_to_delete(self):
+        client = FakeGcsClient([FakeBlob("out/file.txt", 5)])
+
+        _delete_gcs_directory_markers("gs://bucket/out", client)
+
+        assert not client.batched
+
+    def test_swallows_errors(self):
+        class ExplodingClient:
+            def bucket(self, name):
+                raise RuntimeError("gcs unavailable")
+
+        _delete_gcs_directory_markers("gs://bucket/out", ExplodingClient())
+
+
+class TestPatchTranslateExecutorOutput:
+    def _fake_gcs_module(self, monkeypatch, client):
+        storage = types.ModuleType("google.cloud.storage")
+        storage.Client = lambda: client
+        cloud = types.ModuleType("google.cloud")
+        cloud.storage = storage
+        google = types.ModuleType("google")
+        google.cloud = cloud
+        monkeypatch.setitem(sys.modules, "google", google)
+        monkeypatch.setitem(sys.modules, "google.cloud", cloud)
+        monkeypatch.setitem(sys.modules, "google.cloud.storage", storage)
+
+    def test_cleans_gcs_outputs_then_delegates(self, monkeypatch):
+        marker = FakeBlob("out/model/", 0)
+        client = FakeGcsClient([marker])
+        self._fake_gcs_module(monkeypatch, client)
+
+        mod = types.ModuleType("fake_entrypoint_utils")
+        mod.translate_executor_output = MagicMock(return_value="translated")
+        _patch_translate_executor_output(mod)
+
+        gcs_artifact = types.SimpleNamespace(uri="gs://bucket/out/model")
+        output_dict = {"model": [gcs_artifact]}
+
+        assert mod.translate_executor_output(output_dict, {}) == "translated"
+        assert marker.deleted
+
+    def test_ignores_non_gcs_outputs(self, monkeypatch):
+        client = FakeGcsClient([FakeBlob("out/model/", 0)])
+        self._fake_gcs_module(monkeypatch, client)
+
+        mod = types.ModuleType("fake_entrypoint_utils")
+        mod.translate_executor_output = MagicMock(return_value="translated")
+        _patch_translate_executor_output(mod)
+
+        output_dict = {
+            "model": [
+                types.SimpleNamespace(uri="s3://bucket/out/model"),
+                types.SimpleNamespace(uri=""),
+            ]
+        }
+
+        assert mod.translate_executor_output(output_dict, {}) == "translated"
+        assert client.bucket_names == []

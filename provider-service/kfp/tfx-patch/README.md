@@ -11,22 +11,22 @@ A `scratch`-based image containing the `tfx_kfp_v2_shim` package. It installs a 
 
 ## Patches
 
-| # | Target module | What it does |
-|---|---------------|--------------|
-| 1 | `compiler_utils` | Add `system.*` → TFX class mappings to `TITLE_TO_CLASS_PATH` |
-| 2 | `kubeflow_v2_entrypoint_utils` | Guard `None` `instance_schema` (`yaml.safe_load("")` → `None`) |
-| 3 | `kubeflow_v2_entrypoint_utils` | Infer correct TFX type from artifact metadata keys |
-| 4 | `kubeflow_v2_entrypoint_utils` | Copy artifact type schemas from `inputs_spec` into untyped artifacts |
-| 5 | `path_utils` | Flatten model directory (skip `Format-Serving/` subdirectory) |
-| 6 | `tfx.v1.orchestration.experimental` | Re-export `KubeflowV2DagRunner` removed by `kfp>=2` |
-| 7 | `kubeflow_v2_entrypoint_utils` | Delete zero-byte GCS directory markers after each executor run |
-| 8 | `kubeflow_v2_run_executor` | Force-exit(0) after output metadata is written, to bypass a C++ destructor crash ("pure virtual method called") during interpreter shutdown |
+| Patch | Target module | What it does |
+|-------|---------------|--------------|
+| Artifact type mappings (`patch_compiler_utils`) | `compiler_utils` | Add `system.*` → TFX class mappings to `TITLE_TO_CLASS_PATH` |
+| Null-schema handling (`patch_entrypoint_utils`) | `kubeflow_v2_entrypoint_utils` | Guard `None` `instance_schema` (`yaml.safe_load("")` → `None`) |
+| Type inference (`patch_entrypoint_utils`) | `kubeflow_v2_entrypoint_utils` | Infer correct TFX type from artifact metadata keys |
+| Input artifact schema enrichment (`patch_entrypoint_utils`) | `kubeflow_v2_entrypoint_utils` | Copy artifact type schemas from `inputs_spec` into untyped artifacts |
+| GCS directory-marker cleanup (`patch_entrypoint_utils`) | `kubeflow_v2_entrypoint_utils` | Delete zero-byte GCS directory markers after each executor run |
+| Model directory flattening (`patch_path_utils`) | `path_utils` | Flatten model directory (skip `Format-Serving/` subdirectory) |
+| DAG runner compatibility (`patch_experimental`) | `tfx.v1.orchestration.experimental` | Re-export `KubeflowV2DagRunner` removed by `kfp>=2` |
+| Executor shutdown compatibility (`patch_run_executor`) | `kubeflow_v2_run_executor` | Force-exit(0) after output metadata is written, to bypass a C++ destructor crash ("pure virtual method called") during interpreter shutdown |
 
-Patches 1–4 and 6–8 are safe for all environments. Patch 5 changes TFX's model layout and breaks Vertex AI — use `--vertex-compatible` to skip it.
+All patches except model directory flattening are safe for all environments. Model directory flattening changes TFX's model layout and breaks Vertex AI — use `--vertex-compatible` to skip it.
 
-Patch 8 is applied as a **source edit** at install time (`install_shim.patch_run_executor_source`), not via the runtime hook: the executor container runs `python -m ...kubeflow_v2_run_executor`, i.e. as `__main__`, which the import hook cannot patch (runpy uses the loader's `get_code`, bypassing `exec_module`).
+Executor shutdown compatibility is applied as a **source edit** at install time (`install_shim.patch_run_executor_source`), not via the runtime hook: the executor container runs `python -m ...kubeflow_v2_run_executor`, i.e. as `__main__`, which the import hook cannot patch (runpy uses the loader's `get_code`, bypassing `exec_module`).
 
-Patches 5 and 7 work around a KFP launcher bug ([kubeflow/pipelines#13476](https://github.com/kubeflow/pipelines/issues/13476)). They become redundant once that is fixed upstream.
+GCS directory-marker cleanup and model directory flattening work around a KFP launcher bug ([kubeflow/pipelines#13476](https://github.com/kubeflow/pipelines/issues/13476)). They become redundant once that is fixed upstream.
 
 ## Supported TFX versions
 
@@ -52,7 +52,7 @@ COPY --from=tfx-shim . /tmp/tfx_kfp_v2_shim/
 RUN python /tmp/tfx_kfp_v2_shim/install_shim.py && rm -rf /tmp/tfx_kfp_v2_shim
 ```
 
-Skip patch 5 for Vertex AI compatibility:
+Skip model directory flattening for Vertex AI compatibility:
 
 ```dockerfile
 RUN python /tmp/tfx_kfp_v2_shim/install_shim.py --vertex-compatible && rm -rf /tmp/tfx_kfp_v2_shim
