@@ -28,7 +28,6 @@ def test_install_registers_expected_patches(recorded_finder):
     expected = {
         shim._COMPILER_UTILS: shim.patch_compiler_utils,
         shim._ENTRYPOINT_UTILS: shim.patch_entrypoint_utils,
-        shim._PATH_UTILS: shim.patch_path_utils,
         shim._EXPERIMENTAL: shim.patch_experimental,
         shim._RUN_EXECUTOR: shim.patch_run_executor,
     }
@@ -36,14 +35,6 @@ def test_install_registers_expected_patches(recorded_finder):
     finder = recorded_finder[0]
     assert finder.registered
     assert finder.patches == expected
-
-
-def test_install_vertex_compatible_skips_path_utils_patch(recorded_finder):
-    shim.install(vertex_compatible=True)
-
-    finder = recorded_finder[0]
-    assert shim._PATH_UTILS not in finder.patches
-    assert shim._COMPILER_UTILS in finder.patches
 
 
 def test_install_is_idempotent(recorded_finder):
