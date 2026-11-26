@@ -1,0 +1,26 @@
+name: Update .tool-versions
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-tool-versions:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install asdf
+        uses: asdf-vm/actions/install@v4
+
+      - name: Update .tool-versions and open PR
+        uses: ericcornelissen/tool-versions-update-action/pr@v2
+        with:
+          max: 2
+          not: minikube,python
