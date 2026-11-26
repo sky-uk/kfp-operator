@@ -22,6 +22,15 @@ kfp-provider-<provider-name>.
 {{- end -}}
 
 {{/*
+Name of the provider config reader Role and RoleBinding,
+<provider-name>-provider-config-reader. Prefixed with the provider name so
+several providers can share a namespace.
+*/}}
+{{- define "kfp-provider-workflows.providerConfigReaderName" -}}
+{{- printf "%s-provider-config-reader" (include "kfp-provider-workflows.providerName" .) -}}
+{{- end -}}
+
+{{/*
 Only render object if not empty.
 */}}
 {{- define "kfp-provider-workflows.notEmptyYaml" -}}
