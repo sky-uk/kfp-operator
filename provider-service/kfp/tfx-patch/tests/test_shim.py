@@ -18,7 +18,6 @@ from tfx_kfp_v2_shim._patches import (
     _patch_translate_executor_output,
     patch_compiler_utils,
     patch_entrypoint_utils,
-    patch_path_utils,
     patch_run_executor,
 )
 
@@ -270,19 +269,6 @@ class TestPatchParseRawArtifactDict:
         assert art.type.schema_title is None
 
 
-# ── Tests: model directory flattening (patch_path_utils) ─────────────────────────────────────────
-
-
-class TestPatchPathUtils:
-    def test_flattens_serving_dir(self):
-        """patch_path_utils should make serving_model_dir return output_uri."""
-        mod = types.ModuleType("fake_path_utils")
-        mod.serving_model_dir = lambda output_uri: output_uri + "/Format-Serving"
-        patch_path_utils(mod)
-
-        assert mod.serving_model_dir("gs://bucket/model") == "gs://bucket/model"
-
-
 # ── Tests: executor shutdown compatibility (patch_run_executor) ─────────────────────────────
 
 
@@ -374,7 +360,7 @@ class TestDeleteGcsDirectoryMarkers:
         real_file = FakeBlob("out/model/saved_model.pb", 1234)
         client = FakeGcsClient([marker, empty_file, non_empty_dir_named_blob, real_file])
 
-        _delete_gcs_directory_markers("gs://bucket/out/model", client)
+        _delete_gcs_directory_markers("gs://bucket/out/model", lambda: client)
 
         assert marker.deleted
         assert not empty_file.deleted
@@ -385,7 +371,7 @@ class TestDeleteGcsDirectoryMarkers:
     def test_splits_bucket_and_normalises_prefix(self):
         client = FakeGcsClient([])
 
-        _delete_gcs_directory_markers("gs://my-bucket/path/to/artifact", client)
+        _delete_gcs_directory_markers("gs://my-bucket/path/to/artifact", lambda: client)
 
         assert client.bucket_names == ["my-bucket"]
         assert client.bucket_obj.prefixes == ["path/to/artifact/"]
@@ -393,7 +379,7 @@ class TestDeleteGcsDirectoryMarkers:
     def test_no_batch_when_nothing_to_delete(self):
         client = FakeGcsClient([FakeBlob("out/file.txt", 5)])
 
-        _delete_gcs_directory_markers("gs://bucket/out", client)
+        _delete_gcs_directory_markers("gs://bucket/out", lambda: client)
 
         assert not client.batched
 
@@ -402,13 +388,19 @@ class TestDeleteGcsDirectoryMarkers:
             def bucket(self, name):
                 raise RuntimeError("gcs unavailable")
 
-        _delete_gcs_directory_markers("gs://bucket/out", ExplodingClient())
+        _delete_gcs_directory_markers("gs://bucket/out", lambda: ExplodingClient())
+
+    def test_swallows_client_creation_errors(self):
+        def failing_factory():
+            raise ImportError("google-cloud-storage is not installed")
+
+        _delete_gcs_directory_markers("gs://bucket/out", failing_factory)
 
 
 class TestPatchTranslateExecutorOutput:
-    def _fake_gcs_module(self, monkeypatch, client):
+    def _fake_gcs_module(self, monkeypatch, client_factory):
         storage = types.ModuleType("google.cloud.storage")
-        storage.Client = lambda: client
+        storage.Client = client_factory
         cloud = types.ModuleType("google.cloud")
         cloud.storage = storage
         google = types.ModuleType("google")
@@ -420,7 +412,7 @@ class TestPatchTranslateExecutorOutput:
     def test_cleans_gcs_outputs_then_delegates(self, monkeypatch):
         marker = FakeBlob("out/model/", 0)
         client = FakeGcsClient([marker])
-        self._fake_gcs_module(monkeypatch, client)
+        self._fake_gcs_module(monkeypatch, lambda: client)
 
         mod = types.ModuleType("fake_entrypoint_utils")
         mod.translate_executor_output = MagicMock(return_value="translated")
@@ -434,7 +426,7 @@ class TestPatchTranslateExecutorOutput:
 
     def test_ignores_non_gcs_outputs(self, monkeypatch):
         client = FakeGcsClient([FakeBlob("out/model/", 0)])
-        self._fake_gcs_module(monkeypatch, client)
+        self._fake_gcs_module(monkeypatch, lambda: client)
 
         mod = types.ModuleType("fake_entrypoint_utils")
         mod.translate_executor_output = MagicMock(return_value="translated")
@@ -449,3 +441,17 @@ class TestPatchTranslateExecutorOutput:
 
         assert mod.translate_executor_output(output_dict, {}) == "translated"
         assert client.bucket_names == []
+
+    def test_delegates_when_gcs_client_cannot_be_created(self, monkeypatch):
+        def failing_client():
+            raise RuntimeError("no default credentials")
+
+        self._fake_gcs_module(monkeypatch, failing_client)
+
+        mod = types.ModuleType("fake_entrypoint_utils")
+        mod.translate_executor_output = MagicMock(return_value="translated")
+        _patch_translate_executor_output(mod)
+
+        output_dict = {"model": [types.SimpleNamespace(uri="gs://bucket/out/model")]}
+
+        assert mod.translate_executor_output(output_dict, {}) == "translated"

@@ -8,14 +8,10 @@ This script:
 Usage (in a Dockerfile), sourcing the shim via the `tfx-shim` build context:
     COPY --from=tfx-shim . /tmp/tfx_kfp_v2_shim/
     RUN python /tmp/tfx_kfp_v2_shim/install_shim.py && rm -rf /tmp/tfx_kfp_v2_shim
-
-Flags:
-    --vertex-compatible   Skip the model-directory flattening patch (patch_path_utils)
 """
 
 from __future__ import annotations
 
-import argparse
 import logging
 import shutil
 import site
@@ -24,8 +20,7 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-PTH_CONTENT_ALL = "import tfx_kfp_v2_shim; tfx_kfp_v2_shim.install()\n"
-PTH_CONTENT_VERTEX = "import tfx_kfp_v2_shim; tfx_kfp_v2_shim.install(vertex_compatible=True)\n"
+PTH_CONTENT = "import tfx_kfp_v2_shim; tfx_kfp_v2_shim.install()\n"
 
 # ── Force-exit source patch ──────────────────────────────────────────────────
 # `python -m tfx...kubeflow_v2_run_executor` runs the executor module as
@@ -98,15 +93,8 @@ def patch_run_executor_source(site_packages: Path) -> bool:
     return True
 
 
-def main(argv: list[str] | None = None) -> None:
+def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-    parser = argparse.ArgumentParser(description="Install tfx_kfp_v2_shim.")
-    parser.add_argument(
-        "--vertex-compatible",
-        action="store_true",
-        help="Skip patches that break Vertex AI compatibility.",
-    )
-    args = parser.parse_args(argv)
 
     site_packages = _get_site_packages()
     target_dir = site_packages / "tfx_kfp_v2_shim"
@@ -126,9 +114,8 @@ def main(argv: list[str] | None = None) -> None:
     )
     log.info("Installed shim package to %s", target_dir)
 
-    pth_content = PTH_CONTENT_VERTEX if args.vertex_compatible else PTH_CONTENT_ALL
     pth_file = site_packages / "tfx_kfp_v2_shim.pth"
-    pth_file.write_text(pth_content, encoding="utf-8")
+    pth_file.write_text(PTH_CONTENT, encoding="utf-8")
     log.info("Installed .pth file: %s", pth_file)
     log.info("Shim will activate on every Python invocation.")
 

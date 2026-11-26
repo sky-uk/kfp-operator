@@ -7,7 +7,12 @@ import inspect
 import logging
 import os
 import sys
+from collections.abc import Callable
 from types import ModuleType
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from google.cloud import storage
 
 log = logging.getLogger(__name__)
 
@@ -190,9 +195,11 @@ def _patch_parse_raw_artifact_dict(mod: ModuleType) -> None:
 # ── GCS directory-marker cleanup (patch_entrypoint_utils) ────────────────
 # Issue:   TF's legacy GCS filesystem (≤2.16) creates zero-byte directory
 #          marker blobs. The KFP launcher downloads them as files, blocking
-#          os.MkdirAll for child paths in downstream components.
+#          os.MkdirAll for child paths in downstream components
+#          (kubeflow/pipelines#13476). Only matters on KFP with GCS.
 # Solution: After each executor run, list output artifact URIs and delete
-#           any zero-byte blobs whose name ends with "/".
+#           any zero-byte blobs whose name ends with "/". Applies to gs://
+#           URIs only; failures are logged, not raised.
 
 
 def _patch_translate_executor_output(mod: ModuleType) -> None:
@@ -200,7 +207,7 @@ def _patch_translate_executor_output(mod: ModuleType) -> None:
     original = mod.translate_executor_output
 
     @functools.cache
-    def _get_client():
+    def _get_client() -> storage.Client:
         from google.cloud import storage as gcs_storage
 
         return gcs_storage.Client()
@@ -210,27 +217,10 @@ def _patch_translate_executor_output(mod: ModuleType) -> None:
         for _key, artifacts in output_dict.items():
             for art in artifacts:
                 if art.uri and art.uri.startswith("gs://"):
-                    _delete_gcs_directory_markers(art.uri, _get_client())
+                    _delete_gcs_directory_markers(art.uri, _get_client)
         return original(output_dict, name_from_id)
 
     mod.translate_executor_output = _patched
-
-
-# ── Model directory flattening (patch_path_utils) ────────────────────────
-# Issue:   TFX saves models under <uri>/Format-Serving/. The KFP launcher's
-#          DownloadBlob treats GCS directory markers as files, which blocks
-#          os.MkdirAll for the nested child paths.
-# Solution: Replace serving_model_dir to return output_uri directly,
-#           removing the nested subdirectory. Breaks Vertex AI.
-
-
-def patch_path_utils(mod: ModuleType) -> None:
-    """Skip Format-Serving/ subdirectory. Breaks Vertex AI."""
-
-    def _flat(output_uri: str, is_old_artifact: bool = False) -> str:
-        return output_uri
-
-    mod.serving_model_dir = _flat
 
 
 # ── DAG runner compatibility (patch_experimental) ────────────────────────
@@ -290,9 +280,10 @@ def patch_run_executor(mod: ModuleType) -> None:
 # ── Helpers ──────────────────────────────────────────────────────────────
 
 
-def _delete_gcs_directory_markers(uri: str, client) -> None:
-    """Delete zero-byte blobs ending with ``/`` under *uri*."""
+def _delete_gcs_directory_markers(uri: str, get_client: Callable[[], storage.Client]) -> None:
+    """Delete zero-byte blobs ending with ``/`` under *uri*. Errors are logged, not raised."""
     try:
+        client = get_client()
         bucket_name, _, prefix = uri.removeprefix("gs://").partition("/")
         if prefix and not prefix.endswith("/"):
             prefix += "/"

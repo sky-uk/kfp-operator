@@ -64,27 +64,19 @@ def test_main_copies_package_writes_pth(tmp_path, monkeypatch):
 
     monkeypatch.setattr(install_shim, "_get_site_packages", lambda: tmp_path)
     monkeypatch.setattr(install_shim, "patch_run_executor_source", patch_source)
-    install_shim.main([])
+    install_shim.main()
 
     target = tmp_path / "tfx_kfp_v2_shim"
     assert (target / "__init__.py").exists()
     assert not (target / "install_shim.py").exists()
-    assert (tmp_path / "tfx_kfp_v2_shim.pth").read_text() == install_shim.PTH_CONTENT_ALL
+    assert (tmp_path / "tfx_kfp_v2_shim.pth").read_text() == install_shim.PTH_CONTENT
     assert calls == [tmp_path]
-
-
-def test_main_vertex_compatible_writes_vertex_pth(tmp_path, monkeypatch):
-    monkeypatch.setattr(install_shim, "_get_site_packages", lambda: tmp_path)
-    monkeypatch.setattr(install_shim, "patch_run_executor_source", lambda path: True)
-    install_shim.main(["--vertex-compatible"])
-
-    assert (tmp_path / "tfx_kfp_v2_shim.pth").read_text() == install_shim.PTH_CONTENT_VERTEX
 
 
 def test_main_fails_install_when_force_exit_patch_cannot_apply(tmp_path, monkeypatch):
     monkeypatch.setattr(install_shim, "_get_site_packages", lambda: tmp_path)
     monkeypatch.setattr(install_shim, "patch_run_executor_source", lambda path: False)
     with pytest.raises(SystemExit) as exc:
-        install_shim.main([])
+        install_shim.main()
     assert exc.value.code == 1
     assert (tmp_path / "tfx_kfp_v2_shim").is_dir()
