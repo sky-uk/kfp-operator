@@ -27,6 +27,7 @@ dist/
 # Hugo/Website
 node_modules/
 .hugo_build.lock
+docs-gen/resources/_gen/
 
 # OS
 .DS_Store
