@@ -15,7 +15,6 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/proto"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/yaml"
 )
@@ -28,6 +27,7 @@ type KfpProvider struct {
 	recurringRunService   RecurringRunService
 	experimentService     ExperimentService
 	labelService          LabelService
+	platformService       PlatformService
 }
 
 func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
@@ -87,6 +87,8 @@ func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 
 	labelService := NewDefaultLabelService()
 
+	platformService := NewDefaultPlatformService(cfg.Parameters.Platform)
+
 	return &KfpProvider{
 		config:                cfg,
 		pipelineUploadService: pipelineUploadService,
@@ -95,6 +97,7 @@ func NewKfpProvider(cfg *config.Config) (*KfpProvider, error) {
 		recurringRunService:   recurringRunService,
 		experimentService:     experimentService,
 		labelService:          labelService,
+		platformService:       platformService,
 	}, nil
 }
 
@@ -141,25 +144,7 @@ func (p *KfpProvider) preparePipeline(pdw resource.PipelineDefinitionWrapper) (r
 		return nil, fmt.Errorf("failed to insert labels into parameters: %w", err)
 	}
 
-	platform := p.config.Parameters.Platform
-	if len(platform.Accelerators) == 0 && proto.Size(platform.Kubernetes) == 0 {
-		return compiledPipeline, nil
-	}
-
-	pipelinePackage, err := ParsePipelinePackage(compiledPipeline)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse compiled pipeline: %w", err)
-	}
-
-	// Accelerators go first, so their node selectors take precedence over the platform's.
-	if err := placeAccelerators(platform.Accelerators, pipelinePackage); err != nil {
-		return nil, fmt.Errorf("failed to place accelerators: %w", err)
-	}
-	if err := pipelinePackage.MergeKubernetesExecutorConfigIntoContainers(platform.Kubernetes); err != nil {
-		return nil, fmt.Errorf("failed to apply platform settings: %w", err)
-	}
-
-	return pipelinePackage.Marshal()
+	return p.platformService.Apply(compiledPipeline)
 }
 
 func (p *KfpProvider) CreatePipeline(
